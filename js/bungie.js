@@ -1,7 +1,5 @@
 // ============================================================
 // GUARDIANHQ — js/bungie.js
-// Bungie API client — veilig, geen secrets in de frontend
-// CLIENT_SECRET staat in api/bungie-auth.js (Vercel)
 // ============================================================
 
 const BUNGIE_API_KEY   = '4dfc76257eaa472da8d633b338850d21';
@@ -23,7 +21,10 @@ function saveBungieTokens(data) {
   localStorage.setItem('bungie_access_token',  data.access_token);
   localStorage.setItem('bungie_refresh_token', data.refresh_token);
   localStorage.setItem('bungie_token_expires', expires.toString());
-  localStorage.setItem('bungie_membership_id', data.membership_id);
+  // membership_id kan leeg zijn — dat is ok, we halen het later op
+  if (data.membership_id) {
+    localStorage.setItem('bungie_membership_id', data.membership_id);
+  }
 }
 
 function getBungieTokens() {
@@ -37,12 +38,12 @@ function getBungieTokens() {
 
 function isBungieLinked() {
   const t = getBungieTokens();
-  return !!(t.access_token && t.membership_id);
+  return !!(t.access_token);  // alleen access_token nodig
 }
 
 function clearBungieTokens() {
   ['bungie_access_token','bungie_refresh_token','bungie_token_expires','bungie_membership_id',
-   'bungie_platform','bungie_destiny_id','bungie_profile'].forEach(k => localStorage.removeItem(k));
+   'bungie_platform','bungie_destiny_id','bungie_display_name'].forEach(k => localStorage.removeItem(k));
 }
 
 function bungieLogin() {
@@ -103,72 +104,78 @@ async function getValidToken() {
   return t.access_token;
 }
 
-async function bungieGet(endpoint) {
+async function bungieGet(endpoint, requireAuth = false) {
   const token   = await getValidToken();
   const headers = { 'X-API-Key': BUNGIE_API_KEY };
   if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  console.log('Bungie GET:', endpoint, 'token:', token ? 'aanwezig' : 'leeg');
+
   const res  = await fetch(BUNGIE_ROOT + endpoint, { headers });
-  const data = await res.json();
-  if (data.ErrorCode !== 1) throw new Error(data.Message || 'Bungie API fout');
+  const text = await res.text();
+
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch(e) {
+    throw new Error('Geen geldige JSON van Bungie: ' + text.slice(0, 100));
+  }
+
+  if (data.ErrorCode && data.ErrorCode !== 1) {
+    throw new Error(data.Message || 'Bungie API fout ' + data.ErrorCode);
+  }
   return data.Response;
-}
-
-async function getBungieProfile() {
-  return await bungieGet('/User/GetCurrentUser/');
-}
-
-async function getDestinyMemberships() {
-  const profile     = await getBungieProfile();
-  const memberships = profile.destinyMemberships;
-  if (!memberships || !memberships.length) throw new Error('Geen Destiny account gevonden');
-  const m = memberships[0];
-  localStorage.setItem('bungie_platform',    m.membershipType.toString());
-  localStorage.setItem('bungie_destiny_id',  m.membershipId);
-  localStorage.setItem('bungie_display_name', profile.uniqueName || m.bungieGlobalDisplayName || '');
-  return { membership: m, bungieUser: profile };
-}
-
-async function getCharacters(membershipType, membershipId) {
-  return await bungieGet(
-    `/Destiny2/${membershipType}/Profile/${membershipId}/?components=100,200,204,205`
-  );
 }
 
 async function loadBungieProfileData() {
   try {
-    const { membership, bungieUser } = await getDestinyMemberships();
-    const profile = await getCharacters(membership.membershipType, membership.membershipId);
+    // Stap 1: haal Bungie gebruiker op
+    const user = await bungieGet('/User/GetCurrentUser/');
+    console.log('Bungie user:', user);
 
-    const characters = profile.characters?.data;
-    if (!characters) return;
-
-    // Bungie naam tonen
-    const bungieNameEl = document.getElementById('profileId');
-    const displayName  = bungieUser.uniqueName || bungieUser.displayName || '';
-    if (bungieNameEl && displayName) {
-      bungieNameEl.textContent = 'Bungie: ' + displayName;
+    const memberships = user.destinyMemberships;
+    if (!memberships || !memberships.length) {
+      throw new Error('Geen Destiny account gevonden');
     }
 
-    // Alle characters verwerken
-    const classNames  = { 0: 'Titan', 1: 'Hunter', 2: 'Warlock' };
-    const classIcons  = { 0: '🛡️', 1: '🏹', 2: '✨' };
-    const charIds     = Object.keys(characters);
-    const charBtns    = document.querySelectorAll('.char-btn');
+    // Naam tonen
+    const displayName = user.uniqueName || user.displayName || '';
+    localStorage.setItem('bungie_display_name', displayName);
+    const nameEl = document.getElementById('profileId');
+    if (nameEl && displayName) nameEl.textContent = 'Bungie: ' + displayName;
+
+    // Beste membership pakken
+    const m = memberships.find(x => x.crossSaveOverride === x.membershipType) || memberships[0];
+    localStorage.setItem('bungie_platform',   m.membershipType.toString());
+    localStorage.setItem('bungie_destiny_id', m.membershipId);
+
+    // Stap 2: haal characters op
+    const profile    = await bungieGet(`/Destiny2/${m.membershipType}/Profile/${m.membershipId}/?components=100,200`);
+    const characters = profile.characters?.data;
+
+    if (!characters) {
+      console.warn('Geen characters gevonden');
+      return;
+    }
+
+    const classNames = { 0: 'Titan', 1: 'Hunter', 2: 'Warlock' };
+    const classIcons = { 0: '🛡️',   1: '🏹',    2: '✨' };
+    const charIds    = Object.keys(characters);
+    const charBtns   = document.querySelectorAll('.char-btn');
 
     let totalMinutes = 0;
     let highestPower = 0;
 
     charIds.forEach((charId, idx) => {
       const char      = characters[charId];
-      const className = classNames[char.classType] || 'Guardian';
-      const icon      = classIcons[char.classType] || '⚔️';
+      const className = classNames[char.classType] ?? 'Guardian';
+      const icon      = classIcons[char.classType] ?? '⚔️';
       const power     = char.light || 0;
       const minutes   = parseInt(char.minutesPlayedTotal || 0);
 
       totalMinutes += minutes;
       if (power > highestPower) highestPower = power;
 
-      // Update character knop
       if (charBtns[idx]) {
         charBtns[idx].innerHTML = `
           <span class="class-icon">${icon}</span>
@@ -178,17 +185,16 @@ async function loadBungieProfileData() {
       }
     });
 
-    // Power level
+    // Stats updaten
     const powerEl = document.querySelector('[data-bungie="power"]');
     if (powerEl && highestPower > 0) powerEl.textContent = highestPower;
 
-    // Uren gespeeld
     const hoursEl = document.getElementById('hoursPlayed');
     if (hoursEl && totalMinutes > 0) {
       hoursEl.textContent = Math.floor(totalMinutes / 60).toLocaleString('nl-NL');
     }
 
-    // Knop updaten naar "gekoppeld"
+    // Knop updaten
     const linkBtn = document.getElementById('bungieLinkBtn');
     if (linkBtn) {
       linkBtn.textContent       = '✓ Bungie Gekoppeld';
@@ -203,7 +209,8 @@ async function loadBungieProfileData() {
       };
     }
 
-    return { characters, membership };
+    console.log('Bungie data geladen! Power:', highestPower, 'Uren:', Math.floor(totalMinutes/60));
+    return { characters, membership: m };
 
   } catch (err) {
     console.warn('Bungie data laden mislukt:', err.message);
