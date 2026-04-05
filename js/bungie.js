@@ -4,8 +4,8 @@
 // CLIENT_SECRET staat in netlify/functions/bungie-auth.js
 // ============================================================
 
-const BUNGIE_API_KEY  = 'JOUW_API_KEY_HIER';   // API key mag wel in frontend
-const BUNGIE_CLIENT_ID = 'JOUW_CLIENT_ID_HIER'; // Client ID mag ook
+const BUNGIE_API_KEY   = '4dfc76257eaa472da8d633b338850d21';
+const BUNGIE_CLIENT_ID = '51930';
 const BUNGIE_ROOT     = 'https://www.bungie.net/Platform';
 const OAUTH_URL       = 'https://www.bungie.net/en/OAuth/Authorize';
 const TOKEN_FUNCTION  = '/api/bungie-auth'; // Netlify function (veilig)
