@@ -280,6 +280,7 @@
     let selectedAvatar = localStorage.getItem('ghq_avatar') || '⬡';
 
     window.addEventListener('DOMContentLoaded', async () => {
+      if (!requireLogin('login.html')) return;
       const user = getCurrentUser();
       if (user) {
         document.getElementById('profileName').textContent = user.username;
@@ -288,11 +289,18 @@
         // Verwerk Bungie OAuth callback als er een code in de URL zit
         if (window.location.search.includes('code=')) {
           const linked = await handleBungieCallback();
-          if (linked) showToast('✓ Bungie account gekoppeld!');
+          if (linked) {
+            showToast('✓ Bungie account gekoppeld!');
+            await new Promise(r => setTimeout(r, 500));
+            loadBungieProfileData();
+          } else {
+            document.getElementById('hoursPlayed').textContent = '—';
+          }
+        } else if (isBungieLinked()) {
+          loadBungieProfileData();
+        } else {
+          document.getElementById('hoursPlayed').textContent = '—';
         }
-        // Laad Bungie data als al gekoppeld
-        if (isBungieLinked()) loadBungieProfileData();
-        document.getElementById('hoursPlayed').textContent = Math.floor(Math.random()*500+400);
       }
       const saved = localStorage.getItem('ghq_avatar') || '⬡';
       document.getElementById('avatarEmoji').textContent = saved;
