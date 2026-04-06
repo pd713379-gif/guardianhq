@@ -147,6 +147,7 @@ async function loadBungieProfileData() {
     localStorage.setItem('bungie_platform',   m.membershipType.toString());
     localStorage.setItem('bungie_destiny_id', m.membershipId);
 
+    // Laad profiel (characters)
     var profile    = await bungieGet('/Destiny2/' + m.membershipType + '/Profile/' + m.membershipId + '/?components=100,200');
     var characters = profile.characters && profile.characters.data;
     if (!characters) {
@@ -183,6 +184,40 @@ async function loadBungieProfileData() {
     var hoursEl = document.getElementById('hoursPlayed');
     if (hoursEl && totalMinutes > 0) {
       hoursEl.textContent = Math.floor(totalMinutes / 60).toLocaleString('nl-NL');
+    }
+
+    // Laad historische stats (K/D + raids)
+    try {
+      var stats = await bungieGet('/Destiny2/' + m.membershipType + '/Account/' + m.membershipId + '/Stats/');
+      var merged = stats && stats.mergedAllCharacters && stats.mergedAllCharacters.results;
+      var allPvE = merged && merged.allPvE && merged.allPvE.allTime;
+      var allPvP = merged && merged.allPvP && merged.allPvP.allTime;
+
+      // K/D ratio uit PvP stats
+      if (allPvP && allPvP.killsDeathsRatio) {
+        var kd = allPvP.killsDeathsRatio.basic.displayValue;
+        var kdEl = document.querySelector('.pstat-num:nth-child(1)');
+        // Zoek specifiek de K/D cel
+        document.querySelectorAll('.pstat').forEach(function(el) {
+          if (el.querySelector('.pstat-label') && el.querySelector('.pstat-label').textContent.includes('K/D')) {
+            el.querySelector('.pstat-num').textContent = kd;
+          }
+        });
+        console.log('✅ K/D:', kd);
+      }
+
+      // Raids voltooid uit PvE stats
+      if (allPvE && allPvE.activitiesCleared) {
+        var raids = allPvE.activitiesCleared.basic.value;
+        document.querySelectorAll('.pstat').forEach(function(el) {
+          if (el.querySelector('.pstat-label') && el.querySelector('.pstat-label').textContent.includes('Raids')) {
+            el.querySelector('.pstat-num').textContent = Math.round(raids).toLocaleString('nl-NL');
+          }
+        });
+        console.log('✅ Activiteiten voltooid:', raids);
+      }
+    } catch(statsErr) {
+      console.warn('Stats laden mislukt:', statsErr.message);
     }
 
     var linkBtn = document.getElementById('bungieLinkBtn');
