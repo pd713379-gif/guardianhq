@@ -15,12 +15,13 @@ export default async function handler(req, res) {
   // ── Configuratie ──────────────────────────────────────────
   const CLIENT_ID     = process.env.BUNGIE_CLIENT_ID;
   const CLIENT_SECRET = process.env.BUNGIE_CLIENT_SECRET;
-  const API_KEY       = process.env.BUNGIE_API_KEY || '8dde842300df4ffbae605b0f48cf43f9';
+  const API_KEY       = process.env.BUNGIE_API_KEY;
 
-  if (!CLIENT_ID || !CLIENT_SECRET) {
+  if (!CLIENT_ID || !CLIENT_SECRET || !API_KEY) {
     console.error('[bungie-auth] Omgevingsvariabelen ontbreken:', {
       CLIENT_ID:     !!CLIENT_ID,
       CLIENT_SECRET: !!CLIENT_SECRET,
+      API_KEY:       !!API_KEY,
     });
     return res.status(500).json({ error: 'Server niet geconfigureerd. Omgevingsvariabelen ontbreken.' });
   }
@@ -117,7 +118,7 @@ export default async function handler(req, res) {
       });
     }
 
-    const tokenRes = await fetch('https://www.bungie.net/platform/app/oauth/token/', {
+    const tokenRes = await fetch('https://www.bungie.net/Platform/app/oauth/token/', {
       method:  'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body:    tokenBody.toString(),
