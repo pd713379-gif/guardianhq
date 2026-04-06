@@ -110,18 +110,72 @@
     .lm-name{font-size:0.875rem;font-weight:600;margin-bottom:2px}
     .lm-sub{font-size:0.75rem;color:var(--text3)}
     .lm-power{margin-left:auto;color:var(--gold2);font-weight:700;font-size:0.875rem}
-    .avatar-picker{
-      display:none;position:fixed;inset:0;z-index:200;
-      background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);
-      align-items:center;justify-content:center;
-    }
-    .avatar-picker.open{display:flex}
-    .avatar-box{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:2rem;max-width:400px;width:90%}
-    .avatar-box h3{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;margin-bottom:1.25rem;letter-spacing:1px}
-    .avatar-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:1.5rem}
-    .av-opt{width:100%;aspect-ratio:1;border-radius:12px;background:rgba(255,255,255,0.05);border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:1.5rem;cursor:pointer;transition:all 0.15s}
-    .av-opt:hover{border-color:var(--border2);background:rgba(255,255,255,0.08)}
-    .av-opt.selected{border-color:var(--gold2);background:rgba(212,168,67,0.1)}
+    /* ── MODALS ── */
+    .modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:1rem}
+    .modal-overlay.open{display:flex}
+    .modal-box{background:#0d1117;border:1px solid var(--border2);border-radius:24px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:2rem}
+    .modal-box::-webkit-scrollbar{width:4px}.modal-box::-webkit-scrollbar-track{background:transparent}.modal-box::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+    .modal-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem}
+    .modal-title{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700}
+    .modal-sub{font-size:0.8rem;color:var(--text3);margin-top:3px}
+    .modal-close{background:rgba(255,255,255,0.07);border:1px solid var(--border);color:var(--text2);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .modal-close:hover{background:rgba(255,255,255,0.12);color:var(--text)}
+    .modal-section{margin-bottom:1.5rem}
+    .modal-section-label{font-size:0.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:1rem}
+    .modal-divider{height:1px;background:var(--border);margin:1.5rem 0}
+    /* Avatar section */
+    .avatar-section{display:flex;align-items:center;gap:1.25rem;margin-bottom:1rem}
+    .avatar-preview-wrap{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#d4a843,#f5c842);display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0;overflow:hidden;border:2px solid var(--border2)}
+    .avatar-preview-wrap img{width:100%;height:100%;object-fit:cover}
+    .avatar-btns{display:flex;flex-direction:column;gap:8px;flex:1}
+    .avatar-btn{padding:9px 16px;border-radius:10px;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;text-align:center}
+    .avatar-btn-icon{background:rgba(212,168,67,0.1);border:1px solid rgba(212,168,67,0.3);color:var(--gold2)}
+    .avatar-btn-icon:hover{background:rgba(212,168,67,0.2)}
+    .avatar-btn-photo{background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text2)}
+    .avatar-btn-photo:hover{background:rgba(255,255,255,0.1);color:var(--text)}
+    .avatar-upload-hint{font-size:0.72rem;color:var(--text3);line-height:1.5}
+    /* Form fields */
+    .edit-field{margin-bottom:1rem}
+    .edit-label{font-size:0.75rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:6px;display:block}
+    .edit-input,.edit-textarea{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:10px;font-family:'Inter',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s;resize:none}
+    .edit-input:focus,.edit-textarea:focus{border-color:rgba(212,168,67,0.5)}
+    .edit-input::placeholder,.edit-textarea::placeholder{color:var(--text3)}
+    .edit-charcount{font-size:0.72rem;color:var(--text3);text-align:right;margin-top:4px}
+    .edit-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    /* Social input */
+    .social-input-wrap{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px 14px;margin-bottom:8px;transition:border-color 0.2s}
+    .social-input-wrap:focus-within{border-color:rgba(212,168,67,0.5)}
+    .social-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0}
+    .social-input{flex:1;background:transparent;border:none;color:var(--text);font-family:'Inter',sans-serif;font-size:0.875rem;outline:none}
+    .social-input::placeholder{color:var(--text3)}
+    /* Modal footer */
+    .modal-footer{display:flex;gap:10px;margin-top:1.5rem}
+    .modal-save{flex:1;padding:12px;background:var(--grad);color:#000;font-weight:700;font-size:0.95rem;border:none;border-radius:12px;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:opacity 0.2s}
+    .modal-save:hover{opacity:0.9}
+    .modal-cancel{padding:12px 20px;background:transparent;border:1px solid var(--border2);color:var(--text2);font-weight:600;font-size:0.9rem;border-radius:12px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s}
+    .modal-cancel:hover{background:rgba(255,255,255,0.07);color:var(--text)}
+    /* Avatar icon picker */
+    .icon-picker-search{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:9px 14px 9px 36px;border-radius:10px;font-family:'Inter',sans-serif;font-size:0.875rem;outline:none;margin-bottom:1rem;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.3)' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:12px center}
+    .icon-picker-search::placeholder{color:var(--text3)}
+    .icon-categories{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem}
+    .icon-cat-btn{padding:5px 14px;border-radius:100px;font-size:0.78rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text2);transition:all 0.2s}
+    .icon-cat-btn:hover{border-color:var(--border2);color:var(--text)}
+    .icon-cat-btn.active{background:rgba(212,168,67,0.12);border-color:rgba(212,168,67,0.4);color:var(--gold2)}
+    .icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:1.25rem}
+    .icon-opt{width:100%;aspect-ratio:1;border-radius:12px;background:rgba(255,255,255,0.04);border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:1.4rem;cursor:pointer;transition:all 0.15s;position:relative}
+    .icon-opt:hover{border-color:var(--border2);background:rgba(255,255,255,0.08)}
+    .icon-opt.selected{border-color:var(--gold2);background:rgba(212,168,67,0.1)}
+    .icon-opt.selected::after{content:'✓';position:absolute;bottom:2px;right:4px;font-size:0.55rem;color:var(--gold2);font-weight:700}
+    .icon-preview{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border-radius:12px;padding:12px;margin-bottom:1.25rem}
+    .icon-preview-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#d4a843,#f5c842);display:flex;align-items:center;justify-content:center;font-size:1.4rem;overflow:hidden}
+    .icon-preview-avatar img{width:100%;height:100%;object-fit:cover}
+    .icon-preview-name{font-size:0.875rem;font-weight:600}
+    .icon-preview-sub{font-size:0.75rem;color:var(--text3)}
+    /* Upload confirm */
+    .upload-confirm-wrap{background:rgba(232,98,42,0.06);border:1px solid rgba(232,98,42,0.2);border-radius:12px;padding:1rem;margin-bottom:1rem}
+    .upload-confirm-check{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+    .upload-confirm-check input{margin-top:2px;accent-color:var(--gold2);width:16px;height:16px;flex-shrink:0}
+    .upload-confirm-text{font-size:0.82rem;color:var(--text2);line-height:1.5}
     @media(max-width:768px){
       .profile-grid{grid-template-columns:1fr}
       .profile-stats-bar{grid-template-columns:repeat(3,1fr)}
@@ -153,14 +207,142 @@
     </div>
   </nav>
 
-  <!-- AVATAR PICKER -->
-  <div class="avatar-picker" id="avatarPicker">
-    <div class="avatar-box">
-      <h3>Kies je Guardian Avatar</h3>
-      <div class="avatar-grid" id="avatarGrid"></div>
-      <div style="display:flex;gap:10px">
-        <button class="btn btn-solid" style="flex:1" onclick="saveAvatar()">Opslaan</button>
-        <button class="btn btn-ghost" style="flex:1" onclick="closeAvatarPicker()">Annuleren</button>
+  <!-- PROFIEL BEWERKEN MODAL -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Profiel Bewerken</div>
+          <div class="modal-sub">Wijzigingen worden zichtbaar op je profielpagina</div>
+        </div>
+        <button class="modal-close" onclick="closeEditModal()">✕</button>
+      </div>
+
+      <!-- Avatar -->
+      <div class="modal-section">
+        <div class="modal-section-label">Avatar</div>
+        <div class="avatar-section">
+          <div class="avatar-preview-wrap" id="editAvatarPreview">⬡</div>
+          <div class="avatar-btns">
+            <button class="avatar-btn avatar-btn-icon" onclick="openIconPicker()">Kies Icoon</button>
+            <button class="avatar-btn avatar-btn-photo" onclick="document.getElementById('photoUploadInput').click()">Foto Uploaden</button>
+            <input type="file" id="photoUploadInput" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handlePhotoUpload(this)">
+          </div>
+        </div>
+        <div class="avatar-upload-hint">JPG · PNG · WebP · max 500KB<br>Wordt automatisch verkleind naar 400×400px<br>Geen 18+ afbeeldingen</div>
+      </div>
+
+      <div class="modal-divider"></div>
+
+      <!-- Basisinfo -->
+      <div class="modal-section">
+        <div class="modal-section-label">Basisinfo</div>
+        <div class="edit-field">
+          <label class="edit-label">Schermnaam</label>
+          <input class="edit-input" id="editUsername" maxlength="30" placeholder="Jouw naam" oninput="updateCharCount('editUsername',30,'usernameCount')">
+          <div class="edit-charcount"><span id="usernameCount">0</span>/30</div>
+        </div>
+        <div class="edit-field">
+          <label class="edit-label">Bio</label>
+          <textarea class="edit-textarea" id="editBio" rows="3" maxlength="160" placeholder="Vertel iets over jezelf..." oninput="updateCharCount('editBio',160,'bioCount')"></textarea>
+          <div class="edit-charcount"><span id="bioCount">0</span>/160</div>
+        </div>
+        <div class="edit-row">
+          <div class="edit-field">
+            <label class="edit-label">Locatie</label>
+            <input class="edit-input" id="editLocation" maxlength="50" placeholder="Amsterdam, NL">
+          </div>
+          <div class="edit-field">
+            <label class="edit-label">Website</label>
+            <input class="edit-input" id="editWebsite" maxlength="100" placeholder="https://...">
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-divider"></div>
+
+      <!-- Social Accounts -->
+      <div class="modal-section">
+        <div class="modal-section-label">Social Accounts</div>
+        <div class="social-input-wrap">
+          <div class="social-icon" style="background:#5865F2">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.1 18.078.11 18.1.132 18.113a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+          </div>
+          <input class="social-input" id="editDiscord" placeholder="Discord gebruikersnaam">
+        </div>
+        <div class="social-input-wrap">
+          <div class="social-icon" style="background:#000">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </div>
+          <input class="social-input" id="editTwitter" placeholder="@jouwhandle">
+        </div>
+        <div class="social-input-wrap">
+          <div class="social-icon" style="background:#9146FF">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+          </div>
+          <input class="social-input" id="editTwitch" placeholder="Twitch kanaal">
+        </div>
+        <div class="social-input-wrap">
+          <div class="social-icon" style="background:#FF4655">
+            <span style="color:white;font-size:0.65rem;font-weight:900">V</span>
+          </div>
+          <input class="social-input" id="editValorant" placeholder="Valorant naam#tag">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="modal-cancel" onclick="closeEditModal()">Annuleren</button>
+        <button class="modal-save" onclick="saveProfile()">Opslaan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ICON PICKER MODAL -->
+  <div class="modal-overlay" id="iconPickerModal">
+    <div class="modal-box" style="max-width:460px">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Kies je Guardian Avatar</div>
+          <div class="modal-sub">Selecteer een icoon dat bij jouw stijl past</div>
+        </div>
+        <button class="modal-close" onclick="closeIconPicker()">✕</button>
+      </div>
+      <input class="icon-picker-search" id="iconSearch" placeholder="Zoek icoon..." oninput="filterIcons()">
+      <div class="icon-categories" id="iconCategories"></div>
+      <div class="icon-grid" id="iconGrid"></div>
+      <div class="icon-preview">
+        <div class="icon-preview-avatar" id="iconPreviewAvatar">⬡</div>
+        <div>
+          <div class="icon-preview-name" id="iconPreviewName">TestGuardian</div>
+          <div class="icon-preview-sub">Zo ziet je avatar eruit op je profiel</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-cancel" onclick="closeIconPicker()">Annuleren</button>
+        <button class="modal-save" onclick="saveIconSelection()">Opslaan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOTO UPLOAD CONFIRM -->
+  <div class="modal-overlay" id="uploadConfirmModal">
+    <div class="modal-box" style="max-width:400px">
+      <div class="modal-header">
+        <div class="modal-title">Foto bevestigen</div>
+        <button class="modal-close" onclick="closeUploadConfirm()">✕</button>
+      </div>
+      <div style="text-align:center;margin-bottom:1.25rem">
+        <img id="uploadPreviewImg" style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid var(--border2)">
+      </div>
+      <div class="upload-confirm-wrap">
+        <label class="upload-confirm-check">
+          <input type="checkbox" id="uploadConfirmCheck">
+          <span class="upload-confirm-text">Ik bevestig dat deze afbeelding geschikt is voor alle leeftijden en geen 18+ of aanstootgevende inhoud bevat.</span>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-cancel" onclick="closeUploadConfirm()">Annuleren</button>
+        <button class="modal-save" onclick="confirmPhotoUpload()">Foto Gebruiken</button>
       </div>
     </div>
   </div>
@@ -170,7 +352,7 @@
     <div class="profile-inner">
       <div class="profile-top">
         <div class="profile-avatar-wrap">
-          <div class="profile-avatar" onclick="openAvatarPicker()" id="profileAvatar">
+          <div class="profile-avatar" onclick="openEditModal()" id="profileAvatar">
             <span class="avatar-emoji" id="avatarEmoji">⬡</span>
             <div class="avatar-edit">Wijzig</div>
           </div>
@@ -189,7 +371,7 @@
         <div class="profile-actions">
           <button class="btn btn-ghost" onclick="openBungie()">Bungie.net ↗</button>
           <button class="btn btn-ghost" id="bungieLinkBtn" onclick="bungieLogin()" style="border-color:rgba(212,168,67,0.4);color:var(--gold2)">⚡ Koppel Bungie Account</button>
-          <button class="btn btn-solid" id="editBtn" style="display:none" onclick="showToast('Profiel bewerken komt binnenkort!')">Bewerk Profiel</button>
+          <button class="btn btn-solid" id="editBtn" style="display:none" onclick="openEditModal()">Bewerk Profiel</button>
         </div>
       </div>
 
@@ -281,9 +463,25 @@
   <script src="js/auth.js"></script>
   <script src="js/main.js"></script>
   <script>
-    const AVATARS = ['⬡','🏹','✨','🛡️','🔫','⚡','🚀','🗡️','🏰','🎯','👁️','🌙','🔥','❄️','⚔️','🌟','💀','🐉','🦅','🌊','☄️','💎','🎭','🔮'];
-    let selectedAvatar = localStorage.getItem('ghq_avatar') || '⬡';
+    // ── Icon data ──────────────────────────────────────────────
+    const ICON_DATA = [
+      { e:'⬡',  cat:'overig'  }, { e:'🏹', cat:'destiny' }, { e:'✨', cat:'destiny' },
+      { e:'🛡️', cat:'destiny' }, { e:'🔫', cat:'combat'  }, { e:'⚡', cat:'destiny' },
+      { e:'🚀', cat:'combat'  }, { e:'🗡️', cat:'combat'  }, { e:'🏰', cat:'destiny' },
+      { e:'🎯', cat:'combat'  }, { e:'👁️', cat:'destiny' }, { e:'🌙', cat:'natuur'  },
+      { e:'🔥', cat:'natuur'  }, { e:'❄️', cat:'natuur'  }, { e:'⚔️', cat:'combat'  },
+      { e:'🌟', cat:'natuur'  }, { e:'💀', cat:'combat'  }, { e:'🐉', cat:'overig'  },
+      { e:'🦅', cat:'natuur'  }, { e:'🌊', cat:'natuur'  }, { e:'☄️', cat:'natuur'  },
+      { e:'💎', cat:'overig'  }, { e:'🎭', cat:'overig'  }, { e:'🔮', cat:'overig'  },
+    ];
+    const ICON_CATS = ['Alles','Destiny','Natuur','Combat','Overig'];
 
+    let currentIconCat = 'Alles';
+    let selectedIcon   = localStorage.getItem('ghq_avatar') || '⬡';
+    let pendingPhotoDataUrl = null;
+    let currentAvatarType  = localStorage.getItem('ghq_avatar_type') || 'icon'; // 'icon' or 'photo'
+
+    // ── Init ───────────────────────────────────────────────────
     window.addEventListener('DOMContentLoaded', async () => {
       if (!requireLogin('login.html')) return;
       const user = getCurrentUser();
@@ -291,7 +489,6 @@
         document.getElementById('profileName').textContent = user.username;
         document.getElementById('profileId').textContent = 'GuardianHQ ID: ' + user.username;
         document.getElementById('editBtn').style.display = 'inline-flex';
-        // Verwerk Bungie OAuth callback als er een code in de URL zit
         if (window.location.search.includes('code=')) {
           const linked = await handleBungieCallback();
           if (linked) {
@@ -307,35 +504,202 @@
           document.getElementById('hoursPlayed').textContent = '—';
         }
       }
-      const saved = localStorage.getItem('ghq_avatar') || '⬡';
-      document.getElementById('avatarEmoji').textContent = saved;
+      loadAvatarDisplay();
     });
 
-    function openAvatarPicker() {
+    function loadAvatarDisplay() {
+      const type  = localStorage.getItem('ghq_avatar_type') || 'icon';
+      const emoji = localStorage.getItem('ghq_avatar') || '⬡';
+      const photo = localStorage.getItem('ghq_avatar_photo');
+      const el    = document.getElementById('avatarEmoji');
+      const wrap  = document.getElementById('profileAvatar');
+      if (type === 'photo' && photo) {
+        el.style.display = 'none';
+        let img = wrap.querySelector('img.avatar-photo');
+        if (!img) { img = document.createElement('img'); img.className = 'avatar-photo'; img.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%'; wrap.appendChild(img); }
+        img.src = photo;
+      } else {
+        el.style.display = '';
+        el.textContent = emoji;
+        const img = wrap.querySelector('img.avatar-photo');
+        if (img) img.remove();
+      }
+    }
+
+    // ── Edit Modal ─────────────────────────────────────────────
+    function openEditModal() {
       const user = getCurrentUser();
-      if (!user) { showToast('Log in om je avatar te wijzigen'); return; }
-      const grid = document.getElementById('avatarGrid');
-      grid.innerHTML = AVATARS.map(a => `<div class="av-opt ${a===selectedAvatar?'selected':''}" onclick="selectAv(this,'${a}')">${a}</div>`).join('');
-      document.getElementById('avatarPicker').classList.add('open');
+      if (!user) { showToast('Log in om je profiel te bewerken'); return; }
+      // Fill fields with saved data
+      const profile = JSON.parse(localStorage.getItem('ghq_profile') || '{}');
+      document.getElementById('editUsername').value  = user.username || '';
+      document.getElementById('editBio').value       = profile.bio      || '';
+      document.getElementById('editLocation').value  = profile.location  || '';
+      document.getElementById('editWebsite').value   = profile.website   || '';
+      document.getElementById('editDiscord').value   = profile.discord   || '';
+      document.getElementById('editTwitter').value   = profile.twitter   || '';
+      document.getElementById('editTwitch').value    = profile.twitch    || '';
+      document.getElementById('editValorant').value  = profile.valorant  || '';
+      updateCharCount('editUsername', 30, 'usernameCount');
+      updateCharCount('editBio', 160, 'bioCount');
+      // Show current avatar in edit modal
+      updateEditAvatarPreview();
+      document.getElementById('editModal').classList.add('open');
     }
 
-    function selectAv(el, emoji) {
-      document.querySelectorAll('.av-opt').forEach(e => e.classList.remove('selected'));
+    function closeEditModal() { document.getElementById('editModal').classList.remove('open'); }
+
+    function updateEditAvatarPreview() {
+      const wrap  = document.getElementById('editAvatarPreview');
+      const type  = localStorage.getItem('ghq_avatar_type') || 'icon';
+      const photo = localStorage.getItem('ghq_avatar_photo');
+      const emoji = localStorage.getItem('ghq_avatar') || '⬡';
+      if (type === 'photo' && photo) {
+        wrap.innerHTML = '<img src="' + photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+      } else {
+        wrap.textContent = emoji;
+      }
+    }
+
+    function saveProfile() {
+      const username = document.getElementById('editUsername').value.trim();
+      if (!username) { showToast('Schermnaam mag niet leeg zijn'); return; }
+      const profile = {
+        bio:      document.getElementById('editBio').value.trim(),
+        location: document.getElementById('editLocation').value.trim(),
+        website:  document.getElementById('editWebsite').value.trim(),
+        discord:  document.getElementById('editDiscord').value.trim(),
+        twitter:  document.getElementById('editTwitter').value.trim(),
+        twitch:   document.getElementById('editTwitch').value.trim(),
+        valorant: document.getElementById('editValorant').value.trim(),
+      };
+      localStorage.setItem('ghq_profile', JSON.stringify(profile));
+      // Update displayed name
+      document.getElementById('profileName').textContent = username;
+      closeEditModal();
+      showToast('✓ Profiel opgeslagen!');
+    }
+
+    function updateCharCount(inputId, max, countId) {
+      const len = document.getElementById(inputId).value.length;
+      document.getElementById(countId).textContent = len;
+    }
+
+    // ── Icon Picker ────────────────────────────────────────────
+    function openIconPicker() {
+      closeEditModal();
+      renderIconCategories();
+      renderIconGrid();
+      updateIconPreview();
+      const user = getCurrentUser();
+      if (user) document.getElementById('iconPreviewName').textContent = user.username;
+      document.getElementById('iconSearch').value = '';
+      document.getElementById('iconPickerModal').classList.add('open');
+    }
+
+    function closeIconPicker() {
+      document.getElementById('iconPickerModal').classList.remove('open');
+      openEditModal();
+    }
+
+    function renderIconCategories() {
+      document.getElementById('iconCategories').innerHTML = ICON_CATS.map(c =>
+        '<button class="icon-cat-btn' + (currentIconCat === c ? ' active' : '') + '" onclick="setIconCat(\'' + c + '\')">' + c + '</button>'
+      ).join('');
+    }
+
+    function setIconCat(cat) {
+      currentIconCat = cat;
+      renderIconCategories();
+      renderIconGrid();
+    }
+
+    function filterIcons() { renderIconGrid(); }
+
+    function renderIconGrid() {
+      const q    = (document.getElementById('iconSearch').value || '').toLowerCase();
+      const cat  = currentIconCat.toLowerCase();
+      const filtered = ICON_DATA.filter(i =>
+        (cat === 'alles' || i.cat === cat) && (!q || i.e.includes(q))
+      );
+      document.getElementById('iconGrid').innerHTML = filtered.map(i =>
+        '<div class="icon-opt' + (i.e === selectedIcon ? ' selected' : '') + '" onclick="selectIconOpt(this,\'' + i.e + '\')">' + i.e + '</div>'
+      ).join('');
+    }
+
+    function selectIconOpt(el, emoji) {
+      document.querySelectorAll('.icon-opt').forEach(e => e.classList.remove('selected'));
       el.classList.add('selected');
-      selectedAvatar = emoji;
+      selectedIcon = emoji;
+      updateIconPreview();
     }
 
-    function saveAvatar() {
-      localStorage.setItem('ghq_avatar', selectedAvatar);
-      document.getElementById('avatarEmoji').textContent = selectedAvatar;
-      closeAvatarPicker();
-      showToast('✓ Avatar opgeslagen!');
+    function updateIconPreview() {
+      document.getElementById('iconPreviewAvatar').textContent = selectedIcon;
     }
 
-    function closeAvatarPicker() {
-      document.getElementById('avatarPicker').classList.remove('open');
+    function saveIconSelection() {
+      localStorage.setItem('ghq_avatar', selectedIcon);
+      localStorage.setItem('ghq_avatar_type', 'icon');
+      loadAvatarDisplay();
+      updateEditAvatarPreview();
+      document.getElementById('iconPickerModal').classList.remove('open');
+      openEditModal();
+      showToast('✓ Avatar icoon opgeslagen!');
     }
 
+    // ── Photo Upload ───────────────────────────────────────────
+    function handlePhotoUpload(input) {
+      const file = input.files[0];
+      if (!file) return;
+      if (file.size > 500 * 1024) { showToast('Foto te groot! Maximaal 500KB'); input.value = ''; return; }
+      const allowed = ['image/jpeg','image/png','image/webp'];
+      if (!allowed.includes(file.type)) { showToast('Alleen JPG, PNG of WebP toegestaan'); input.value = ''; return; }
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        pendingPhotoDataUrl = e.target.result;
+        document.getElementById('uploadPreviewImg').src = pendingPhotoDataUrl;
+        document.getElementById('uploadConfirmCheck').checked = false;
+        closeEditModal();
+        document.getElementById('uploadConfirmModal').classList.add('open');
+      };
+      reader.readAsDataURL(file);
+      input.value = '';
+    }
+
+    function closeUploadConfirm() {
+      document.getElementById('uploadConfirmModal').classList.remove('open');
+      pendingPhotoDataUrl = null;
+      openEditModal();
+    }
+
+    function confirmPhotoUpload() {
+      if (!document.getElementById('uploadConfirmCheck').checked) {
+        showToast('Bevestig eerst dat de foto geschikt is voor alle leeftijden');
+        return;
+      }
+      // Resize to max 400x400
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const size = Math.min(img.width, img.height);
+        canvas.width = canvas.height = Math.min(size, 400);
+        const ctx = canvas.getContext('2d');
+        const sx = (img.width - size) / 2, sy = (img.height - size) / 2;
+        ctx.drawImage(img, sx, sy, size, size, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        localStorage.setItem('ghq_avatar_photo', dataUrl);
+        localStorage.setItem('ghq_avatar_type', 'photo');
+        loadAvatarDisplay();
+        updateEditAvatarPreview();
+        document.getElementById('uploadConfirmModal').classList.remove('open');
+        openEditModal();
+        showToast('✓ Profielfoto opgeslagen!');
+      };
+      img.src = pendingPhotoDataUrl;
+    }
+
+    // ── Misc ───────────────────────────────────────────────────
     function selectChar(el) {
       document.querySelectorAll('.char-btn').forEach(b => b.classList.remove('active'));
       el.classList.add('active');
