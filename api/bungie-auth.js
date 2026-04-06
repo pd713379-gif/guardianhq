@@ -27,7 +27,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // ── Body parsen ───────────────────────────────────────────
     let body = req.body;
 
     if (typeof body === 'string') {
