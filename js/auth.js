@@ -178,6 +178,7 @@ function getCurrentUser() {
 function updateNav() {
   const user    = getCurrentUser();
   const navAuth = document.getElementById('navAuth');
+  const navSpacer = document.getElementById('navSpacer');
   if (!navAuth) return;
   if (user) {
     navAuth.innerHTML = `
