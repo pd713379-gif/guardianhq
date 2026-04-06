@@ -155,6 +155,20 @@ function getCurrentUser() {
   catch { return null; }
 }
 
+function getNavAvatarHtml(user) {
+  const type  = localStorage.getItem('ghq_avatar_type') || 'icon';
+  const photo = localStorage.getItem('ghq_avatar_photo');
+  const emoji = localStorage.getItem('ghq_avatar') || '';
+  const initials = user ? user.username.slice(0,2).toUpperCase() : '?';
+  if (type === 'photo' && photo) {
+    return `<div class="nav-avatar" style="padding:0;overflow:hidden"><img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`;
+  } else if (emoji && emoji !== '⬡') {
+    return `<div class="nav-avatar" style="font-size:0.95rem">${emoji}</div>`;
+  } else {
+    return `<div class="nav-avatar">${initials}</div>`;
+  }
+}
+
 function updateNav() {
   const user    = getCurrentUser();
   const navAuth = document.getElementById('navAuth');
@@ -163,7 +177,7 @@ function updateNav() {
   if (user) {
     navAuth.innerHTML = `
       <div class="nav-user">
-        <div class="nav-avatar">${user.username.slice(0,2).toUpperCase()}</div>
+        ${getNavAvatarHtml(user)}
         <span class="nav-username">${user.username}</span>
       </div>
       <button class="btn btn-ghost" onclick="logoutUser()">Uitloggen</button>`;
