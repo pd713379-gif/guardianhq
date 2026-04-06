@@ -692,6 +692,7 @@
         localStorage.setItem('ghq_avatar_type', 'photo');
         loadAvatarDisplay();
         updateEditAvatarPreview();
+        if (typeof updateNav === 'function') updateNav();
         document.getElementById('uploadConfirmModal').classList.remove('open');
         openEditModal();
         showToast('✓ Profielfoto opgeslagen!');
