@@ -74,7 +74,7 @@ export default async function handler(req, res) {
       const contentType = apiRes.headers.get('content-type') || '';
       if (!contentType.includes('application/json')) {
         const text = await apiRes.text();
-        console.error('[bungie-auth] Bungie API stuurde geen JSON:', text.slice(0, 300));
+        console.error('[bungie-auth] Bungie API stuurde geen JSON. Status:', apiRes.status, 'URL:', url, 'Body:', text.slice(0, 500));
         return res.status(500).json({ error: 'Bungie API stuurde geen geldige JSON terug.' });
       }
 
