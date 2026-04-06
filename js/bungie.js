@@ -2,7 +2,6 @@
 // GUARDIANHQ — js/bungie.js
 // ============================================================
 
-const BUNGIE_API_KEY   = '8dde842300df4ffbae605b0f48cf43f9';
 const BUNGIE_CLIENT_ID = '51944';
 const OAUTH_URL        = 'https://www.bungie.net/en/OAuth/Authorize';
 const TOKEN_FUNCTION   = '/api/bungie-auth';
@@ -126,7 +125,7 @@ async function bungieGet(endpoint) {
 
 async function loadBungieProfileData() {
   try {
-    var user = await bungieGet('/User/GetCurrentUser/');
+    var user = await bungieGet('/User/GetMembershipsForCurrentUser/');
     console.log('Bungie user:', user);
 
     var memberships = user.destinyMemberships;
@@ -134,7 +133,7 @@ async function loadBungieProfileData() {
       throw new Error('Geen Destiny account');
     }
 
-    var displayName = user.uniqueName || user.displayName || '';
+    var displayName = user.bungieNetUser && (user.bungieNetUser.uniqueName || user.bungieNetUser.displayName) || '';
     var nameEl = document.getElementById('profileId');
     if (nameEl && displayName) { nameEl.textContent = 'Bungie: ' + displayName; }
 
