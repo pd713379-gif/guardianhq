@@ -49,21 +49,7 @@ function initEmailJS() {
 async function registerUser(username, email, password) {
 
   if (!firebaseReady) {
-    const users     = JSON.parse(localStorage.getItem('ghq_users')     || '{}');
-    const usernames = JSON.parse(localStorage.getItem('ghq_usernames') || '{}');
-    if (usernames[username.toLowerCase()]) {
-      throw new Error("Deze gebruikersnaam is al in gebruik. Kies een andere naam.");
-    }
-    if (users[email]) {
-      throw new Error("Dit e-mailadres is al in gebruik.");
-    }
-    users[email] = { username, password, email };
-    usernames[username.toLowerCase()] = email;
-    localStorage.setItem('ghq_users',     JSON.stringify(users));
-    localStorage.setItem('ghq_usernames', JSON.stringify(usernames));
-    localStorage.setItem('ghq_current_user', JSON.stringify({ username, email }));
-    await sendRegistrationEmail(username, email);
-    return { username, email };
+    throw new Error("Verbinding met de server mislukt. Controleer je internetverbinding en probeer het opnieuw.");
   }
 
   // Check gebruikersnaam in Firestore
@@ -101,13 +87,7 @@ async function registerUser(username, email, password) {
 
 async function loginUser(email, password) {
   if (!firebaseReady) {
-    const users = JSON.parse(localStorage.getItem('ghq_users') || '{}');
-    const user  = users[email];
-    if (!user || user.password !== password) {
-      throw new Error("E-mailadres of wachtwoord onjuist.");
-    }
-    localStorage.setItem('ghq_current_user', JSON.stringify({ username: user.username, email }));
-    return { username: user.username, email };
+    throw new Error("Verbinding met de server mislukt. Controleer je internetverbinding en probeer het opnieuw.");
   }
 
   try {
