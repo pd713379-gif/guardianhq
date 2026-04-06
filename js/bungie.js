@@ -2,8 +2,8 @@
 // GUARDIANHQ — js/bungie.js
 // ============================================================
 
-const BUNGIE_API_KEY   = '4dfc76257eaa472da8d633b338850d21';
-const BUNGIE_CLIENT_ID = '51930';
+const BUNGIE_API_KEY   = '8dde842300df4ffbae605b0f48cf43f9';
+const BUNGIE_CLIENT_ID = '51944';
 const BUNGIE_ROOT      = 'https://www.bungie.net/Platform';
 const OAUTH_URL        = 'https://www.bungie.net/en/OAuth/Authorize';
 const TOKEN_FUNCTION   = '/api/bungie-auth';
@@ -21,7 +21,6 @@ function saveBungieTokens(data) {
   localStorage.setItem('bungie_access_token',  data.access_token);
   localStorage.setItem('bungie_refresh_token', data.refresh_token);
   localStorage.setItem('bungie_token_expires', expires.toString());
-  // membership_id kan leeg zijn — dat is ok, we halen het later op
   if (data.membership_id) {
     localStorage.setItem('bungie_membership_id', data.membership_id);
   }
@@ -38,7 +37,7 @@ function getBungieTokens() {
 
 function isBungieLinked() {
   const t = getBungieTokens();
-  return !!(t.access_token);  // alleen access_token nodig
+  return !!(t.access_token);
 }
 
 function clearBungieTokens() {
@@ -104,12 +103,12 @@ async function getValidToken() {
   return t.access_token;
 }
 
-async function bungieGet(endpoint, requireAuth = false) {
+async function bungieGet(endpoint) {
   const token   = await getValidToken();
   const headers = { 'X-API-Key': BUNGIE_API_KEY };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  console.log('Bungie GET:', endpoint, 'token:', token ? 'aanwezig' : 'leeg');
+  console.log('Bungie GET:', endpoint, '| token:', token ? 'aanwezig' : 'LEEG');
 
   const res  = await fetch(BUNGIE_ROOT + endpoint, { headers });
   const text = await res.text();
@@ -194,7 +193,7 @@ async function loadBungieProfileData() {
       hoursEl.textContent = Math.floor(totalMinutes / 60).toLocaleString('nl-NL');
     }
 
-    // Knop updaten
+    // Knop updaten naar gekoppeld
     const linkBtn = document.getElementById('bungieLinkBtn');
     if (linkBtn) {
       linkBtn.textContent       = '✓ Bungie Gekoppeld';
@@ -209,11 +208,11 @@ async function loadBungieProfileData() {
       };
     }
 
-    console.log('Bungie data geladen! Power:', highestPower, 'Uren:', Math.floor(totalMinutes/60));
+    console.log('✅ Bungie data geladen! Power:', highestPower, 'Uren:', Math.floor(totalMinutes/60));
     return { characters, membership: m };
 
   } catch (err) {
-    console.warn('Bungie data laden mislukt:', err.message);
+    console.warn('❌ Bungie data laden mislukt:', err.message);
     return null;
   }
 }
