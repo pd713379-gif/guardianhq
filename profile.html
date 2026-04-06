@@ -10,49 +10,84 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <style>
-    .profile-hero{background:linear-gradient(180deg,rgba(212,168,67,0.08) 0%,transparent 100%);border-bottom:1px solid var(--border);padding:6rem 2rem 2rem;position:relative;z-index:2}
+    .profile-hero{
+      background:linear-gradient(180deg,rgba(212,168,67,0.08) 0%,transparent 100%);
+      border-bottom:1px solid var(--border);
+      padding:6rem 2rem 2rem;
+      position:relative;z-index:2;
+    }
     .profile-inner{max-width:1100px;margin:0 auto}
     .profile-top{display:flex;align-items:flex-end;gap:2rem;flex-wrap:wrap;margin-bottom:2rem}
     .profile-avatar-wrap{position:relative;flex-shrink:0}
-    .profile-avatar{width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,#d4a843,#f5c842);display:flex;align-items:center;justify-content:center;font-family:"Space Grotesk",sans-serif;font-size:2.5rem;font-weight:800;color:#000;border:3px solid var(--border2);cursor:pointer;position:relative;overflow:hidden}
-    .avatar-edit{position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;font-size:0.7rem;color:#fff;letter-spacing:1px;text-transform:uppercase;font-weight:600}
+    .profile-avatar{
+      width:110px;height:110px;border-radius:50%;
+      background:linear-gradient(135deg,#d4a843,#f5c842);
+      display:flex;align-items:center;justify-content:center;
+      font-family:'Space Grotesk',sans-serif;font-size:2.5rem;font-weight:800;color:#000;
+      border:3px solid var(--border2);
+      cursor:pointer;position:relative;overflow:hidden;
+    }
+    .avatar-edit{
+      position:absolute;inset:0;background:rgba(0,0,0,0.6);
+      display:flex;align-items:center;justify-content:center;
+      opacity:0;transition:opacity 0.2s;font-size:0.7rem;color:#fff;
+      letter-spacing:1px;text-transform:uppercase;font-weight:600;
+    }
     .profile-avatar:hover .avatar-edit{opacity:1}
     .avatar-emoji{font-size:2.8rem;line-height:1}
-    .online-badge{position:absolute;bottom:4px;right:4px;width:18px;height:18px;border-radius:50%;background:#4caf82;border:2px solid var(--bg)}
+    .online-badge{
+      position:absolute;bottom:4px;right:4px;
+      width:18px;height:18px;border-radius:50%;
+      background:#4caf82;border:2px solid var(--bg);
+    }
     .profile-info{flex:1;min-width:200px}
-    .profile-name{font-family:"Space Grotesk",sans-serif;font-size:1.8rem;font-weight:700;letter-spacing:-1px;margin-bottom:4px}
-    .profile-id{font-size:0.85rem;color:var(--text3);letter-spacing:1px;margin-bottom:6px}
-    .profile-bio{font-size:0.9rem;color:var(--text2);margin-bottom:6px;line-height:1.5;display:none}
-    .profile-meta{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:6px}
-    .profile-meta-item{font-size:0.78rem;color:var(--text3);display:flex;align-items:center;gap:4px}
+    .profile-name{
+      font-family:'Space Grotesk',sans-serif;font-size:1.8rem;
+      font-weight:700;letter-spacing:-1px;margin-bottom:4px;
+    }
+    .profile-id{font-size:0.85rem;color:var(--text3);letter-spacing:1px;margin-bottom:8px}
     .profile-badges{display:flex;gap:8px;flex-wrap:wrap}
-    .badge{padding:4px 12px;border-radius:100px;font-size:0.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+    .badge{
+      padding:4px 12px;border-radius:100px;font-size:0.72rem;
+      font-weight:700;letter-spacing:1px;text-transform:uppercase;
+    }
     .badge-gold{background:rgba(212,168,67,0.15);border:1px solid rgba(212,168,67,0.3);color:var(--gold2)}
     .badge-blue{background:rgba(79,143,255,0.15);border:1px solid rgba(79,143,255,0.3);color:var(--blue)}
     .badge-purple{background:rgba(155,114,207,0.15);border:1px solid rgba(155,114,207,0.3);color:var(--purple)}
     .badge-green{background:rgba(76,175,130,0.15);border:1px solid rgba(76,175,130,0.3);color:var(--green)}
     .profile-actions{display:flex;gap:10px;flex-wrap:wrap;margin-left:auto}
-    .profile-socials{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-    .social-link{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:8px;font-size:0.75rem;font-weight:600;text-decoration:none;border:1px solid var(--border);color:var(--text2);transition:all 0.2s;background:rgba(255,255,255,0.03)}
-    .social-link:hover{background:rgba(255,255,255,0.07);border-color:var(--border2)}
-    .profile-stats-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:16px;overflow:hidden}
-    .pstat{background:var(--bg2);padding:1.25rem;text-align:center}
-    .pstat-num{font-family:"Space Grotesk",sans-serif;font-size:1.5rem;font-weight:700;color:var(--gold2);margin-bottom:4px}
+    .profile-stats-bar{
+      display:grid;grid-template-columns:repeat(6,1fr);gap:1px;
+      background:var(--border);border:1px solid var(--border);border-radius:16px;overflow:hidden;
+    }
+    .pstat{
+      background:var(--bg2);padding:1.25rem;text-align:center;
+    }
+    .pstat-num{
+      font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700;
+      color:var(--gold2);margin-bottom:4px;
+    }
     .pstat-label{font-size:0.72rem;color:var(--text3);letter-spacing:1px;text-transform:uppercase}
     .profile-content{max-width:1100px;margin:0 auto;padding:2rem;position:relative;z-index:2}
     .profile-grid{display:grid;grid-template-columns:1fr 2fr;gap:1.5rem}
     .p-card{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:20px;padding:1.5rem;margin-bottom:1.5rem}
     .p-card:hover{border-color:var(--border2)}
-    .p-card-title{font-family:"Space Grotesk",sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:1.25rem;display:flex;align-items:center;gap:8px}
+    .p-card-title{font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:1.25rem;display:flex;align-items:center;gap:8px}
     .char-select{display:flex;gap:8px;margin-bottom:1.25rem}
-    .char-btn{flex:1;padding:10px 8px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:"Space Grotesk",sans-serif;font-size:0.8rem;font-weight:600;transition:all 0.2s;text-align:center}
+    .char-btn{
+      flex:1;padding:10px 8px;border-radius:10px;border:1px solid var(--border);
+      background:transparent;color:var(--text2);cursor:pointer;
+      font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:600;
+      transition:all 0.2s;text-align:center;
+    }
     .char-btn:hover{border-color:var(--border2);color:var(--text)}
     .char-btn.active{background:rgba(212,168,67,0.1);border-color:rgba(212,168,67,0.4);color:var(--gold2)}
     .char-btn .class-icon{font-size:1.2rem;display:block;margin-bottom:4px}
     .char-btn .class-power{font-size:0.9rem;color:var(--gold2);font-weight:700}
     .stat-bar-row{margin-bottom:12px}
     .stat-bar-top{display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:5px}
-    .stat-bar-name{color:var(--text2)}.stat-bar-val{color:var(--text);font-weight:600}
+    .stat-bar-name{color:var(--text2)}
+    .stat-bar-val{color:var(--text);font-weight:600}
     .stat-bar-track{height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden}
     .stat-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#d4a843,#f5c842)}
     .activity-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
@@ -64,89 +99,34 @@
     .fav-weapon{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
     .fav-weapon:last-child{border-bottom:none}
     .fw-icon{width:42px;height:42px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
-    .fw-exotic{border-left:3px solid #f5c518}.fw-legendary{border-left:3px solid #9b72cf}
-    .fw-name{font-size:0.875rem;font-weight:600;margin-bottom:2px}.fw-type{font-size:0.75rem;color:var(--text3)}
+    .fw-exotic{border-left:3px solid #f5c518}
+    .fw-legendary{border-left:3px solid #9b72cf}
+    .fw-name{font-size:0.875rem;font-weight:600;margin-bottom:2px}
+    .fw-type{font-size:0.75rem;color:var(--text3)}
     .fw-kills{margin-left:auto;font-size:0.8rem;color:var(--gold2);font-weight:700}
     .loadout-mini{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
     .loadout-mini:last-child{border-bottom:none}
     .lm-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
-    .lm-name{font-size:0.875rem;font-weight:600;margin-bottom:2px}.lm-sub{font-size:0.75rem;color:var(--text3)}
+    .lm-name{font-size:0.875rem;font-weight:600;margin-bottom:2px}
+    .lm-sub{font-size:0.75rem;color:var(--text3)}
     .lm-power{margin-left:auto;color:var(--gold2);font-weight:700;font-size:0.875rem}
-
-    /* OVERLAYS */
-    .overlay-bg{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);align-items:center;justify-content:center;overflow-y:auto;padding:2rem 1rem}
-    .overlay-bg.open{display:flex}
-
-    /* ICOON PICKER */
-    .avatar-box{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:2rem;max-width:420px;width:90%}
-    .avatar-box h3{font-family:"Space Grotesk",sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:4px;letter-spacing:1px}
-    .avatar-box-sub{font-size:0.78rem;color:var(--text3);margin-bottom:1rem}
-    .avatar-search{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:9px 14px;border-radius:10px;font-family:"Inter",sans-serif;font-size:0.85rem;outline:none;margin-bottom:10px;box-sizing:border-box;transition:border-color 0.2s}
-    .avatar-search:focus{border-color:rgba(212,168,67,0.4)}
-    .avatar-search::placeholder{color:var(--text3)}
-    .avatar-cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-    .av-cat{padding:4px 12px;border-radius:20px;font-size:0.72rem;font-weight:600;cursor:pointer;border:1px solid var(--border);color:var(--text3);background:transparent;transition:all 0.15s;font-family:"Inter",sans-serif}
-    .av-cat:hover{border-color:var(--border2);color:var(--text2)}
-    .av-cat.active{background:rgba(212,168,67,0.12);border-color:rgba(212,168,67,0.35);color:var(--gold2)}
-    .avatar-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:14px}
-    .av-opt{width:100%;aspect-ratio:1;border-radius:12px;background:rgba(255,255,255,0.05);border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:1.5rem;cursor:pointer;transition:all 0.15s;position:relative}
-    .av-opt:hover{border-color:var(--border2);background:rgba(255,255,255,0.08);transform:scale(1.08)}
+    .avatar-picker{
+      display:none;position:fixed;inset:0;z-index:200;
+      background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);
+      align-items:center;justify-content:center;
+    }
+    .avatar-picker.open{display:flex}
+    .avatar-box{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:2rem;max-width:400px;width:90%}
+    .avatar-box h3{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;margin-bottom:1.25rem;letter-spacing:1px}
+    .avatar-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:1.5rem}
+    .av-opt{width:100%;aspect-ratio:1;border-radius:12px;background:rgba(255,255,255,0.05);border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:1.5rem;cursor:pointer;transition:all 0.15s}
+    .av-opt:hover{border-color:var(--border2);background:rgba(255,255,255,0.08)}
     .av-opt.selected{border-color:var(--gold2);background:rgba(212,168,67,0.1)}
-    .av-opt.selected::after{content:"✓";position:absolute;bottom:2px;right:3px;font-size:8px;color:var(--gold2);font-weight:700}
-    .av-preview-row{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:14px}
-    .av-prev-circle{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#d4a843,#f5c842);display:flex;align-items:center;justify-content:center;font-size:22px;border:2px solid rgba(212,168,67,0.4);flex-shrink:0}
-    .av-prev-info{font-size:0.75rem;color:var(--text3);line-height:1.6}
-    .av-prev-name{font-size:0.875rem;font-weight:600;color:var(--text);margin-bottom:2px}
-
-    /* EDIT MODAL */
-    .edit-box{background:rgba(12,15,26,0.99);border:1px solid rgba(255,255,255,0.12);border-radius:20px;max-width:520px;width:95%;max-height:90vh;overflow-y:auto}
-    .edit-box::-webkit-scrollbar{width:4px}
-    .edit-box::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
-    .edit-header{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem 1rem;position:sticky;top:0;background:rgba(12,15,26,0.99);z-index:1;border-bottom:1px solid rgba(255,255,255,0.06)}
-    .edit-title{font-family:"Space Grotesk",sans-serif;font-size:1rem;font-weight:700;color:var(--text)}
-    .edit-sub{font-size:0.75rem;color:var(--text3);margin-top:2px}
-    .edit-close{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.07);border:none;color:var(--text2);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;font-family:"Inter",sans-serif}
-    .edit-close:hover{background:rgba(255,255,255,0.12)}
-    .edit-body{padding:1.25rem 1.5rem}
-    .edit-sh{font-size:0.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin:0 0 10px}
-    .edit-divider{height:1px;background:rgba(255,255,255,0.06);margin:1.1rem 0}
-    .edit-av-row{display:flex;align-items:center;gap:1rem;margin-bottom:1rem}
-    .edit-av-circle{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#d4a843,#f5c842);display:flex;align-items:center;justify-content:center;font-size:2rem;border:2px solid rgba(212,168,67,0.4);flex-shrink:0;overflow:hidden}
-    .edit-av-circle img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-    .edit-av-btns{display:flex;flex-direction:column;gap:7px}
-    .pick-icon-btn{background:rgba(212,168,67,0.12);border:1px solid rgba(212,168,67,0.3);color:var(--gold2);padding:7px 14px;border-radius:9px;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:"Inter",sans-serif;transition:all 0.2s}
-    .pick-icon-btn:hover{background:rgba(212,168,67,0.2)}
-    .edit-upload-label{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text2);padding:7px 14px;border-radius:9px;font-size:0.78rem;font-weight:600;cursor:pointer;text-align:center;display:block;transition:all 0.2s;font-family:"Inter",sans-serif}
-    .edit-upload-label:hover{background:rgba(255,255,255,0.1)}
-    .edit-av-note{font-size:0.68rem;color:var(--text3);margin-top:2px;line-height:1.5}
-    .upload-err{display:none;background:rgba(224,90,90,0.1);border:1px solid rgba(224,90,90,0.25);color:var(--red);padding:8px 12px;border-radius:9px;font-size:0.78rem;margin-bottom:8px;line-height:1.5}
-    .upload-err.show{display:block}
-    .upload-ok-msg{display:none;background:rgba(76,175,130,0.1);border:1px solid rgba(76,175,130,0.25);color:var(--green);padding:8px 12px;border-radius:9px;font-size:0.78rem;margin-bottom:8px}
-    .upload-ok-msg.show{display:block}
-    .edit-field{margin-bottom:10px}
-    .edit-field label{display:block;font-size:0.72rem;color:var(--text3);margin-bottom:4px;letter-spacing:0.5px}
-    .edit-field input,.edit-field textarea{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:10px;font-family:"Inter",sans-serif;font-size:0.875rem;outline:none;resize:none;box-sizing:border-box;transition:border-color 0.2s}
-    .edit-field input:focus,.edit-field textarea:focus{border-color:rgba(212,168,67,0.4)}
-    .edit-field input::placeholder,.edit-field textarea::placeholder{color:var(--text3)}
-    .edit-char-count{font-size:0.68rem;color:var(--text3);text-align:right;margin-top:2px}
-    .edit-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .edit-social-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-    .edit-social-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-    .edit-social-row input{flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:8px 11px;border-radius:9px;font-family:"Inter",sans-serif;font-size:0.8rem;outline:none;transition:border-color 0.2s}
-    .edit-social-row input:focus{border-color:rgba(212,168,67,0.35)}
-    .edit-social-row input::placeholder{color:var(--text3)}
-    .edit-footer{display:flex;gap:10px;padding:0 1.5rem 1.5rem}
-    .edit-save-btn{flex:1;padding:11px;background:var(--grad);color:#000;border:none;border-radius:11px;font-size:0.875rem;font-weight:700;cursor:pointer;font-family:"Space Grotesk",sans-serif;transition:opacity 0.2s}
-    .edit-save-btn:hover{opacity:0.9}
-    .edit-cancel-btn{padding:11px 18px;background:transparent;border:1px solid var(--border);color:var(--text3);border-radius:11px;font-size:0.8rem;cursor:pointer;font-family:"Inter",sans-serif;transition:all 0.2s}
-    .edit-cancel-btn:hover{background:rgba(255,255,255,0.05);color:var(--text2)}
-
     @media(max-width:768px){
       .profile-grid{grid-template-columns:1fr}
       .profile-stats-bar{grid-template-columns:repeat(3,1fr)}
       .profile-actions{margin-left:0}
       .char-select{flex-direction:column}
-      .edit-grid2{grid-template-columns:1fr}
     }
   </style>
   <script>document.documentElement.style.visibility="hidden";</script>
@@ -168,107 +148,19 @@
         <a href="profile.html" class="active">Profiel</a>
         <a href="https://discord.gg/HdkP7rPS" target="_blank" class="discord-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.1 18.078.11 18.1.132 18.113a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>Discord</a>
       </div>
-      <div class="nav-auth" id="navAuth"></div>
+      <div class="nav-auth" id="navAuth">
+      </div>
     </div>
   </nav>
 
-  <!-- ICOON PICKER OVERLAY -->
-  <div class="overlay-bg" id="avatarPicker">
+  <!-- AVATAR PICKER -->
+  <div class="avatar-picker" id="avatarPicker">
     <div class="avatar-box">
       <h3>Kies je Guardian Avatar</h3>
-      <div class="avatar-box-sub">Selecteer een icoon dat bij jouw stijl past</div>
-      <input class="avatar-search" type="text" id="avatarSearch" placeholder="Zoek icoon..." oninput="filterAvatarGrid()">
-      <div class="avatar-cats">
-        <button class="av-cat active" onclick="setAvCat(this,'all')">Alles</button>
-        <button class="av-cat" onclick="setAvCat(this,'destiny')">Destiny</button>
-        <button class="av-cat" onclick="setAvCat(this,'combat')">Combat</button>
-        <button class="av-cat" onclick="setAvCat(this,'natuur')">Natuur</button>
-        <button class="av-cat" onclick="setAvCat(this,'overig')">Overig</button>
-      </div>
       <div class="avatar-grid" id="avatarGrid"></div>
-      <div class="av-preview-row">
-        <div class="av-prev-circle" id="avPickerPreview">&#x2B21;</div>
-        <div>
-          <div class="av-prev-name" id="avPickerName">Guardian</div>
-          <div class="av-prev-info">Zo ziet je avatar eruit op je profiel</div>
-        </div>
-      </div>
       <div style="display:flex;gap:10px">
         <button class="btn btn-solid" style="flex:1" onclick="saveAvatar()">Opslaan</button>
         <button class="btn btn-ghost" style="flex:1" onclick="closeAvatarPicker()">Annuleren</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- PROFIEL BEWERKEN MODAL -->
-  <div class="overlay-bg" id="editProfileModal">
-    <div class="edit-box">
-      <div class="edit-header">
-        <div>
-          <div class="edit-title">Profiel Bewerken</div>
-          <div class="edit-sub">Wijzigingen worden zichtbaar op je profielpagina</div>
-        </div>
-        <button class="edit-close" onclick="closeEditModal()">&#x2715;</button>
-      </div>
-      <div class="edit-body">
-        <div class="edit-sh">Avatar</div>
-        <div class="edit-av-row">
-          <div class="edit-av-circle" id="editAvCircle">
-            <span id="editAvContent" style="font-size:2rem">&#x2B21;</span>
-          </div>
-          <div class="edit-av-btns">
-            <button class="pick-icon-btn" onclick="openAvatarPickerFromEdit()">Kies Icoon</button>
-            <label class="edit-upload-label">
-              Foto Uploaden
-              <input type="file" id="avatarFileInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" style="display:none" onchange="handleAvatarUpload(this)">
-            </label>
-            <div class="edit-av-note">JPG &middot; PNG &middot; WebP &middot; max 500KB<br>Automatisch verkleind naar 400&times;400px<br>Geen 18+ afbeeldingen</div>
-          </div>
-        </div>
-        <div class="upload-err" id="uploadErr"></div>
-        <div class="upload-ok-msg" id="uploadOkMsg"></div>
-        <div class="edit-divider"></div>
-        <div class="edit-sh">Basisinfo</div>
-        <div class="edit-field">
-          <label>Schermnaam</label>
-          <input type="text" id="editDisplayName" maxlength="30" placeholder="Jouw Guardian naam" oninput="editCnt('editDisplayName','editNameCnt',30)">
-          <div class="edit-char-count"><span id="editNameCnt">0</span>/30</div>
-        </div>
-        <div class="edit-field">
-          <label>Bio</label>
-          <textarea id="editBio" rows="3" maxlength="160" placeholder="Vertel iets over jezelf als Guardian..." oninput="editCnt('editBio','editBioCnt',160)"></textarea>
-          <div class="edit-char-count"><span id="editBioCnt">0</span>/160</div>
-        </div>
-        <div class="edit-grid2">
-          <div class="edit-field"><label>Locatie</label><input type="text" id="editLocation" maxlength="50" placeholder="Amsterdam, NL"></div>
-          <div class="edit-field"><label>Website</label><input type="url" id="editWebsite" maxlength="100" placeholder="https://jouwsite.nl"></div>
-        </div>
-        <div class="edit-divider"></div>
-        <div class="edit-sh">Social Accounts</div>
-        <div class="edit-social-row">
-          <div class="edit-social-icon" style="background:rgba(88,101,242,0.15);color:#5865F2"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.1 18.078.11 18.1.132 18.113a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg></div>
-          <input type="text" id="editDiscord" placeholder="Discord gebruikersnaam">
-        </div>
-        <div class="edit-social-row">
-          <div class="edit-social-icon" style="background:rgba(29,161,242,0.12);color:#1da1f2"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
-          <input type="text" id="editTwitter" placeholder="@jouwhandle">
-        </div>
-        <div class="edit-social-row">
-          <div class="edit-social-icon" style="background:rgba(100,65,165,0.12);color:#6441a5"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg></div>
-          <input type="text" id="editTwitch" placeholder="Twitch kanaal">
-        </div>
-        <div class="edit-social-row">
-          <div class="edit-social-icon" style="background:rgba(255,70,85,0.1);color:#ff4655"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg></div>
-          <input type="text" id="editValorant" placeholder="Valorant naam#tag">
-        </div>
-        <div class="edit-social-row">
-          <div class="edit-social-icon" style="background:rgba(255,100,0,0.12);color:#ff6400"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.79 1.54V6.78a4.85 4.85 0 01-1.02-.09z"/></svg></div>
-          <input type="text" id="editTiktok" placeholder="@tiktok">
-        </div>
-      </div>
-      <div class="edit-footer">
-        <button class="edit-cancel-btn" onclick="closeEditModal()">Annuleren</button>
-        <button class="edit-save-btn" onclick="saveEditProfile()">Profiel Opslaan</button>
       </div>
     </div>
   </div>
@@ -279,7 +171,7 @@
       <div class="profile-top">
         <div class="profile-avatar-wrap">
           <div class="profile-avatar" onclick="openAvatarPicker()" id="profileAvatar">
-            <span class="avatar-emoji" id="avatarEmoji">&#x2B21;</span>
+            <span class="avatar-emoji" id="avatarEmoji">⬡</span>
             <div class="avatar-edit">Wijzig</div>
           </div>
           <div class="online-badge"></div>
@@ -287,29 +179,27 @@
         <div class="profile-info">
           <div class="profile-name" id="profileName">Guardian</div>
           <div class="profile-id" id="profileId">Bungie ID: Guardian#0000</div>
-          <div class="profile-bio" id="profileBioDisplay"></div>
-          <div class="profile-meta" id="profileMetaDisplay" style="display:none"></div>
           <div class="profile-badges">
-            <span class="badge badge-gold">&#x26A1; Raider</span>
-            <span class="badge badge-blue">&#x1F3AF; PvP Veteran</span>
-            <span class="badge badge-purple">&#x1F49C; Legend</span>
-            <span class="badge badge-green">&#x2713; Verified</span>
+            <span class="badge badge-gold">⚡ Raider</span>
+            <span class="badge badge-blue">🎯 PvP Veteran</span>
+            <span class="badge badge-purple">💜 Legend</span>
+            <span class="badge badge-green">✓ Verified</span>
           </div>
-          <div class="profile-socials" id="profileSocialsDisplay" style="display:none"></div>
         </div>
         <div class="profile-actions">
-          <button class="btn btn-ghost" onclick="openBungie()">Bungie.net &#x2197;</button>
-          <button class="btn btn-ghost" id="bungieLinkBtn" onclick="bungieLogin()" style="border-color:rgba(212,168,67,0.4);color:var(--gold2)">&#x26A1; Koppel Bungie Account</button>
-          <button class="btn btn-solid" id="editBtn" style="display:none" onclick="openEditModal()">Bewerk Profiel</button>
+          <button class="btn btn-ghost" onclick="openBungie()">Bungie.net ↗</button>
+          <button class="btn btn-ghost" id="bungieLinkBtn" onclick="bungieLogin()" style="border-color:rgba(212,168,67,0.4);color:var(--gold2)">⚡ Koppel Bungie Account</button>
+          <button class="btn btn-solid" id="editBtn" style="display:none" onclick="showToast('Profiel bewerken komt binnenkort!')">Bewerk Profiel</button>
         </div>
       </div>
+
       <div class="profile-stats-bar">
-        <div class="pstat"><div class="pstat-num" data-bungie="power">&#x2014;</div><div class="pstat-label">Power Level</div></div>
-        <div class="pstat"><div class="pstat-num" id="hoursPlayed">&#x2014;</div><div class="pstat-label">Uren Gespeeld</div></div>
-        <div class="pstat"><div class="pstat-num" id="kdPvp">&#x2014;</div><div class="pstat-label">PvP K/D</div></div>
-        <div class="pstat"><div class="pstat-num" id="kdPve">&#x2014;</div><div class="pstat-label">PvE K/D</div></div>
-        <div class="pstat"><div class="pstat-num" id="kdOverall">&#x2014;</div><div class="pstat-label">Overall K/D</div></div>
-        <div class="pstat"><div class="pstat-num" id="activitiesCleared">&#x2014;</div><div class="pstat-label">Activiteiten</div></div>
+        <div class="pstat"><div class="pstat-num" data-bungie="power">—</div><div class="pstat-label">Power Level</div></div>
+        <div class="pstat"><div class="pstat-num" id="hoursPlayed">—</div><div class="pstat-label">Uren Gespeeld</div></div>
+        <div class="pstat"><div class="pstat-num" id="kdPvp">—</div><div class="pstat-label">PvP K/D</div></div>
+        <div class="pstat"><div class="pstat-num" id="kdPve">—</div><div class="pstat-label">PvE K/D</div></div>
+        <div class="pstat"><div class="pstat-num" id="kdOverall">—</div><div class="pstat-label">Overall K/D</div></div>
+        <div class="pstat"><div class="pstat-num" id="activitiesCleared">—</div><div class="pstat-label">Activiteiten</div></div>
       </div>
     </div>
   </div>
@@ -317,13 +207,28 @@
   <!-- PROFILE CONTENT -->
   <div class="profile-content">
     <div class="profile-grid">
+
+      <!-- LEFT COLUMN -->
       <div>
+        <!-- Characters -->
         <div class="p-card">
-          <div class="p-card-title">&#x2694;&#xFE0F; Characters</div>
+          <div class="p-card-title">⚔️ Characters</div>
           <div class="char-select">
-            <div class="char-btn active" onclick="selectChar(this)"><span class="class-icon">&#x1F3F9;</span>Hunter<div class="class-power">2087</div></div>
-            <div class="char-btn" onclick="selectChar(this)"><span class="class-icon">&#x2728;</span>Warlock<div class="class-power">2071</div></div>
-            <div class="char-btn" onclick="selectChar(this)"><span class="class-icon">&#x1F6E1;&#xFE0F;</span>Titan<div class="class-power">2094</div></div>
+            <div class="char-btn active" onclick="selectChar(this)">
+              <span class="class-icon">🏹</span>
+              Hunter
+              <div class="class-power">2087</div>
+            </div>
+            <div class="char-btn" onclick="selectChar(this)">
+              <span class="class-icon">✨</span>
+              Warlock
+              <div class="class-power">2071</div>
+            </div>
+            <div class="char-btn" onclick="selectChar(this)">
+              <span class="class-icon">🛡️</span>
+              Titan
+              <div class="class-power">2094</div>
+            </div>
           </div>
           <div id="charStats">
             <div class="stat-bar-row"><div class="stat-bar-top"><span class="stat-bar-name">Mobiliteit</span><span class="stat-bar-val">95</span></div><div class="stat-bar-track"><div class="stat-bar-fill" style="width:95%"></div></div></div>
@@ -334,339 +239,101 @@
             <div class="stat-bar-row"><div class="stat-bar-top"><span class="stat-bar-name">Kracht</span><span class="stat-bar-val">89</span></div><div class="stat-bar-track"><div class="stat-bar-fill" style="width:89%"></div></div></div>
           </div>
         </div>
+
+        <!-- Favoriete Wapens -->
         <div class="p-card">
-          <div class="p-card-title">&#x1F52B; Favoriete Wapens</div>
-          <div class="fav-weapon"><div class="fw-icon fw-exotic">&#x26A1;</div><div><div class="fw-name">Wish-Ender</div><div class="fw-type">Exotic Combat Bow</div></div><div class="fw-kills">4.821 kills</div></div>
-          <div class="fav-weapon"><div class="fw-icon fw-legendary">&#x1F52B;</div><div><div class="fw-name">Palindrome</div><div class="fw-type">Legendary Hand Cannon</div></div><div class="fw-kills">3.204 kills</div></div>
-          <div class="fav-weapon"><div class="fw-icon fw-exotic">&#x1F680;</div><div><div class="fw-name">Gjallarhorn</div><div class="fw-type">Exotic Rocket Launcher</div></div><div class="fw-kills">2.567 kills</div></div>
-          <div class="fav-weapon"><div class="fw-icon fw-legendary">&#x1F5E1;&#xFE0F;</div><div><div class="fw-name">Falling Guillotine</div><div class="fw-type">Legendary Sword</div></div><div class="fw-kills">1.893 kills</div></div>
+          <div class="p-card-title">🔫 Favoriete Wapens</div>
+          <div class="fav-weapon"><div class="fw-icon fw-exotic">⚡</div><div><div class="fw-name">Wish-Ender</div><div class="fw-type">Exotic Combat Bow</div></div><div class="fw-kills">4.821 kills</div></div>
+          <div class="fav-weapon"><div class="fw-icon fw-legendary">🔫</div><div><div class="fw-name">Palindrome</div><div class="fw-type">Legendary Hand Cannon</div></div><div class="fw-kills">3.204 kills</div></div>
+          <div class="fav-weapon"><div class="fw-icon fw-exotic">🚀</div><div><div class="fw-name">Gjallarhorn</div><div class="fw-type">Exotic Rocket Launcher</div></div><div class="fw-kills">2.567 kills</div></div>
+          <div class="fav-weapon"><div class="fw-icon fw-legendary">🗡️</div><div><div class="fw-name">Falling Guillotine</div><div class="fw-type">Legendary Sword</div></div><div class="fw-kills">1.893 kills</div></div>
         </div>
       </div>
+
+      <!-- RIGHT COLUMN -->
       <div>
+        <!-- Loadouts -->
         <div class="p-card">
-          <div class="p-card-title">&#x26A1; Mijn Loadouts</div>
-          <div class="loadout-mini"><div class="lm-icon" style="background:rgba(155,114,207,0.12);border:1px solid rgba(155,114,207,0.25)">&#x1F3F0;</div><div><div class="lm-name">Raid Build</div><div class="lm-sub">Last Wish &middot; Void/Solar</div></div><div class="lm-power">&#x26A1; 2094</div></div>
-          <div class="loadout-mini"><div class="lm-icon" style="background:rgba(79,143,255,0.12);border:1px solid rgba(79,143,255,0.25)">&#x1F3AF;</div><div><div class="lm-name">PvP Sweat</div><div class="lm-sub">Crucible &middot; Arc/Kinetic</div></div><div class="lm-power">&#x26A1; 2087</div></div>
-          <div class="loadout-mini"><div class="lm-icon" style="background:rgba(212,168,67,0.12);border:1px solid rgba(212,168,67,0.25)">&#x26A1;</div><div><div class="lm-name">Nightfall</div><div class="lm-sub">Grandmaster &middot; Solar</div></div><div class="lm-power">&#x26A1; 2100</div></div>
-          <div class="loadout-mini"><div class="lm-icon" style="background:rgba(76,175,130,0.12);border:1px solid rgba(76,175,130,0.25)">&#x1F311;</div><div><div class="lm-name">Gambit</div><div class="lm-sub">Prime Mover &middot; Void</div></div><div class="lm-power">&#x26A1; 2091</div></div>
+          <div class="p-card-title">⚡ Mijn Loadouts</div>
+          <div class="loadout-mini"><div class="lm-icon" style="background:rgba(155,114,207,0.12);border:1px solid rgba(155,114,207,0.25)">🏰</div><div><div class="lm-name">Raid Build</div><div class="lm-sub">Last Wish · Void/Solar</div></div><div class="lm-power">⚡ 2094</div></div>
+          <div class="loadout-mini"><div class="lm-icon" style="background:rgba(79,143,255,0.12);border:1px solid rgba(79,143,255,0.25)">🎯</div><div><div class="lm-name">PvP Sweat</div><div class="lm-sub">Crucible · Arc/Kinetic</div></div><div class="lm-power">⚡ 2087</div></div>
+          <div class="loadout-mini"><div class="lm-icon" style="background:rgba(212,168,67,0.12);border:1px solid rgba(212,168,67,0.25)">⚡</div><div><div class="lm-name">Nightfall</div><div class="lm-sub">Grandmaster · Solar</div></div><div class="lm-power">⚡ 2100</div></div>
+          <div class="loadout-mini"><div class="lm-icon" style="background:rgba(76,175,130,0.12);border:1px solid rgba(76,175,130,0.25)">🌑</div><div><div class="lm-name">Gambit</div><div class="lm-sub">Prime Mover · Void</div></div><div class="lm-power">⚡ 2091</div></div>
         </div>
+
+        <!-- Activiteiten History -->
         <div class="p-card">
-          <div class="p-card-title">&#x1F4CA; Recente Activiteiten</div>
-          <div class="activity-item"><div class="act-icon" style="background:rgba(79,143,255,0.12)">&#x1F3C3;</div><div><div class="act-name">Nightfall: Proving Ground</div><div class="act-sub">2 uur geleden &middot; 18:42</div></div><span class="act-result result-complete">Voltooid</span></div>
-          <div class="activity-item"><div class="act-icon" style="background:rgba(232,98,42,0.12)">&#x1F3AF;</div><div><div class="act-name">Crucible: Control</div><div class="act-sub">4 uur geleden &middot; 16:15</div></div><span class="act-result result-win">Gewonnen</span></div>
-          <div class="activity-item"><div class="act-icon" style="background:rgba(212,168,67,0.12)">&#x1F3F0;</div><div><div class="act-name">Last Wish Raid</div><div class="act-sub">Gisteren &middot; 21:30</div></div><span class="act-result result-complete">Voltooid</span></div>
-          <div class="activity-item"><div class="act-icon" style="background:rgba(232,98,42,0.12)">&#x1F3AF;</div><div><div class="act-name">Crucible: Rift</div><div class="act-sub">Gisteren &middot; 19:00</div></div><span class="act-result result-loss">Verloren</span></div>
-          <div class="activity-item"><div class="act-icon" style="background:rgba(76,175,130,0.12)">&#x1F5E1;&#xFE0F;</div><div><div class="act-name">Gambit Prime</div><div class="act-sub">2 dagen geleden</div></div><span class="act-result result-win">Gewonnen</span></div>
-          <div class="activity-item"><div class="act-icon" style="background:rgba(79,143,255,0.12)">&#x26A1;</div><div><div class="act-name">Weekly Story Mission</div><div class="act-sub">2 dagen geleden</div></div><span class="act-result result-complete">Voltooid</span></div>
+          <div class="p-card-title">📊 Recente Activiteiten</div>
+          <div class="activity-item"><div class="act-icon" style="background:rgba(79,143,255,0.12)">🏃</div><div><div class="act-name">Nightfall: Proving Ground</div><div class="act-sub">2 uur geleden · 18:42</div></div><span class="act-result result-complete">Voltooid</span></div>
+          <div class="activity-item"><div class="act-icon" style="background:rgba(232,98,42,0.12)">🎯</div><div><div class="act-name">Crucible: Control</div><div class="act-sub">4 uur geleden · 16:15</div></div><span class="act-result result-win">Gewonnen</span></div>
+          <div class="activity-item"><div class="act-icon" style="background:rgba(212,168,67,0.12)">🏰</div><div><div class="act-name">Last Wish Raid</div><div class="act-sub">Gisteren · 21:30</div></div><span class="act-result result-complete">Voltooid</span></div>
+          <div class="activity-item"><div class="act-icon" style="background:rgba(232,98,42,0.12)">🎯</div><div><div class="act-name">Crucible: Rift</div><div class="act-sub">Gisteren · 19:00</div></div><span class="act-result result-loss">Verloren</span></div>
+          <div class="activity-item"><div class="act-icon" style="background:rgba(76,175,130,0.12)">🗡️</div><div><div class="act-name">Gambit Prime</div><div class="act-sub">2 dagen geleden</div></div><span class="act-result result-win">Gewonnen</span></div>
+          <div class="activity-item"><div class="act-icon" style="background:rgba(79,143,255,0.12)">⚡</div><div><div class="act-name">Weekly Story Mission</div><div class="act-sub">2 dagen geleden</div></div><span class="act-result result-complete">Voltooid</span></div>
         </div>
       </div>
     </div>
   </div>
 
   <div class="toast" id="ghq-toast"></div>
-  <canvas id="resizeCanvas" style="display:none"></canvas>
 
   <script src="js/bungie.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/main.js"></script>
   <script>
-    // AVATARS — beheerder voegt hier iconen toe
-    // Formaat: { ic: 'emoji', label: 'zoekterm', cat: 'destiny|combat|natuur|overig' }
-    const AVATARS = [
-      {ic:'⬡', label:'hexagon',  cat:'destiny'},
-      {ic:'Ἷ9', label:'boog',     cat:'destiny'},
-      {ic:'✨',  label:'magie',    cat:'destiny'},
-      {ic:'Ὠ0', label:'raket',    cat:'destiny'},
-      {ic:'Ἷ0', label:'kasteel',  cat:'destiny'},
-      {ic:'ἺF', label:'doel',     cat:'destiny'},
-      {ic:'Ὦ1️', label:'schild',   cat:'combat'},
-      {ic:'ὒB', label:'pistool',  cat:'combat'},
-      {ic:'⚔️', label:'zwaarden', cat:'combat'},
-      {ic:'὞1️', label:'dolk',    cat:'combat'},
-      {ic:'Ὀ0', label:'schedel',  cat:'combat'},
-      {ic:'⚡',  label:'bliksem',  cat:'natuur'},
-      {ic:'ἱ9', label:'maan',     cat:'natuur'},
-      {ic:'ὒ5', label:'vuur',     cat:'natuur'},
-      {ic:'❄️', label:'ijs',       cat:'natuur'},
-      {ic:'⭐',  label:'ster',     cat:'natuur'},
-      {ic:'ᾘ5', label:'arend',    cat:'natuur'},
-      {ic:'ἰA', label:'golf',     cat:'natuur'},
-      {ic:'☄️', label:'komeet',   cat:'natuur'},
-      {ic:'ὀ9', label:'draak',    cat:'overig'},
-      {ic:'ὄ1️', label:'oog',      cat:'overig'},
-      {ic:'ὈE', label:'diamant',  cat:'overig'},
-      {ic:'ἺD', label:'masker',   cat:'overig'},
-      {ic:'ὒE', label:'bol',      cat:'overig'},
-    ];
+    const AVATARS = ['⬡','🏹','✨','🛡️','🔫','⚡','🚀','🗡️','🏰','🎯','👁️','🌙','🔥','❄️','⚔️','🌟','💀','🐉','🦅','🌊','☄️','💎','🎭','🔮'];
+    let selectedAvatar = localStorage.getItem('ghq_avatar') || '⬡';
 
-    let selectedAvatar    = localStorage.getItem('ghq_avatar') || AVATARS[0].ic;
-    let avatarPickerMode  = 'standalone';
-    let currentAvCat      = 'all';
-    let pendingUploadData = null;
-
-    // ── INIT ─────────────────────────────
     window.addEventListener('DOMContentLoaded', async () => {
-      // BEVEILIGING: login vereist — originele code behouden
       if (!requireLogin('login.html')) return;
-
       const user = getCurrentUser();
       if (user) {
         document.getElementById('profileName').textContent = user.username;
-        document.getElementById('profileId').textContent   = 'GuardianHQ ID: ' + user.username;
-        document.getElementById('editBtn').style.display   = 'inline-flex';
-        loadProfileDisplay();
-
-        // Bungie OAuth callback — originele beveiliging behouden
+        document.getElementById('profileId').textContent = 'GuardianHQ ID: ' + user.username;
+        document.getElementById('editBtn').style.display = 'inline-flex';
+        // Verwerk Bungie OAuth callback als er een code in de URL zit
         if (window.location.search.includes('code=')) {
           const linked = await handleBungieCallback();
           if (linked) {
-            showToast('&#x2713; Bungie account gekoppeld!');
+            showToast('✓ Bungie account gekoppeld!');
             await new Promise(r => setTimeout(r, 500));
             loadBungieProfileData();
           } else {
-            document.getElementById('hoursPlayed').textContent = '&#x2014;';
+            document.getElementById('hoursPlayed').textContent = '—';
           }
         } else if (isBungieLinked()) {
           loadBungieProfileData();
         } else {
-          document.getElementById('hoursPlayed').textContent = '&#x2014;';
+          document.getElementById('hoursPlayed').textContent = '—';
         }
       }
-      applyStoredAvatar();
+      const saved = localStorage.getItem('ghq_avatar') || '⬡';
+      document.getElementById('avatarEmoji').textContent = saved;
     });
 
-    // ── AVATAR TONEN ─────────────────────
-    function applyStoredAvatar() {
-      const photoData = localStorage.getItem('ghq_avatar_photo');
-      const emoji     = localStorage.getItem('ghq_avatar') || AVATARS[0].ic;
-      const el        = document.getElementById('profileAvatar');
-      if (photoData) {
-        el.innerHTML = '<img src="' + photoData + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%"><div class="avatar-edit">Wijzig</div>';
-      } else {
-        el.innerHTML = '<span class="avatar-emoji" id="avatarEmoji">' + emoji + '</span><div class="avatar-edit">Wijzig</div>';
-      }
-    }
-
-    // ── ICOON PICKER ─────────────────────
     function openAvatarPicker() {
       const user = getCurrentUser();
       if (!user) { showToast('Log in om je avatar te wijzigen'); return; }
-      avatarPickerMode = 'standalone';
-      renderAvatarGrid();
-      document.getElementById('avPickerPreview').textContent = selectedAvatar;
-      document.getElementById('avPickerName').textContent    = user.username || 'Guardian';
+      const grid = document.getElementById('avatarGrid');
+      grid.innerHTML = AVATARS.map(a => `<div class="av-opt ${a===selectedAvatar?'selected':''}" onclick="selectAv(this,'${a}')">${a}</div>`).join('');
       document.getElementById('avatarPicker').classList.add('open');
-    }
-
-    function openAvatarPickerFromEdit() {
-      avatarPickerMode = 'fromedit';
-      renderAvatarGrid();
-      const user = getCurrentUser();
-      document.getElementById('avPickerPreview').textContent = selectedAvatar;
-      document.getElementById('avPickerName').textContent    = (user && user.username) || 'Guardian';
-      document.getElementById('avatarPicker').classList.add('open');
-    }
-
-    function renderAvatarGrid() {
-      const search   = (document.getElementById('avatarSearch').value || '').toLowerCase();
-      const grid     = document.getElementById('avatarGrid');
-      const filtered = AVATARS.filter(a => {
-        const catOk    = currentAvCat === 'all' || a.cat === currentAvCat;
-        const searchOk = a.label.includes(search) || a.ic.includes(search);
-        return catOk && searchOk;
-      });
-      if (!filtered.length) {
-        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text3);font-size:0.8rem;padding:1rem">Geen iconen gevonden</div>';
-        return;
-      }
-      grid.innerHTML = filtered.map(a =>
-        '<div class="av-opt ' + (a.ic === selectedAvatar ? 'selected' : '') + '" onclick="selectAv(this,'' + a.ic + '')" title="' + a.label + '">' + a.ic + '</div>'
-      ).join('');
-    }
-
-    function filterAvatarGrid() { renderAvatarGrid(); }
-
-    function setAvCat(btn, cat) {
-      document.querySelectorAll('.av-cat').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentAvCat = cat;
-      renderAvatarGrid();
     }
 
     function selectAv(el, emoji) {
       document.querySelectorAll('.av-opt').forEach(e => e.classList.remove('selected'));
       el.classList.add('selected');
       selectedAvatar = emoji;
-      document.getElementById('avPickerPreview').textContent = emoji;
     }
 
     function saveAvatar() {
       localStorage.setItem('ghq_avatar', selectedAvatar);
-      localStorage.removeItem('ghq_avatar_photo');
-      applyStoredAvatar();
-      syncEditModalAvatar();
+      document.getElementById('avatarEmoji').textContent = selectedAvatar;
       closeAvatarPicker();
-      showToast('&#x2713; Avatar opgeslagen!');
+      showToast('✓ Avatar opgeslagen!');
     }
 
     function closeAvatarPicker() {
       document.getElementById('avatarPicker').classList.remove('open');
-      document.getElementById('avatarSearch').value = '';
-      currentAvCat = 'all';
-      document.querySelectorAll('.av-cat').forEach((b,i) => b.classList.toggle('active', i===0));
-    }
-
-    // ── FOTO UPLOAD ──────────────────────
-    function handleAvatarUpload(input) {
-      const file = input.files[0];
-      if (!file) return;
-      const allowed = ['image/jpeg','image/png','image/webp'];
-      if (!allowed.includes(file.type)) {
-        showUploadErr('Verkeerd bestandstype. Gebruik JPG, PNG of WebP.');
-        input.value = ''; return;
-      }
-      if (file.size > 500 * 1024) {
-        showUploadErr('Bestand te groot (' + Math.round(file.size/1024) + 'KB). Maximum is 500KB.');
-        input.value = ''; return;
-      }
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-          const MAX = 400;
-          let w = img.width, h = img.height;
-          if (w > MAX || h > MAX) {
-            const ratio = Math.min(MAX/w, MAX/h);
-            w = Math.round(w * ratio); h = Math.round(h * ratio);
-          }
-          const canvas = document.getElementById('resizeCanvas');
-          canvas.width = w; canvas.height = h;
-          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          const resized = canvas.toDataURL('image/jpeg', 0.88);
-          pendingUploadData = resized;
-          const circle = document.getElementById('editAvCircle');
-          circle.innerHTML = '<img src="' + resized + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
-          hideUploadMsg();
-          showUploadOk('Afbeelding geladen — ' + w + '×' + h + 'px · Klik "Profiel Opslaan" om op te slaan');
-          input.value = '';
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function showUploadErr(msg) {
-      var el = document.getElementById('uploadErr');
-      el.textContent = msg; el.classList.add('show');
-      document.getElementById('uploadOkMsg').classList.remove('show');
-    }
-    function showUploadOk(msg) {
-      var el = document.getElementById('uploadOkMsg');
-      el.textContent = msg; el.classList.add('show');
-      document.getElementById('uploadErr').classList.remove('show');
-    }
-    function hideUploadMsg() {
-      document.getElementById('uploadErr').classList.remove('show');
-      document.getElementById('uploadOkMsg').classList.remove('show');
-    }
-
-    // ── EDIT MODAL ───────────────────────
-    function openEditModal() {
-      const user = getCurrentUser();
-      if (!user) { showToast('Log in om je profiel te bewerken'); return; }
-      const saved = getSavedProfile();
-      document.getElementById('editDisplayName').value = user.username || '';
-      document.getElementById('editBio').value         = saved.bio      || '';
-      document.getElementById('editLocation').value    = saved.location || '';
-      document.getElementById('editWebsite').value     = saved.website  || '';
-      document.getElementById('editDiscord').value     = saved.discord  || '';
-      document.getElementById('editTwitter').value     = saved.twitter  || '';
-      document.getElementById('editTwitch').value      = saved.twitch   || '';
-      document.getElementById('editValorant').value    = saved.valorant || '';
-      document.getElementById('editTiktok').value      = saved.tiktok   || '';
-      editCnt('editDisplayName','editNameCnt',30);
-      editCnt('editBio','editBioCnt',160);
-      syncEditModalAvatar();
-      pendingUploadData = null;
-      hideUploadMsg();
-      document.getElementById('editProfileModal').classList.add('open');
-    }
-
-    function syncEditModalAvatar() {
-      const photoData = localStorage.getItem('ghq_avatar_photo');
-      const emoji     = localStorage.getItem('ghq_avatar') || AVATARS[0].ic;
-      const circle    = document.getElementById('editAvCircle');
-      if (!circle) return;
-      if (photoData) {
-        circle.innerHTML = '<img src="' + photoData + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
-      } else {
-        circle.innerHTML = '<span id="editAvContent" style="font-size:2rem">' + emoji + '</span>';
-      }
-    }
-
-    function closeEditModal() {
-      document.getElementById('editProfileModal').classList.remove('open');
-      pendingUploadData = null;
-      hideUploadMsg();
-    }
-
-    function saveEditProfile() {
-      if (pendingUploadData) {
-        localStorage.setItem('ghq_avatar_photo', pendingUploadData);
-        localStorage.removeItem('ghq_avatar');
-        applyStoredAvatar();
-      }
-      const profileData = {
-        bio:      document.getElementById('editBio').value.trim(),
-        location: document.getElementById('editLocation').value.trim(),
-        website:  document.getElementById('editWebsite').value.trim(),
-        discord:  document.getElementById('editDiscord').value.trim(),
-        twitter:  document.getElementById('editTwitter').value.trim(),
-        twitch:   document.getElementById('editTwitch').value.trim(),
-        valorant: document.getElementById('editValorant').value.trim(),
-        tiktok:   document.getElementById('editTiktok').value.trim(),
-      };
-      localStorage.setItem('ghq_profile_data', JSON.stringify(profileData));
-      loadProfileDisplay();
-      closeEditModal();
-      showToast('✓ Profiel opgeslagen!');
-    }
-
-    // ── PROFIEL DATA ─────────────────────
-    function getSavedProfile() {
-      try { return JSON.parse(localStorage.getItem('ghq_profile_data') || '{}'); }
-      catch { return {}; }
-    }
-
-    function loadProfileDisplay() {
-      const saved = getSavedProfile();
-      const bioEl = document.getElementById('profileBioDisplay');
-      if (saved.bio) { bioEl.textContent = saved.bio; bioEl.style.display = 'block'; }
-      else { bioEl.style.display = 'none'; }
-      const metaEl = document.getElementById('profileMetaDisplay');
-      let metaHtml = '';
-      if (saved.location) metaHtml += '<span class="profile-meta-item">&#x1F4CD; ' + escHtml(saved.location) + '</span>';
-      if (saved.website)  metaHtml += '<span class="profile-meta-item">&#x1F310; <a href="' + escHtml(saved.website) + '" target="_blank" rel="noopener" style="color:var(--gold2);text-decoration:none">' + escHtml(saved.website.replace(/^https?:\/\//,'')) + '</a></span>';
-      metaEl.innerHTML = metaHtml;
-      metaEl.style.display = metaHtml ? 'flex' : 'none';
-      const socEl = document.getElementById('profileSocialsDisplay');
-      let socHtml = '';
-      if (saved.discord)  socHtml += '<span class="social-link" style="color:#5865F2;border-color:rgba(88,101,242,0.25)"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.1 18.078.11 18.1.132 18.113a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>' + escHtml(saved.discord) + '</span>';
-      if (saved.twitter)  socHtml += '<span class="social-link" style="color:#1da1f2;border-color:rgba(29,161,242,0.25)"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>' + escHtml(saved.twitter) + '</span>';
-      if (saved.twitch)   socHtml += '<span class="social-link" style="color:#6441a5;border-color:rgba(100,65,165,0.25)"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>' + escHtml(saved.twitch) + '</span>';
-      if (saved.valorant) socHtml += '<span class="social-link" style="color:#ff4655;border-color:rgba(255,70,85,0.25)"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>' + escHtml(saved.valorant) + '</span>';
-      if (saved.tiktok)   socHtml += '<span class="social-link" style="color:#ff6400;border-color:rgba(255,100,0,0.25)"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.79 1.54V6.78a4.85 4.85 0 01-1.02-.09z"/></svg>' + escHtml(saved.tiktok) + '</span>';
-      socEl.innerHTML = socHtml;
-      socEl.style.display = socHtml ? 'flex' : 'none';
-    }
-
-    function editCnt(inputId, countId, max) {
-      var el = document.getElementById(inputId);
-      if (el) document.getElementById(countId).textContent = el.value.length;
-    }
-
-    function escHtml(str) {
-      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     function selectChar(el) {
