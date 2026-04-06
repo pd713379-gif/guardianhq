@@ -183,7 +183,14 @@
       .char-select{flex-direction:column}
     }
   </style>
-  <script>document.documentElement.style.visibility="hidden";</script>
+  <script>
+    document.documentElement.style.visibility="hidden";
+    // Direct check — redirect before page is ever shown
+    try {
+      var _u = JSON.parse(localStorage.getItem('ghq_current_user'));
+      if (!_u) { window.location.replace('login.html'); }
+    } catch(e) { window.location.replace('login.html'); }
+  </script>
 </head>
 <body>
   <div class="mesh"><div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div></div>
