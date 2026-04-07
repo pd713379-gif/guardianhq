@@ -13,31 +13,39 @@ export default async function handler(req, res) {
   if (!API_KEY) return res.status(500).json({ error: 'API key ontbreekt' });
 
   try {
-    const url = 'https://www.bungie.net/Platform/Content/GetContentByTagAndType/en/news/NewsArticle/?currentpage=1&itemsperpage=8&head=true';
+    const url = 'https://www.bungie.net/Platform/Content/GetContentByTagAndType/news/NewsArticle/en/?currentpage=1&itemsperpage=8&head=true';
+    console.log('[bungie-news] Ophalen:', url);
+
     const bungieRes = await fetch(url, {
       headers: { 'X-API-Key': API_KEY }
     });
 
-    if (!bungieRes.ok) {
-      return res.status(bungieRes.status).json({ error: 'Bungie API fout' });
+    const text = await bungieRes.text();
+    console.log('[bungie-news] Status:', bungieRes.status, 'Body preview:', text.slice(0, 300));
+
+    let data;
+    try { data = JSON.parse(text); } catch(e) {
+      return res.status(500).json({ error: 'Geen JSON van Bungie', preview: text.slice(0, 200) });
     }
 
-    const data = await bungieRes.json();
-    if (!data.Response) return res.status(500).json({ error: 'Geen data' });
+    if (!data.Response) {
+      return res.status(500).json({ error: 'Geen Response veld', errorCode: data.ErrorCode, message: data.Message });
+    }
 
-    // Stuur alleen wat we nodig hebben
-    const results = (data.Response.results || []).map(item => ({
-      Subject:      item.Subject,
-      CreationDate: item.CreationDate,
-      Url:          item.Url,
+    const items = data.Response.results || [];
+    const results = items.map(item => ({
+      Subject:      item.Subject || '',
+      CreationDate: item.CreationDate || '',
+      Url:          item.Url || '',
       Content: {
         properties: {
           Title: item.Content && item.Content.properties && item.Content.properties.Title
+            ? item.Content.properties.Title
+            : item.Subject || ''
         }
       }
     }));
 
-    // Cache 5 minuten
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=60');
     return res.status(200).json({ results });
 
@@ -46,4 +54,3 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
-
