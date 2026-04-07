@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Destiny 2 — GuardianHQ</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script>document.documentElement.style.visibility='hidden';</script>
 
@@ -14,6 +14,223 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <!-- EmailJS -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#0a0d14;
+      --card:rgba(255,255,255,0.05);
+      --line:rgba(255,255,255,0.08);
+      --text:#eef3ff;
+      --text2:#aeb8d6;
+      --text3:#7f8bb0;
+      --blue:#4f8fff;
+      --gold:#d4a843;
+      --orange:#e8622a;
+      --purple:#9b72cf;
+      --green:#31c48d;
+      --danger:#ff6b6b;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,sans-serif;
+      background:radial-gradient(circle at top right,#111827 0%,#0a0d14 50%,#080b12 100%);
+      color:var(--text);
+      min-height:100vh;
+    }
+
+    .mesh{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+    .blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.08}
+    .blob1{width:320px;height:320px;background:#4f8fff;top:5%;left:5%}
+    .blob2{width:280px;height:280px;background:#e8622a;top:20%;right:8%}
+    .blob3{width:360px;height:360px;background:#9b72cf;bottom:10%;left:30%}
+
+    nav{
+      position:sticky;top:0;z-index:50;
+      backdrop-filter:blur(14px);
+      background:rgba(8,11,18,.72);
+      border-bottom:1px solid var(--line);
+    }
+    .nav-wrap{
+      max-width:1280px;margin:0 auto;padding:14px 20px;
+      display:flex;align-items:center;justify-content:space-between;gap:16px;
+    }
+    .logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
+    .logo-icon{
+      width:36px;height:36px;border-radius:12px;
+      display:grid;place-items:center;font-weight:900;
+      background:linear-gradient(135deg,#4f8fff,#9b72cf);
+    }
+    .logo-text{font-weight:800;font-family:"Space Grotesk",sans-serif}
+    .nav-center{display:flex;gap:14px;flex-wrap:wrap}
+    .nav-center a{color:var(--text2);text-decoration:none;font-size:.95rem}
+    .nav-center a.active,.nav-center a:hover{color:var(--text)}
+
+    .locked{
+      min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      text-align:center;padding:32px;
+    }
+    .locked-icon{font-size:3rem;margin-bottom:12px}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      border-radius:14px;padding:12px 18px;text-decoration:none;
+      border:1px solid var(--line);cursor:pointer;font-weight:700;
+    }
+    .btn-solid{background:linear-gradient(135deg,#4f8fff,#3b82f6);color:white}
+    .btn-ghost{background:rgba(255,255,255,.04);color:var(--text)}
+
+    .destiny-wrap{position:relative;z-index:1;padding:24px}
+    .destiny-inner{max-width:1280px;margin:0 auto}
+    .d-top-bar{
+      display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+      margin-bottom:18px;
+    }
+    .d-title{
+      font-family:"Space Grotesk",sans-serif;
+      font-size:2rem;font-weight:800;display:flex;align-items:center;gap:10px;
+    }
+    .live-dot{
+      display:inline-flex;align-items:center;gap:6px;
+      font-size:.75rem;padding:4px 8px;border-radius:999px;
+      background:rgba(49,196,141,.12);color:#7ef0bd;border:1px solid rgba(49,196,141,.25);
+    }
+
+    .d-tabs{
+      display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;
+    }
+    .d-tab{
+      padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.04);
+      border:1px solid var(--line);cursor:pointer;color:var(--text2);font-weight:600;
+    }
+    .d-tab.active{background:rgba(79,143,255,.12);border-color:rgba(79,143,255,.25);color:#dce9ff}
+
+    .d-pane{display:none}
+    .d-pane.active{display:block}
+
+    .glass{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:20px;
+      backdrop-filter:blur(14px);
+      box-shadow:0 10px 30px rgba(0,0,0,.18);
+    }
+
+    .d-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .d-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .d-card{padding:18px}
+    .d-card-label{
+      font-weight:800;margin-bottom:12px;
+      display:flex;align-items:center;gap:8px;
+    }
+
+    .news-item,.activity-item,.wish-item{
+      padding:12px;border-radius:14px;background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.05);margin-bottom:10px;
+    }
+    .news-item:last-child,.activity-item:last-child,.wish-item:last-child{margin-bottom:0}
+    .news-time{font-size:.75rem;color:var(--text3);margin-bottom:4px}
+    .news-headline{font-weight:600;color:var(--text)}
+
+    .stat-row{
+      display:flex;justify-content:space-between;gap:12px;
+      padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);
+    }
+    .stat-row:last-child{border-bottom:none}
+    .stat-label{color:var(--text2)}
+    .stat-val{font-weight:800}
+    .val-blue{color:#89b7ff}
+    .val-gold{color:#f1cb72}
+    .val-orange{color:#ff9a69}
+    .val-green{color:#7ef0bd}
+
+    .activity-item{
+      display:flex;align-items:center;gap:12px;
+    }
+    .act-icon{
+      width:40px;height:40px;border-radius:12px;
+      display:grid;place-items:center;flex-shrink:0;
+      background:rgba(255,255,255,.05);
+    }
+    .act-name{font-weight:700}
+    .act-sub{font-size:.8rem;color:var(--text3)}
+    .act-badge{
+      margin-left:auto;font-size:.7rem;font-weight:800;padding:4px 8px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.08)
+    }
+    .badge-live{background:rgba(79,143,255,.12);color:#8db7ff}
+    .badge-hot{background:rgba(232,98,42,.12);color:#ff9a69}
+    .badge-event{background:rgba(155,114,207,.12);color:#c9a5ff}
+
+    .weapon-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .w-card{
+      padding:14px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05)
+    }
+    .w-exotic{border-color:rgba(212,168,67,.25)}
+    .w-legendary{border-color:rgba(155,114,207,.2)}
+    .w-name{font-weight:800}
+    .w-type{font-size:.8rem;color:var(--text3);margin-top:2px}
+    .w-power{font-size:.8rem;color:var(--gold);margin-top:8px;font-weight:700}
+
+    .bungie-card{text-align:center}
+    .bungie-avatar-ring{
+      width:72px;height:72px;border-radius:50%;
+      margin:8px auto 10px;
+      background:linear-gradient(135deg,#4f8fff,#d4a843);
+      padding:2px;
+    }
+    .bungie-avatar-inner{
+      width:100%;height:100%;border-radius:50%;
+      display:grid;place-items:center;background:#101521;font-size:1.5rem
+    }
+    .bungie-name{font-weight:800}
+    .bungie-id{font-size:.8rem;color:var(--text3);margin-top:4px}
+    .bungie-desc{font-size:.9rem;color:var(--text2);margin-top:10px}
+    .bungie-btn{
+      margin-top:14px;padding:12px 16px;border:none;border-radius:14px;
+      background:linear-gradient(135deg,#4f8fff,#3b82f6);color:white;font-weight:800;cursor:pointer
+    }
+
+    .inv-grid,.vault-grid{
+      display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;
+    }
+    .inv-item{
+      padding:14px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05)
+    }
+    .inv-name{font-weight:800}
+    .inv-sub{font-size:.8rem;color:var(--text3);margin-top:4px}
+
+    .wish-item{
+      display:flex;align-items:center;gap:12px;
+    }
+    .wish-emoji{
+      width:48px;height:48px;border-radius:10px;display:grid;place-items:center;
+      background:rgba(255,255,255,.05);font-size:1.2rem;flex-shrink:0;
+      border:2px solid rgba(255,255,255,.05);
+    }
+    .wish-name{font-weight:800}
+    .wish-perks{font-size:.8rem;color:var(--text3);margin-top:3px}
+    .wish-thumb{font-size:1.1rem;opacity:.8}
+
+    .timer-widget{
+      margin-top:14px;padding:12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05)
+    }
+    .timer-label{font-size:.8rem;color:var(--text3)}
+    .timer-num{font-weight:900;font-size:1.2rem;margin-top:4px}
+    .prog-bar{height:6px;background:rgba(255,255,255,.05);border-radius:999px;margin-top:8px;overflow:hidden}
+    .prog-fill{height:100%;width:0%;background:linear-gradient(90deg,#4f8fff,#d4a843)}
+
+    .toast{
+      position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+      background:#101521;border:1px solid var(--line);padding:12px 16px;border-radius:14px;
+      color:var(--text);display:none;z-index:9999;
+    }
+
+    @media (max-width: 980px){
+      .d-grid-2,.d-grid-3{grid-template-columns:1fr}
+      .weapon-grid{grid-template-columns:1fr}
+    }
+  </style>
 </head>
 <body>
 
@@ -35,23 +252,21 @@
         <a href="destiny.html" class="active">Destiny 2</a>
         <a href="contact.html">Contact</a>
         <a href="profile.html">Profiel</a>
-        <a href="https://discord.gg/HdkP7rPS" target="_blank" class="discord-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.1 18.078.11 18.1.132 18.113a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>Discord</a>
       </div>
-      <div class="nav-auth" id="navAuth">
-      </div>
+      <div id="navAuth"></div>
     </div>
   </nav>
 
-  <!-- LOGIN REQUIRED MESSAGE -->
   <div class="locked" id="lockedMsg" style="display:none">
     <div class="locked-icon">🔒</div>
     <h2>Toegang Vereist</h2>
     <p>Log in of maak een gratis account aan om het Destiny 2 Command Center te bekijken.</p>
-    <a href="login.html" class="btn btn-solid" style="padding:12px 32px">Inloggen</a>
-    <a href="register.html" class="btn btn-ghost" style="padding:12px 32px">Registreren</a>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+      <a href="login.html" class="btn btn-solid">Inloggen</a>
+      <a href="register.html" class="btn btn-ghost">Registreren</a>
+    </div>
   </div>
 
-  <!-- DESTINY CONTENT -->
   <div class="destiny-wrap" id="destinyContent" style="display:none">
     <div class="destiny-inner">
 
@@ -61,68 +276,42 @@
           <span class="live-dot">Live</span>
         </div>
         <div style="font-size:0.85rem;color:var(--text2)">
-          Welkom, <span id="welcomeName" style="color:var(--gold2);font-weight:600"></span>!
+          Welkom, <span id="welcomeName" style="color:var(--gold);font-weight:700"></span>!
         </div>
       </div>
 
-      <!-- TABS -->
       <div class="d-tabs">
-        <div class="d-tab active"  onclick="switchTab('overview')">Overzicht</div>
-        <div class="d-tab"         onclick="switchTab('dim')">⚙ Item Manager</div>
-        <div class="d-tab"         onclick="switchTab('loadouts')">Loadouts</div>
-        <div class="d-tab"         onclick="switchTab('vault')">Vault</div>
-        <div class="d-tab"         onclick="switchTab('wishlist')">Wishlist</div>
+        <div class="d-tab active" onclick="switchTab('overview', this)">Overzicht</div>
+        <div class="d-tab" onclick="switchTab('dim', this)">⚙ Item Manager</div>
+        <div class="d-tab" onclick="switchTab('loadouts', this)">Loadouts</div>
+        <div class="d-tab" onclick="switchTab('vault', this)">Vault</div>
+        <div class="d-tab" onclick="switchTab('wishlist', this)">Wishlist</div>
       </div>
 
-      <!-- ── OVERZICHT ── -->
       <div class="d-pane active" id="pane-overview">
         <div class="d-grid-2">
-
-          <!-- Nieuws -->
           <div class="d-card glass">
             <div class="d-card-label">📡 Live Nieuws <span class="live-dot">Bungie Feed</span></div>
             <div id="newsContainer">
-              <div class="news-item" style="opacity:0.4">
+              <div class="news-item" style="opacity:.4">
                 <div class="news-time">Laden...</div>
                 <div class="news-headline">Bungie nieuws wordt opgehaald...</div>
               </div>
             </div>
           </div>
 
-          <!-- Live Stats -->
           <div class="d-card glass">
             <div class="d-card-label">📊 Live Stats</div>
 
-            <div class="stat-row">
-              <span class="stat-label">Online Guardians <span style="font-size:0.7rem;color:var(--text3)">(Steam)</span></span>
-              <span class="stat-val val-blue" id="statSteam">—</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Server Status</span>
-              <span class="stat-val" id="statServer">—</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Season Power Cap</span>
-              <span class="stat-val val-gold" id="statPowerCap">—</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Soft Cap</span>
-              <span class="stat-val val-gold" id="statSoftCap">—</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Pinnacle Cap</span>
-              <span class="stat-val val-gold" id="statPinnacle">—</span>
-            </div>
+            <div class="stat-row"><span class="stat-label">Online Guardians (Steam)</span><span class="stat-val val-blue" id="statSteam">—</span></div>
+            <div class="stat-row"><span class="stat-label">Server Status</span><span class="stat-val" id="statServer">—</span></div>
+            <div class="stat-row"><span class="stat-label">Season Power Cap</span><span class="stat-val val-gold" id="statPowerCap">—</span></div>
+            <div class="stat-row"><span class="stat-label">Soft Cap</span><span class="stat-val val-gold" id="statSoftCap">—</span></div>
+            <div class="stat-row"><span class="stat-label">Pinnacle Cap</span><span class="stat-val val-gold" id="statPinnacle">—</span></div>
 
             <div style="margin:12px 0 6px;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px">
-              <div class="stat-row">
-                <span class="stat-label">Weekly Reset</span>
-                <span class="stat-val" id="statWeekly" style="font-size:0.82rem;font-variant-numeric:tabular-nums">—</span>
-              </div>
-              <div class="stat-row">
-                <span class="stat-label">Daily Reset</span>
-                <span class="stat-val" id="statDaily" style="font-size:0.82rem;font-variant-numeric:tabular-nums">—</span>
-              </div>
+              <div class="stat-row"><span class="stat-label">Weekly Reset</span><span class="stat-val" id="statWeekly">—</span></div>
+              <div class="stat-row"><span class="stat-label">Daily Reset</span><span class="stat-val" id="statDaily">—</span></div>
             </div>
 
             <div style="margin:12px 0 4px;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px">
@@ -138,33 +327,24 @@
 
             <div style="font-size:0.68rem;color:var(--text3);margin-top:10px;text-align:right" id="statsLastUpdate">Laden...</div>
           </div>
-
         </div>
 
         <div class="d-grid-3" style="margin-top:1.25rem">
-
-          <!-- Activiteiten -->
           <div class="d-card glass">
             <div class="d-card-label">⚔️ Activiteiten Vandaag <span class="live-dot" id="activitiesLiveDot" style="display:none">Live</span></div>
             <div id="activitiesContainer">
-              <!-- Skeleton loaders -->
-              <div class="activity-item act-skeleton">
-                <div class="act-icon" style="background:rgba(255,255,255,0.05)">···</div>
+              <div class="activity-item">
+                <div class="act-icon">···</div>
                 <div><div class="act-name" style="color:var(--text3)">Laden...</div><div class="act-sub">Bungie data ophalen</div></div>
-              </div>
-              <div class="activity-item act-skeleton">
-                <div class="act-icon" style="background:rgba(255,255,255,0.05)">···</div>
-                <div><div class="act-name" style="color:var(--text3)">Laden...</div><div class="act-sub">Even geduld</div></div>
               </div>
             </div>
             <div class="timer-widget">
               <div class="timer-label">Reset over</div>
               <div class="timer-num" id="resetTimer">--:--:--</div>
-              <div class="prog-bar"><div class="prog-fill" id="resetProg" style="width:0%"></div></div>
+              <div class="prog-bar"><div class="prog-fill" id="resetProg"></div></div>
             </div>
           </div>
 
-          <!-- Wapens -->
           <div class="d-card glass">
             <div class="d-card-label">🔫 Featured Wapens</div>
             <div class="weapon-grid">
@@ -175,7 +355,6 @@
             </div>
           </div>
 
-          <!-- Bungie -->
           <div class="d-card glass bungie-card">
             <div class="d-card-label" style="justify-content:center">👥 Bungie Connect</div>
             <div class="bungie-avatar-ring"><div class="bungie-avatar-inner">⬡</div></div>
@@ -185,103 +364,34 @@
             <button class="bungie-btn" onclick="openBungie()">Vriendschapsverzoek Sturen ↗</button>
             <div style="font-size:0.75rem;color:var(--text3);margin-top:10px">Opent bungie.net in nieuw tabblad</div>
           </div>
-
         </div>
       </div>
 
-      <!-- ── DIM ITEM MANAGER ── -->
       <div class="d-pane" id="pane-dim">
-
-        <div class="dim-header">
-          <div class="dim-logo">DIM</div>
-          <div class="dim-header-info">
-            <h2>Destiny Item Manager</h2>
-            <p>Beheer je inventory, wissel items tussen characters en de vault, en vind de beste gear — direct vanuit GuardianHQ. Wil je de volledige DIM? Klik rechts!</p>
-          </div>
-          <a href="https://app.destinyitemmanager.com" target="_blank" class="dim-open-btn">Openen op DIM ↗</a>
-        </div>
-
-        <div class="search-bar">
-          <input class="search-input" id="dimSearch" placeholder="Zoek items... (bijv. 'hand cannon', 'solar', 'perk:outlaw')">
-          <button class="search-btn" onclick="doSearch()">Zoeken</button>
-        </div>
-
-        <!-- Characters -->
-        <div class="char-cards">
-          <div class="char-card hunter active-char" onclick="selectChar(this,'Hunter')">
-            <div class="char-class">Hunter</div>
-            <div class="char-power">2087</div>
-            <div class="char-subclass">⚡ Arc Strider</div>
-            <div class="char-icon">🏹</div>
-          </div>
-          <div class="char-card warlock" onclick="selectChar(this,'Warlock')">
-            <div class="char-class">Warlock</div>
-            <div class="char-power">2071</div>
-            <div class="char-subclass">🔥 Solar Dawnblade</div>
-            <div class="char-icon">✨</div>
-          </div>
-          <div class="char-card titan" onclick="selectChar(this,'Titan')">
-            <div class="char-class">Titan</div>
-            <div class="char-power">2094</div>
-            <div class="char-subclass">🌑 Void Sentinel</div>
-            <div class="char-icon">🛡️</div>
-          </div>
-        </div>
-
         <div class="d-card glass">
-          <div class="inv-section-title" id="invTitle1">🔫 Wapens — Hunter</div>
+          <div class="d-card-label">⚙ Item Manager</div>
           <div class="inv-grid" id="weaponsGrid"></div>
-          <div class="inv-section-title" id="invTitle2">🛡️ Armor — Hunter</div>
-          <div class="inv-grid" id="armorGrid"></div>
         </div>
       </div>
 
-      <!-- ── LOADOUTS ── -->
       <div class="d-pane" id="pane-loadouts">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:1rem">
-          <div>
-            <div style="font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:4px">Mijn Loadouts</div>
-            <div style="font-size:0.875rem;color:var(--text2)">Wissel met één klik tussen builds voor elke activiteit.</div>
-          </div>
-          <button onclick="addLoadout()" class="btn btn-solid">+ Nieuwe Loadout</button>
-        </div>
-
-        <div class="d-card glass" style="margin-bottom:1.25rem">
-          <div class="loadout-list" id="loadoutList"></div>
-        </div>
-
-        <div class="d-card glass" style="background:linear-gradient(135deg,rgba(155,114,207,0.06),rgba(79,143,255,0.04));border-color:rgba(155,114,207,0.15)">
-          <div style="font-family:'Space Grotesk',sans-serif;font-size:0.95rem;font-weight:700;margin-bottom:8px">💡 Loadout Optimizer</div>
-          <div style="font-size:0.875rem;color:var(--text2);line-height:1.6;margin-bottom:1rem">Kies een activiteit en laat de optimizer de beste combinatie van wapens en armor vinden op basis van jouw stats.</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-purple" onclick="showToast('Optimizer voor Raid gestart!')">🏰 Raid Build</button>
-            <button class="btn btn-blue"   onclick="showToast('Optimizer voor PvP gestart!')">🎯 PvP Build</button>
-            <button class="btn btn-ghost"  onclick="showToast('Optimizer voor Nightfall gestart!')">⚡ Nightfall Build</button>
+        <div class="d-card glass">
+          <div class="d-card-label">🧩 Loadouts</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-solid" onclick="showToast('Optimizer voor Raid gestart!')">🏰 Raid Build</button>
+            <button class="btn btn-solid" onclick="showToast('Optimizer voor PvP gestart!')">🎯 PvP Build</button>
+            <button class="btn btn-ghost" onclick="showToast('Optimizer voor Nightfall gestart!')">⚡ Nightfall Build</button>
           </div>
         </div>
       </div>
 
-      <!-- ── VAULT ── -->
       <div class="d-pane" id="pane-vault">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:1rem">
-          <div>
-            <div style="font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:4px">Vault Overzicht</div>
-            <div style="font-size:0.875rem;color:var(--text2)"><span class="val-gold" style="font-weight:700" id="vaultCount">30</span> items opgeslagen</div>
-          </div>
-        </div>
-        <div class="vault-filters">
-          <button class="vf-btn active" onclick="filterVault(this,'all')">Alles</button>
-          <button class="vf-btn" onclick="filterVault(this,'weapons')">🔫 Wapens</button>
-          <button class="vf-btn" onclick="filterVault(this,'armor')">🛡️ Armor</button>
-          <button class="vf-btn" onclick="filterVault(this,'exotic')">⭐ Exotic</button>
-          <button class="vf-btn" onclick="filterVault(this,'legendary')">💜 Legendary</button>
-        </div>
         <div class="d-card glass">
+          <div class="d-card-label">🏦 Vault Overzicht</div>
           <div class="vault-grid" id="vaultGrid"></div>
         </div>
       </div>
 
-      <!-- ── WISHLIST ── -->
       <div class="d-pane" id="pane-wishlist">
         <div style="margin-bottom:1.25rem">
           <div style="font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:4px">Community Wishlist</div>
@@ -300,27 +410,74 @@
   <script src="js/auth.js"></script>
   <script src="js/main.js"></script>
   <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const user = getCurrentUser();
-      if (!user) {
-        document.getElementById('lockedMsg').style.display = 'flex';
-      } else {
-        document.getElementById('destinyContent').style.display = 'block';
-        const nameEl = document.getElementById('welcomeName');
-        if (nameEl) nameEl.textContent = user.username;
-        renderInvGrid('weaponsGrid', WEAPONS);
-        renderInvGrid('armorGrid', ARMOR);
-        loadBungieNews();
-        loadLiveStats();
-        loadWishlistIcons();
-      }
-      document.documentElement.style.visibility = '';
-    });
+    const WEAPONS = [
+      { name: 'Wish-Ender', type: 'Exotic Bow' },
+      { name: 'Palindrome', type: 'Legendary Hand Cannon' },
+      { name: 'Gjallarhorn', type: 'Exotic Rocket Launcher' },
+      { name: 'The Messenger', type: 'Legendary Pulse Rifle' }
+    ];
 
-    // ── NIEUWS ──
+    const ARMOR = [
+      { name: 'Helm of Saint-14', type: 'Exotic Helmet' },
+      { name: 'Phoenix Protocol', type: 'Exotic Chest' },
+      { name: 'St0mp-EE5', type: 'Exotic Legs' }
+    ];
+
+    const WISHLIST = [
+      { hash: 432476743,  name: 'Palindrome (PvP God Roll)', perks: 'Rapid Hit · Explosive Payload · Range MW', tag: 'PvP', tagClass: 'badge-event' },
+      { hash: 2351180975, name: 'Igneous Hammer (PvP)', perks: 'Perpetual Motion · Explosive Payload', tag: 'PvP', tagClass: 'badge-event' },
+      { hash: 1800914354, name: 'Retrofit Escapade (PvE)', perks: 'Envious Assassin · Target Lock · Reload MW', tag: 'PvE', tagClass: 'badge-live' },
+      { hash: 2382172050, name: 'Likely Suspect (PvE)', perks: 'Feeding Frenzy · Controlled Burst', tag: 'PvE', tagClass: 'badge-live' },
+      { hash: 2971750135, name: 'Apex Predator (Raid)', perks: 'Auto-Loading Holster · Bait and Switch', tag: 'Raid', tagClass: 'badge-hot' },
+      { hash: 2194955522, name: 'Falling Guillotine (PvE)', perks: 'Relentless Strikes · Whirlwind Blade', tag: 'PvE', tagClass: 'badge-live' },
+      { hash: 1890422124, name: 'Wish-Ender (Exotic)', perks: "Broadhead · Archer's Tempo · Always exotic", tag: 'Exotic', tagClass: 'badge-hot' }
+    ];
+
+    function switchTab(tab, el) {
+      document.querySelectorAll('.d-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.d-tab').forEach(t => t.classList.remove('active'));
+      const pane = document.getElementById('pane-' + tab);
+      if (pane) pane.classList.add('active');
+      if (el) el.classList.add('active');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('ghq-toast');
+      if (!toast) return;
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      setTimeout(() => toast.style.display = 'none', 2200);
+    }
+
+    function openBungie() {
+      window.open('https://www.bungie.net/7/en/User/Profile/BungieNext/4611686018484728472', '_blank');
+    }
+
+    function renderInvGrid(id, items) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.innerHTML = items.map(i => `
+        <div class="inv-item">
+          <div class="inv-name">${escHtml(i.name)}</div>
+          <div class="inv-sub">${escHtml(i.type)}</div>
+        </div>
+      `).join('');
+    }
+
+    function escHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;');
+    }
+
     async function loadBungieNews() {
       try {
-        const res  = await fetch('/api/bungie-news');
+        const res = await fetch('/api/bungie-news');
+        if (!res.ok) throw new Error('Nieuws API ' + res.status);
+
         const data = await res.json();
         if (!data.results || !data.results.length) throw new Error('Geen nieuws');
 
@@ -331,12 +488,13 @@
             ? item.Content.properties.Title
             : item.Subject || 'Geen titel';
           const url = item.Url ? 'https://www.bungie.net' + item.Url : 'https://www.bungie.net/7/en/News';
+
           return `<div class="news-item" onclick="window.open('${url}','_blank')" style="cursor:pointer">
             <div class="news-time">${date}</div>
-            <div class="news-headline">${title}</div>
+            <div class="news-headline">${escHtml(title)}</div>
           </div>`;
         }).join('');
-      } catch(err) {
+      } catch (err) {
         console.warn('Nieuws laden mislukt:', err.message);
         document.getElementById('newsContainer').innerHTML = `
           <div class="news-item">
@@ -351,26 +509,27 @@
       const date = new Date(dateStr);
       const now  = new Date();
       const diff = Math.floor((now - date) / 1000 / 60 / 60);
-      if (diff < 1)  return 'Zojuist';
+      if (diff < 1) return 'Zojuist';
       if (diff < 24) return diff + ' uur geleden';
       const days = Math.floor(diff / 24);
       if (days === 1) return 'Gisteren';
-      if (days < 7)  return days + ' dagen geleden';
+      if (days < 7) return days + ' dagen geleden';
       return date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
     }
 
-    // ── ACTIVITEITEN ──
     function renderActivities(activities) {
       const container = document.getElementById('activitiesContainer');
       const dot = document.getElementById('activitiesLiveDot');
       if (!container) return;
 
-      if (!activities || activities.length === 0) {
+      if (!activities || !activities.length) {
         container.innerHTML = `
           <div class="activity-item">
-            <div class="act-icon" style="background:rgba(255,255,255,0.05)">🎮</div>
-            <div><div class="act-name" style="color:var(--text3)">Activiteiten niet beschikbaar</div>
-            <div class="act-sub">Probeer het later opnieuw</div></div>
+            <div class="act-icon">🎮</div>
+            <div>
+              <div class="act-name" style="color:var(--text3)">Activiteiten niet beschikbaar</div>
+              <div class="act-sub">Probeer het later opnieuw</div>
+            </div>
           </div>`;
         return;
       }
@@ -389,56 +548,45 @@
 
       container.innerHTML = activities.map(a => `
         <div class="activity-item">
-          <div class="act-icon" style="background:${iconBg[a.icon] ?? 'rgba(255,255,255,0.06)'}">${a.icon}</div>
+          <div class="act-icon" style="background:${iconBg[a.icon] ?? 'rgba(255,255,255,0.06)'}">${a.icon || '⚔️'}</div>
           <div>
-            <div class="act-name">${escHtml(a.name)}</div>
-            <div class="act-sub">${escHtml(a.sub)}</div>
+            <div class="act-name">${escHtml(a.name || 'Activiteit')}</div>
+            <div class="act-sub">${escHtml(a.sub || 'Bungie live data')}</div>
           </div>
-          <span class="act-badge ${a.badgeClass}">${escHtml(a.badge)}</span>
+          <span class="act-badge ${escHtml(a.badgeClass || 'badge-live')}">${escHtml(a.badge || 'Live')}</span>
         </div>
       `).join('');
 
       if (dot) dot.style.display = '';
     }
 
-    function escHtml(str) {
-      if (!str) return '';
-      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
     async function loadLiveStats() {
       try {
-        const res  = await fetch('/api/bungie-stats');
+        const res = await fetch('/api/bungie-stats');
+        if (!res.ok) throw new Error('Stats API ' + res.status);
+
         const data = await res.json();
 
         const steamEl = document.getElementById('statSteam');
-        if (data.steamPlayers) {
-          steamEl.textContent = data.steamPlayers.toLocaleString('nl-NL');
-        } else {
-          steamEl.textContent = '—';
-        }
+        steamEl.textContent = data.steamPlayers ? Number(data.steamPlayers).toLocaleString('nl-NL') : '—';
 
         const serverEl = document.getElementById('statServer');
-        if (data.serverOnline === true) {
-          serverEl.innerHTML = '<span class="val-green">● Online</span>';
-        } else if (data.serverOnline === false) {
-          serverEl.innerHTML = '<span style="color:#e8622a">⚠ Onderhoud</span>';
-        } else {
-          serverEl.textContent = '—';
-        }
+        if (data.serverOnline === true) serverEl.innerHTML = '<span class="val-green">● Online</span>';
+        else if (data.serverOnline === false) serverEl.innerHTML = '<span style="color:#e8622a">⚠ Onderhoud</span>';
+        else serverEl.textContent = '—';
 
-        if (data.powerCap)      document.getElementById('statPowerCap').textContent  = data.powerCap;
-        if (data.softCap)       document.getElementById('statSoftCap').textContent   = data.softCap;
-        if (data.pinnacleFloor) document.getElementById('statPinnacle').textContent  = data.pinnacleFloor;
+        if (data.powerCap) document.getElementById('statPowerCap').textContent = data.powerCap;
+        if (data.softCap) document.getElementById('statSoftCap').textContent = data.softCap;
+        if (data.pinnacleFloor) document.getElementById('statPinnacle').textContent = data.pinnacleFloor;
 
         if (data.weeklyResetMs) startCountdown('statWeekly', data.weeklyResetMs);
-        if (data.dailyResetMs)  startCountdown('statDaily',  data.dailyResetMs);
+        if (data.dailyResetMs) startCountdown('statDaily', data.dailyResetMs);
+
+        if (data.weeklyResetMs) startResetWidget(data.weeklyResetMs);
 
         if (data.seasonPct !== undefined) {
-          const pct      = data.seasonPct;
-          const daysLeft = data.seasonEndMs
-            ? Math.max(0, Math.ceil((data.seasonEndMs - Date.now()) / 86400000))
-            : null;
+          const pct = data.seasonPct;
+          const daysLeft = data.seasonEndMs ? Math.max(0, Math.ceil((data.seasonEndMs - Date.now()) / 86400000)) : null;
           document.getElementById('statSeasonPct').textContent = pct + '%';
           document.getElementById('statSeasonBar').style.width = pct + '%';
           document.getElementById('statSeasonEnd').textContent = daysLeft !== null
@@ -446,18 +594,13 @@
             : '';
         }
 
-        if (data.activities) {
-          renderActivities(data.activities);
-        } else {
-          renderActivities([]);
-        }
-
+        renderActivities(data.activities || []);
         document.getElementById('statsLastUpdate').textContent =
           'Bijgewerkt: ' + new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-
-      } catch(err) {
+      } catch (err) {
         console.warn('[live-stats] Fout:', err.message);
         document.getElementById('statsLastUpdate').textContent = 'Stats tijdelijk niet beschikbaar';
+        renderActivities([]);
       }
     }
 
@@ -469,33 +612,54 @@
         if (diff <= 0) { el.textContent = 'Nu!'; return; }
         const d = Math.floor(diff / 86400000);
         const h = Math.floor((diff % 86400000) / 3600000);
-        const m = Math.floor((diff % 3600000)  / 60000);
-        const s = Math.floor((diff % 60000)    / 1000);
-        el.textContent = (d > 0 ? d + 'd ' : '')
-          + String(h).padStart(2,'0') + ':'
-          + String(m).padStart(2,'0') + ':'
-          + String(s).padStart(2,'0');
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        el.textContent = (d > 0 ? d + 'd ' : '') +
+          String(h).padStart(2,'0') + ':' +
+          String(m).padStart(2,'0') + ':' +
+          String(s).padStart(2,'0');
+      }
+      tick();
+    }
+
+    function startResetWidget(targetMs) {
+      function tick() {
+        const diff = targetMs - Date.now();
+        const el = document.getElementById('resetTimer');
+        const prog = document.getElementById('resetProg');
+        if (!el || !prog) return;
+
+        if (diff <= 0) {
+          el.textContent = 'Nu!';
+          prog.style.width = '100%';
+          return;
+        }
+
+        const total = 7 * 24 * 60 * 60 * 1000;
+        const elapsed = Math.max(0, total - diff);
+        const pct = Math.min(100, (elapsed / total) * 100);
+
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+
+        el.textContent = (d > 0 ? d + 'd ' : '') +
+          String(h).padStart(2,'0') + ':' +
+          String(m).padStart(2,'0') + ':' +
+          String(s).padStart(2,'0');
+
+        prog.style.width = pct + '%';
       }
       tick();
       setInterval(tick, 1000);
     }
 
-    setInterval(loadLiveStats, 120000);
-
-    // WISHLIST ICONEN (live via Bungie Manifest)
-    const WISHLIST = [
-      { hash: 432476743,  name: 'Palindrome (PvP God Roll)',   perks: 'Rapid Hit · Explosive Payload · Range MW',     tag: 'PvP',    tagClass: 'badge-event' },
-      { hash: 2351180975, name: 'Igneous Hammer (PvP)',        perks: 'Perpetual Motion · Explosive Payload',         tag: 'PvP',    tagClass: 'badge-event' },
-      { hash: 1800914354, name: 'Retrofit Escapade (PvE)',     perks: 'Envious Assassin · Target Lock · Reload MW',   tag: 'PvE',    tagClass: 'badge-live'  },
-      { hash: 2382172050, name: 'Likely Suspect (PvE)',        perks: 'Feeding Frenzy · Controlled Burst',            tag: 'PvE',    tagClass: 'badge-live'  },
-      { hash: 2971750135, name: 'Apex Predator (Raid)',        perks: 'Auto-Loading Holster · Bait and Switch',       tag: 'Raid',   tagClass: 'badge-hot'   },
-      { hash: 2194955522, name: 'Falling Guillotine (PvE)',    perks: 'Relentless Strikes · Whirlwind Blade',         tag: 'PvE',    tagClass: 'badge-live'  },
-      { hash: 1890422124, name: 'Wish-Ender (Exotic)',         perks: "Broadhead · Archer's Tempo · Always exotic",   tag: 'Exotic', tagClass: 'badge-hot'   },
-    ];
-
     async function loadWishlistIcons() {
       const card = document.getElementById('wishlistCard');
       if (!card) return;
+
+      const fallbackEmoji = { PvP: '🎯', Raid: '🏰', Exotic: '⭐', PvE: '⚡' };
 
       const results = await Promise.all(WISHLIST.map(async (w) => {
         try {
@@ -522,26 +686,46 @@
         }
       }));
 
-      const fallbackEmoji = { PvP: '🎯', Raid: '🏰', Exotic: '⭐', PvE: '⚡' };
-
       card.innerHTML = results.map(w => {
         const border = w.isExotic ? 'rgba(212,168,67,0.5)' : 'rgba(79,143,255,0.2)';
         const imgHtml = w.icon
-          ? '<img src="' + w.icon + '" alt="' + w.name + '" style="width:48px;height:48px;border-radius:6px;border:2px solid ' + border + ';object-fit:cover;flex-shrink:0" onerror="this.style.display=&apos;none&apos;">'
+          ? '<img src="' + w.icon + '" alt="' + escHtml(w.name) + '" style="width:48px;height:48px;border-radius:6px;border:2px solid ' + border + ';object-fit:cover;flex-shrink:0" onerror="this.style.display=&apos;none&apos;; this.insertAdjacentHTML(&apos;afterend&apos;,&apos;<div class=&quot;wish-emoji&quot;>' + (fallbackEmoji[w.tag] || '🔫') + '</div>&apos;);">'
           : '<div class="wish-emoji">' + (fallbackEmoji[w.tag] || '🔫') + '</div>';
 
         return '<div class="wish-item">'
           + imgHtml
           + '<div style="flex:1;min-width:0">'
-          + '<div class="wish-name">' + w.name + '</div>'
-          + '<div class="wish-perks">' + w.perks + '</div>'
+          + '<div class="wish-name">' + escHtml(w.name) + '</div>'
+          + '<div class="wish-perks">' + escHtml(w.perks) + '</div>'
           + '</div>'
-          + '<span class="act-badge ' + w.tagClass + '" style="font-size:0.65rem;padding:2px 7px">' + w.tag + '</span>'
+          + '<span class="act-badge ' + escHtml(w.tagClass) + '" style="font-size:0.65rem;padding:2px 7px">' + escHtml(w.tag) + '</span>'
           + '<div class="wish-thumb">&#128077;</div>'
           + '</div>';
       }).join('');
     }
-  </script>
 
+    setInterval(loadLiveStats, 120000);
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const user = typeof getCurrentUser === 'function' ? getCurrentUser() : { username: 'Guardian' };
+
+      if (!user) {
+        document.getElementById('lockedMsg').style.display = 'flex';
+      } else {
+        document.getElementById('destinyContent').style.display = 'block';
+        const nameEl = document.getElementById('welcomeName');
+        if (nameEl) nameEl.textContent = user.username || 'Guardian';
+
+        renderInvGrid('weaponsGrid', WEAPONS);
+        renderInvGrid('vaultGrid', [...WEAPONS, ...ARMOR]);
+
+        loadBungieNews();
+        loadLiveStats();
+        loadWishlistIcons();
+      }
+
+      document.documentElement.style.visibility = '';
+    });
+  </script>
 </body>
 </html>
