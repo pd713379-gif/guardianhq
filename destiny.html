@@ -1,1 +1,504 @@
 
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Destiny 2 — GuardianHQ</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>document.documentElement.style.visibility='hidden';</script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+</head>
+<body>
+
+  <div class="mesh">
+    <div class="blob blob1"></div>
+    <div class="blob blob2"></div>
+    <div class="blob blob3"></div>
+  </div>
+
+  <nav>
+    <div class="nav-wrap">
+      <a class="logo" href="index.html">
+        <div class="logo-icon">G</div>
+        <span class="logo-text">GuardianHQ</span>
+      </a>
+      <div class="nav-center">
+        <a href="landing.html">Welkom</a>
+        <a href="home.html">Home</a>
+        <a href="destiny.html" class="active">Destiny 2</a>
+        <a href="contact.html">Contact</a>
+        <a href="profile.html">Profiel</a>
+        <a href="https://discord.gg/HdkP7rPS" target="_blank" class="discord-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.1 18.078.11 18.1.132 18.113a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>Discord</a>
+      </div>
+      <div class="nav-auth" id="navAuth">
+      </div>
+    </div>
+  </nav>
+
+  <!-- LOGIN REQUIRED MESSAGE -->
+  <div class="locked" id="lockedMsg" style="display:none">
+    <div class="locked-icon">🔒</div>
+    <h2>Toegang Vereist</h2>
+    <p>Log in of maak een gratis account aan om het Destiny 2 Command Center te bekijken.</p>
+    <a href="login.html" class="btn btn-solid" style="padding:12px 32px">Inloggen</a>
+    <a href="register.html" class="btn btn-ghost" style="padding:12px 32px">Registreren</a>
+  </div>
+
+  <!-- DESTINY CONTENT -->
+  <div class="destiny-wrap" id="destinyContent" style="display:none">
+    <div class="destiny-inner">
+
+      <div class="d-top-bar">
+        <div class="d-title">
+          Destiny 2 <span style="color:var(--text3);font-weight:400">Command</span>
+          <span class="live-dot">Live</span>
+        </div>
+        <div style="font-size:0.85rem;color:var(--text2)">
+          Welkom, <span id="welcomeName" style="color:var(--gold2);font-weight:600"></span>!
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="d-tabs">
+        <div class="d-tab active"  onclick="switchTab('overview')">Overzicht</div>
+        <div class="d-tab"         onclick="switchTab('dim')">⚙ Item Manager</div>
+        <div class="d-tab"         onclick="switchTab('loadouts')">Loadouts</div>
+        <div class="d-tab"         onclick="switchTab('vault')">Vault</div>
+        <div class="d-tab"         onclick="switchTab('wishlist')">Wishlist</div>
+      </div>
+
+      <!-- ── OVERZICHT ── -->
+      <div class="d-pane active" id="pane-overview">
+        <div class="d-grid-2">
+
+          <!-- Nieuws -->
+          <div class="d-card glass">
+            <div class="d-card-label">📡 Live Nieuws <span class="live-dot">Bungie Feed</span></div>
+            <div id="newsContainer">
+              <div class="news-item" style="opacity:0.4">
+                <div class="news-time">Laden...</div>
+                <div class="news-headline">Bungie nieuws wordt opgehaald...</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Stats -->
+          <div class="d-card glass">
+            <div class="d-card-label">📊 Live Stats</div>
+
+            <div class="stat-row">
+              <span class="stat-label">Online Guardians <span style="font-size:0.7rem;color:var(--text3)">(Steam)</span></span>
+              <span class="stat-val val-blue" id="statSteam">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Server Status</span>
+              <span class="stat-val" id="statServer">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Season Power Cap</span>
+              <span class="stat-val val-gold" id="statPowerCap">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Soft Cap</span>
+              <span class="stat-val val-gold" id="statSoftCap">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Pinnacle Cap</span>
+              <span class="stat-val val-gold" id="statPinnacle">—</span>
+            </div>
+
+            <div style="margin:12px 0 6px;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px">
+              <div class="stat-row">
+                <span class="stat-label">Weekly Reset</span>
+                <span class="stat-val" id="statWeekly" style="font-size:0.82rem;font-variant-numeric:tabular-nums">—</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Daily Reset</span>
+                <span class="stat-val" id="statDaily" style="font-size:0.82rem;font-variant-numeric:tabular-nums">—</span>
+              </div>
+            </div>
+
+            <div style="margin:12px 0 4px;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
+                <span class="stat-label">Seizoen Voortgang</span>
+                <span class="stat-val val-orange" id="statSeasonPct">—</span>
+              </div>
+              <div style="background:rgba(255,255,255,0.08);border-radius:4px;height:6px;overflow:hidden">
+                <div id="statSeasonBar" style="height:100%;width:0%;background:linear-gradient(90deg,#e8622a,#d4a843);border-radius:4px;transition:width 1.2s ease"></div>
+              </div>
+              <div style="font-size:0.72rem;color:var(--text3);margin-top:5px" id="statSeasonEnd">—</div>
+            </div>
+
+            <div style="font-size:0.68rem;color:var(--text3);margin-top:10px;text-align:right" id="statsLastUpdate">Laden...</div>
+          </div>
+
+        </div>
+
+        <div class="d-grid-3" style="margin-top:1.25rem">
+
+          <!-- Activiteiten -->
+          <div class="d-card glass">
+            <div class="d-card-label">⚔️ Activiteiten Vandaag <span class="live-dot" id="activitiesLiveDot" style="display:none">Live</span></div>
+            <div id="activitiesContainer">
+              <!-- Skeleton loaders -->
+              <div class="activity-item act-skeleton">
+                <div class="act-icon" style="background:rgba(255,255,255,0.05)">···</div>
+                <div><div class="act-name" style="color:var(--text3)">Laden...</div><div class="act-sub">Bungie data ophalen</div></div>
+              </div>
+              <div class="activity-item act-skeleton">
+                <div class="act-icon" style="background:rgba(255,255,255,0.05)">···</div>
+                <div><div class="act-name" style="color:var(--text3)">Laden...</div><div class="act-sub">Even geduld</div></div>
+              </div>
+            </div>
+            <div class="timer-widget">
+              <div class="timer-label">Reset over</div>
+              <div class="timer-num" id="resetTimer">--:--:--</div>
+              <div class="prog-bar"><div class="prog-fill" id="resetProg" style="width:0%"></div></div>
+            </div>
+          </div>
+
+          <!-- Wapens -->
+          <div class="d-card glass">
+            <div class="d-card-label">🔫 Featured Wapens</div>
+            <div class="weapon-grid">
+              <div class="w-card w-exotic"><div class="w-name">Wish-Ender</div><div class="w-type">Exotic Bow</div><div class="w-power">⚡ 2050</div></div>
+              <div class="w-card w-legendary"><div class="w-name">Palindrome</div><div class="w-type">Hand Cannon</div><div class="w-power">⚡ 2100</div></div>
+              <div class="w-card w-exotic"><div class="w-name">Gjallarhorn</div><div class="w-type">Exotic Rocket</div><div class="w-power">⚡ 2100</div></div>
+              <div class="w-card w-legendary"><div class="w-name">The Messenger</div><div class="w-type">Pulse Rifle</div><div class="w-power">⚡ 2095</div></div>
+            </div>
+          </div>
+
+          <!-- Bungie -->
+          <div class="d-card glass bungie-card">
+            <div class="d-card-label" style="justify-content:center">👥 Bungie Connect</div>
+            <div class="bungie-avatar-ring"><div class="bungie-avatar-inner">⬡</div></div>
+            <div class="bungie-name">GuardianHQ Owner</div>
+            <div class="bungie-id">Bungie ID: Guardian#8472</div>
+            <div class="bungie-desc">Stuur een vriendschapsverzoek om samen te raiden, strikes te doen of te chillen in de Tower!</div>
+            <button class="bungie-btn" onclick="openBungie()">Vriendschapsverzoek Sturen ↗</button>
+            <div style="font-size:0.75rem;color:var(--text3);margin-top:10px">Opent bungie.net in nieuw tabblad</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── DIM ITEM MANAGER ── -->
+      <div class="d-pane" id="pane-dim">
+
+        <div class="dim-header">
+          <div class="dim-logo">DIM</div>
+          <div class="dim-header-info">
+            <h2>Destiny Item Manager</h2>
+            <p>Beheer je inventory, wissel items tussen characters en de vault, en vind de beste gear — direct vanuit GuardianHQ. Wil je de volledige DIM? Klik rechts!</p>
+          </div>
+          <a href="https://app.destinyitemmanager.com" target="_blank" class="dim-open-btn">Openen op DIM ↗</a>
+        </div>
+
+        <div class="search-bar">
+          <input class="search-input" id="dimSearch" placeholder="Zoek items... (bijv. 'hand cannon', 'solar', 'perk:outlaw')">
+          <button class="search-btn" onclick="doSearch()">Zoeken</button>
+        </div>
+
+        <!-- Characters -->
+        <div class="char-cards">
+          <div class="char-card hunter active-char" onclick="selectChar(this,'Hunter')">
+            <div class="char-class">Hunter</div>
+            <div class="char-power">2087</div>
+            <div class="char-subclass">⚡ Arc Strider</div>
+            <div class="char-icon">🏹</div>
+          </div>
+          <div class="char-card warlock" onclick="selectChar(this,'Warlock')">
+            <div class="char-class">Warlock</div>
+            <div class="char-power">2071</div>
+            <div class="char-subclass">🔥 Solar Dawnblade</div>
+            <div class="char-icon">✨</div>
+          </div>
+          <div class="char-card titan" onclick="selectChar(this,'Titan')">
+            <div class="char-class">Titan</div>
+            <div class="char-power">2094</div>
+            <div class="char-subclass">🌑 Void Sentinel</div>
+            <div class="char-icon">🛡️</div>
+          </div>
+        </div>
+
+        <div class="d-card glass">
+          <div class="inv-section-title" id="invTitle1">🔫 Wapens — Hunter</div>
+          <div class="inv-grid" id="weaponsGrid"></div>
+          <div class="inv-section-title" id="invTitle2">🛡️ Armor — Hunter</div>
+          <div class="inv-grid" id="armorGrid"></div>
+        </div>
+      </div>
+
+      <!-- ── LOADOUTS ── -->
+      <div class="d-pane" id="pane-loadouts">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:1rem">
+          <div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:4px">Mijn Loadouts</div>
+            <div style="font-size:0.875rem;color:var(--text2)">Wissel met één klik tussen builds voor elke activiteit.</div>
+          </div>
+          <button onclick="addLoadout()" class="btn btn-solid">+ Nieuwe Loadout</button>
+        </div>
+
+        <div class="d-card glass" style="margin-bottom:1.25rem">
+          <div class="loadout-list" id="loadoutList"></div>
+        </div>
+
+        <div class="d-card glass" style="background:linear-gradient(135deg,rgba(155,114,207,0.06),rgba(79,143,255,0.04));border-color:rgba(155,114,207,0.15)">
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:0.95rem;font-weight:700;margin-bottom:8px">💡 Loadout Optimizer</div>
+          <div style="font-size:0.875rem;color:var(--text2);line-height:1.6;margin-bottom:1rem">Kies een activiteit en laat de optimizer de beste combinatie van wapens en armor vinden op basis van jouw stats.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-purple" onclick="showToast('Optimizer voor Raid gestart!')">🏰 Raid Build</button>
+            <button class="btn btn-blue"   onclick="showToast('Optimizer voor PvP gestart!')">🎯 PvP Build</button>
+            <button class="btn btn-ghost"  onclick="showToast('Optimizer voor Nightfall gestart!')">⚡ Nightfall Build</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── VAULT ── -->
+      <div class="d-pane" id="pane-vault">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:1rem">
+          <div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:4px">Vault Overzicht</div>
+            <div style="font-size:0.875rem;color:var(--text2)"><span class="val-gold" style="font-weight:700" id="vaultCount">30</span> items opgeslagen</div>
+          </div>
+        </div>
+        <div class="vault-filters">
+          <button class="vf-btn active" onclick="filterVault(this,'all')">Alles</button>
+          <button class="vf-btn" onclick="filterVault(this,'weapons')">🔫 Wapens</button>
+          <button class="vf-btn" onclick="filterVault(this,'armor')">🛡️ Armor</button>
+          <button class="vf-btn" onclick="filterVault(this,'exotic')">⭐ Exotic</button>
+          <button class="vf-btn" onclick="filterVault(this,'legendary')">💜 Legendary</button>
+        </div>
+        <div class="d-card glass">
+          <div class="vault-grid" id="vaultGrid"></div>
+        </div>
+      </div>
+
+      <!-- ── WISHLIST ── -->
+      <div class="d-pane" id="pane-wishlist">
+        <div style="margin-bottom:1.25rem">
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:4px">Community Wishlist</div>
+          <div style="font-size:0.875rem;color:var(--text2)">God rolls en aanbevolen perks samengesteld door de Destiny 2 community.</div>
+        </div>
+        <div class="d-card glass">
+          <div class="wish-item"><div class="wish-emoji">🔫</div><div><div class="wish-name">Palindrome (PvP God Roll)</div><div class="wish-perks">Rapid Hit · Explosive Payload · Range MW</div></div><div class="wish-thumb">👍</div></div>
+          <div class="wish-item"><div class="wish-emoji">🎯</div><div><div class="wish-name">Igneous Hammer (PvP)</div><div class="wish-perks">Perpetual Motion · Explosive Payload</div></div><div class="wish-thumb">👍</div></div>
+          <div class="wish-item"><div class="wish-emoji">⚡</div><div><div class="wish-name">Retrofit Escapade (PvE)</div><div class="wish-perks">Envious Assassin · Target Lock · Reload MW</div></div><div class="wish-thumb">👍</div></div>
+          <div class="wish-item"><div class="wish-emoji">🌙</div><div><div class="wish-name">Likely Suspect (PvE)</div><div class="wish-perks">Feeding Frenzy · Controlled Burst</div></div><div class="wish-thumb">👍</div></div>
+          <div class="wish-item"><div class="wish-emoji">🚀</div><div><div class="wish-name">Apex Predator (Raid)</div><div class="wish-perks">Auto-Loading Holster · Bait and Switch</div></div><div class="wish-thumb">👍</div></div>
+          <div class="wish-item"><div class="wish-emoji">🗡️</div><div><div class="wish-name">Falling Guillotine (PvE)</div><div class="wish-perks">Relentless Strikes · Whirlwind Blade</div></div><div class="wish-thumb">👍</div></div>
+          <div class="wish-item"><div class="wish-emoji">🏹</div><div><div class="wish-name">Wish-Ender (Exotic)</div><div class="wish-perks">Broadhead · Archer's Tempo · Always exotic</div></div><div class="wish-thumb">👍</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast" id="ghq-toast"></div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const user = getCurrentUser();
+      if (!user) {
+        document.getElementById('lockedMsg').style.display = 'flex';
+      } else {
+        document.getElementById('destinyContent').style.display = 'block';
+        const nameEl = document.getElementById('welcomeName');
+        if (nameEl) nameEl.textContent = user.username;
+        renderInvGrid('weaponsGrid', WEAPONS);
+        renderInvGrid('armorGrid', ARMOR);
+        loadBungieNews();
+        loadLiveStats();
+      }
+      document.documentElement.style.visibility = '';
+    });
+
+    // ── NIEUWS ──
+    async function loadBungieNews() {
+      try {
+        const res  = await fetch('/api/bungie-news');
+        const data = await res.json();
+        if (!data.results || !data.results.length) throw new Error('Geen nieuws');
+
+        const container = document.getElementById('newsContainer');
+        container.innerHTML = data.results.slice(0, 6).map(item => {
+          const date = formatNewsDate(item.CreationDate);
+          const title = item.Content && item.Content.properties && item.Content.properties.Title
+            ? item.Content.properties.Title
+            : item.Subject || 'Geen titel';
+          const url = item.Url ? 'https://www.bungie.net' + item.Url : 'https://www.bungie.net/7/en/News';
+          return `<div class="news-item" onclick="window.open('${url}','_blank')" style="cursor:pointer">
+            <div class="news-time">${date}</div>
+            <div class="news-headline">${title}</div>
+          </div>`;
+        }).join('');
+      } catch(err) {
+        console.warn('Nieuws laden mislukt:', err.message);
+        document.getElementById('newsContainer').innerHTML = `
+          <div class="news-item">
+            <div class="news-time">—</div>
+            <div class="news-headline" style="color:var(--text3)">Nieuws tijdelijk niet beschikbaar</div>
+          </div>`;
+      }
+    }
+
+    function formatNewsDate(dateStr) {
+      if (!dateStr) return '—';
+      const date = new Date(dateStr);
+      const now  = new Date();
+      const diff = Math.floor((now - date) / 1000 / 60 / 60);
+      if (diff < 1)  return 'Zojuist';
+      if (diff < 24) return diff + ' uur geleden';
+      const days = Math.floor(diff / 24);
+      if (days === 1) return 'Gisteren';
+      if (days < 7)  return days + ' dagen geleden';
+      return date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+    }
+
+    // ── ACTIVITEITEN ──
+    function renderActivities(activities) {
+      const container = document.getElementById('activitiesContainer');
+      const dot = document.getElementById('activitiesLiveDot');
+      if (!container) return;
+
+      if (!activities || activities.length === 0) {
+        container.innerHTML = `
+          <div class="activity-item">
+            <div class="act-icon" style="background:rgba(255,255,255,0.05)">🎮</div>
+            <div><div class="act-name" style="color:var(--text3)">Activiteiten niet beschikbaar</div>
+            <div class="act-sub">Probeer het later opnieuw</div></div>
+          </div>`;
+        return;
+      }
+
+      // Icon → background color mapping
+      const iconBg = {
+        '⚡': 'rgba(212,168,67,0.12)',
+        '📖': 'rgba(212,168,67,0.12)',
+        '🎯': 'rgba(232,98,42,0.12)',
+        '🗡️': 'rgba(79,143,255,0.12)',
+        '🏃': 'rgba(79,143,255,0.12)',
+        '🏰': 'rgba(155,114,207,0.12)',
+        '🌑': 'rgba(155,114,207,0.12)',
+        '🛡️': 'rgba(232,98,42,0.12)',
+        '☀️': 'rgba(232,98,42,0.12)',
+      };
+
+      container.innerHTML = activities.map(a => `
+        <div class="activity-item">
+          <div class="act-icon" style="background:${iconBg[a.icon] ?? 'rgba(255,255,255,0.06)'}">${a.icon}</div>
+          <div>
+            <div class="act-name">${escHtml(a.name)}</div>
+            <div class="act-sub">${escHtml(a.sub)}</div>
+          </div>
+          <span class="act-badge ${a.badgeClass}">${escHtml(a.badge)}</span>
+        </div>
+      `).join('');
+
+      if (dot) dot.style.display = '';
+    }
+
+    function escHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+
+    async function loadLiveStats() {
+      try {
+        const res  = await fetch('/api/bungie-stats');
+        const data = await res.json();
+
+        // Steam spelers
+        const steamEl = document.getElementById('statSteam');
+        if (data.steamPlayers) {
+          steamEl.textContent = data.steamPlayers.toLocaleString('nl-NL');
+        } else {
+          steamEl.textContent = '—';
+        }
+
+        // Server status
+        const serverEl = document.getElementById('statServer');
+        if (data.serverOnline === true) {
+          serverEl.innerHTML = '<span class="val-green">● Online</span>';
+        } else if (data.serverOnline === false) {
+          serverEl.innerHTML = '<span style="color:#e8622a">⚠ Onderhoud</span>';
+        } else {
+          serverEl.textContent = '—';
+        }
+
+        // Power caps
+        if (data.powerCap)      document.getElementById('statPowerCap').textContent  = data.powerCap;
+        if (data.softCap)       document.getElementById('statSoftCap').textContent   = data.softCap;
+        if (data.pinnacleFloor) document.getElementById('statPinnacle').textContent  = data.pinnacleFloor;
+
+        // Reset timers
+        if (data.weeklyResetMs) startCountdown('statWeekly', data.weeklyResetMs);
+        if (data.dailyResetMs)  startCountdown('statDaily',  data.dailyResetMs);
+
+        // Seizoen voortgang — pas deze datums aan naar het huidige seizoen
+        const seasonStart = new Date('2025-04-15T17:00:00Z').getTime();
+        const seasonEnd   = new Date('2025-07-15T17:00:00Z').getTime();
+        const now         = Date.now();
+        const pct         = Math.min(100, Math.max(0, Math.round((now - seasonStart) / (seasonEnd - seasonStart) * 100)));
+        const daysLeft    = Math.max(0, Math.ceil((seasonEnd - now) / 86400000));
+        document.getElementById('statSeasonPct').textContent = pct + '%';
+        document.getElementById('statSeasonBar').style.width = pct + '%';
+        document.getElementById('statSeasonEnd').textContent = daysLeft > 0
+          ? 'Seizoen eindigt over ± ' + daysLeft + ' dagen'
+          : 'Seizoen afgelopen';
+
+        // Activiteiten vandaag (live van Bungie)
+        if (data.activities) {
+          renderActivities(data.activities);
+        } else {
+          // Fallback: toon een nette melding ipv skeleton
+          renderActivities([]);
+        }
+
+        // Laatste update tijd
+        document.getElementById('statsLastUpdate').textContent =
+          'Bijgewerkt: ' + new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+
+      } catch(err) {
+        console.warn('[live-stats] Fout:', err.message);
+        document.getElementById('statsLastUpdate').textContent = 'Stats tijdelijk niet beschikbaar';
+      }
+    }
+
+    // Countdown timer (live aftellen per seconde)
+    function startCountdown(elId, targetMs) {
+      function tick() {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        const diff = targetMs - Date.now();
+        if (diff <= 0) { el.textContent = 'Nu!'; return; }
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000)  / 60000);
+        const s = Math.floor((diff % 60000)    / 1000);
+        el.textContent = (d > 0 ? d + 'd ' : '')
+          + String(h).padStart(2,'0') + ':'
+          + String(m).padStart(2,'0') + ':'
+          + String(s).padStart(2,'0');
+      }
+      tick();
+      setInterval(tick, 1000);
+    }
+
+    // Stats elke 2 minuten verversen
+    setInterval(loadLiveStats, 120000);
+  </script>
+
+</body>
+</html>
