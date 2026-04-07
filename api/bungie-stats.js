@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     );
     const steamData = await steamRes.json();
     result.steamPlayers = steamData?.response?.player_count ?? null;
-  } catch(e) {
+  } catch (e) {
     result.steamPlayers = null;
   }
 
@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     const alerts = alertData?.Response ?? [];
     result.serverOnline = alerts.length === 0;
     result.alerts = alerts.map(a => a.AlertHtml || a.AlertKey || '').slice(0, 2);
-  } catch(e) {
+  } catch (e) {
     result.serverOnline = null;
     result.alerts = [];
   }
@@ -42,12 +42,14 @@ export default async function handler(req, res) {
     });
     const settingsData = await settingsRes.json();
     const destiny = settingsData?.Response?.destiny2CoreSettings;
+
     result.currentSeasonHash = destiny?.currentSeasonHash ?? null;
-    result.powerFloor         = destiny?.powerFloor ?? null;
-    result.softCap            = destiny?.softCap ?? null;
-    result.powerCap           = destiny?.powerCap ?? null;
-    result.pinnacleFloor      = destiny?.pinnacleFloor ?? null;
-  } catch(e) {
+    result.powerFloor = destiny?.powerFloor ?? null;
+    result.softCap = destiny?.softCap ?? null;
+    result.powerCap = destiny?.powerCap ?? null;
+    result.pinnacleFloor = destiny?.pinnacleFloor ?? null;
+
+  } catch (e) {
     result.powerCap = null;
   }
 
