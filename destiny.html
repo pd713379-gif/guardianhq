@@ -179,8 +179,8 @@
           <div class="d-card glass bungie-card">
             <div class="d-card-label" style="justify-content:center">👥 Bungie Connect</div>
             <div class="bungie-avatar-ring"><div class="bungie-avatar-inner">⬡</div></div>
-            <div class="bungie-name">GuardianHQ Owner</div>
-            <div class="bungie-id" id="bungieIdDisplay">Bungie ID: Guardian#8472</div>
+            <div class="bungie-name">RemaisNL</div>
+            <div class="bungie-id" id="bungieIdDisplay">Bungie ID: RemaisNL#5842</div>
             <div class="bungie-desc">Stuur een vriendschapsverzoek om samen te raiden, strikes te doen of te chillen in de Tower!</div>
 
             <!-- Stap 1: kopieer ID -->
@@ -324,8 +324,10 @@
         if (nameEl) nameEl.textContent = user.username;
         renderInvGrid('weaponsGrid', WEAPONS);
         renderInvGrid('armorGrid', ARMOR);
+        renderActivities(null); // Start rotatie direct met statische mix
         loadBungieNews();
         loadLiveStats();
+        loadWishlistIcons(); // Laad wishlist iconen alvast voor
       }
       document.documentElement.style.visibility = '';
     });
@@ -372,46 +374,80 @@
       return date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
     }
 
-    // ── ACTIVITEITEN ──
-    function renderActivities(activities) {
+    // ── ACTIVITEITEN MET ROTATIE ──
+    // Volledige mix van alle activiteitstypen — roteert elke 4 seconden
+    const ALL_ACTIVITIES = [
+      // Raids
+      { name: "King's Fall",          sub: 'Dreadnaught, Rings of Saturn',   icon: '🏰', badge: 'Featured Raid',  badgeClass: 'badge-hot',   type: 'raid'    },
+      { name: 'Root of Nightmares',   sub: 'Pyramid Ship, The Witness',      icon: '🏰', badge: 'Raid',           badgeClass: 'badge-hot',   type: 'raid'    },
+      { name: "Crota's End",          sub: 'Hellmouth, The Moon',            icon: '🏰', badge: 'Raid',           badgeClass: 'badge-hot',   type: 'raid'    },
+      // Dungeons
+      { name: 'Spire of the Watcher', sub: 'Tangled Shore, Seraph Station',  icon: '🌑', badge: 'Dungeon',        badgeClass: 'badge-hot',   type: 'dungeon' },
+      { name: 'Ghosts of the Deep',   sub: 'Ocean of Storms, The Moon',      icon: '🌑', badge: 'Featured Dungeon', badgeClass: 'badge-hot', type: 'dungeon' },
+      { name: 'Warlord\'s Ruin',      sub: 'EDZ, Urzok\'s Keep',            icon: '🌑', badge: 'Dungeon',        badgeClass: 'badge-hot',   type: 'dungeon' },
+      // Strikes / Nightfalls
+      { name: 'Nightfall: Fallen SABER', sub: 'Platinum rewards actief',     icon: '⚡', badge: 'Nightfall',      badgeClass: 'badge-live',  type: 'nightfall' },
+      { name: 'Nightfall: The Insight Terminus', sub: 'Nessus, Vex Nexus',   icon: '⚡', badge: 'Grandmaster',   badgeClass: 'badge-event', type: 'nightfall' },
+      { name: 'Vanguard Ops',         sub: 'Beschikbaar deze week',          icon: '🏃', badge: 'Actief',         badgeClass: 'badge-live',  type: 'strike'  },
+      // Lost Sectors
+      { name: 'Exotic Lost Sector',   sub: 'Helm, Gloves mogelijk',          icon: '🗺️', badge: 'Lost Sector',   badgeClass: 'badge-live',  type: 'lostsector' },
+      { name: 'Metamorphosis',        sub: 'Savathûn\'s Throne World',       icon: '🗺️', badge: 'Lost Sector',   badgeClass: 'badge-live',  type: 'lostsector' },
+      // Crucible
+      { name: 'Crucible: Clash',      sub: 'Team Deathmatch, 6v6',           icon: '🎯', badge: 'Crucible',       badgeClass: 'badge-event', type: 'crucible' },
+      { name: 'Crucible: Control',    sub: 'Zone Control, 6v6',              icon: '🎯', badge: 'Featured',       badgeClass: 'badge-event', type: 'crucible' },
+      { name: 'Crucible: Trials',     sub: 'Flawless rewards beschikbaar',   icon: '☀️', badge: 'Trials of Osiris', badgeClass: 'badge-event', type: 'trials' },
+      // Iron Banner
+      { name: 'Iron Banner: Rift',    sub: 'Saladin\'s Challenge actief',    icon: '🛡️', badge: 'Iron Banner',   badgeClass: 'badge-event', type: 'ironbanner' },
+      // Gambit
+      { name: 'Gambit',               sub: 'Mote banking & invasion',        icon: '🗡️', badge: 'Actief',         badgeClass: 'badge-live',  type: 'gambit'  },
+    ];
+
+    // Icoon → achtergrondkleur
+    const ACT_ICON_BG = {
+      '🏰': 'rgba(155,114,207,0.15)', '🌑': 'rgba(79,143,255,0.12)',
+      '⚡': 'rgba(212,168,67,0.15)',  '🏃': 'rgba(79,143,255,0.10)',
+      '🗺️': 'rgba(79,143,255,0.10)', '🎯': 'rgba(232,98,42,0.12)',
+      '☀️': 'rgba(232,98,42,0.15)',   '🛡️': 'rgba(212,168,67,0.12)',
+      '🗡️': 'rgba(79,143,255,0.12)',
+    };
+
+    // Hoeveel items tegelijk zichtbaar
+    const ACTS_VISIBLE = 4;
+    let actOffset = 0;
+    let actRotateTimer = null;
+
+    function renderActivities(liveData) {
+      // Als Bungie live data stuurt: gebruik die, anders de statische mix
+      const src = (liveData && liveData.length > 0) ? liveData : ALL_ACTIVITIES;
       const container = document.getElementById('activitiesContainer');
       const dot = document.getElementById('activitiesLiveDot');
       if (!container) return;
 
-      if (!activities || activities.length === 0) {
-        container.innerHTML = `
-          <div class="activity-item">
-            <div class="act-icon" style="background:rgba(255,255,255,0.05)">🎮</div>
-            <div><div class="act-name" style="color:var(--text3)">Activiteiten niet beschikbaar</div>
-            <div class="act-sub">Probeer het later opnieuw</div></div>
-          </div>`;
-        return;
+      // Stop oude rotatie
+      if (actRotateTimer) clearInterval(actRotateTimer);
+
+      function showSlice() {
+        const slice = [];
+        for (let i = 0; i < ACTS_VISIBLE; i++) {
+          slice.push(src[(actOffset + i) % src.length]);
+        }
+        container.innerHTML = slice.map(a => `
+          <div class="activity-item" style="animation:fadeIn 0.4s ease;">
+            <div class="act-icon" style="background:${ACT_ICON_BG[a.icon] ?? 'rgba(255,255,255,0.06)'};
+              font-size:1.25rem;display:flex;align-items:center;justify-content:center;
+              min-width:42px;width:42px;height:42px;border-radius:10px;flex-shrink:0;">${a.icon}</div>
+            <div style="flex:1;min-width:0;">
+              <div class="act-name">${escHtml(a.name)}</div>
+              <div class="act-sub">${escHtml(a.sub)}</div>
+            </div>
+            <span class="act-badge ${a.badgeClass}">${escHtml(a.badge)}</span>
+          </div>
+        `).join('');
+        actOffset = (actOffset + 1) % src.length;
       }
 
-      // Icon → background color mapping
-      const iconBg = {
-        '⚡': 'rgba(212,168,67,0.12)',
-        '📖': 'rgba(212,168,67,0.12)',
-        '🎯': 'rgba(232,98,42,0.12)',
-        '🗡️': 'rgba(79,143,255,0.12)',
-        '🏃': 'rgba(79,143,255,0.12)',
-        '🏰': 'rgba(155,114,207,0.12)',
-        '🌑': 'rgba(155,114,207,0.12)',
-        '🛡️': 'rgba(232,98,42,0.12)',
-        '☀️': 'rgba(232,98,42,0.12)',
-      };
-
-      container.innerHTML = activities.map(a => `
-        <div class="activity-item">
-          <div class="act-icon" style="background:${iconBg[a.icon] ?? 'rgba(255,255,255,0.06)'}; font-size:1.3rem; display:flex; align-items:center; justify-content:center; min-width:42px; width:42px; height:42px; border-radius:10px; flex-shrink:0;">${a.imgUrl ? `<img src="${a.imgUrl}" style="width:28px;height:28px;object-fit:contain;border-radius:4px;" onerror="this.parentElement.textContent='${a.icon}'">` : a.icon}</div>
-          <div style="flex:1;min-width:0;">
-            <div class="act-name">${escHtml(a.name)}</div>
-            <div class="act-sub">${escHtml(a.sub)}</div>
-          </div>
-          <span class="act-badge ${a.badgeClass}">${escHtml(a.badge)}</span>
-        </div>
-      `).join('');
-
+      showSlice();
+      actRotateTimer = setInterval(showSlice, 4000);
       if (dot) dot.style.display = '';
     }
 
@@ -507,39 +543,70 @@
 
     // ── BUNGIE ID KOPIËREN ──
     function copyBungieIdFn() {
-      const id = 'Guardian#8472';
+      const id = 'RemaisNL#5842';
       navigator.clipboard.writeText(id).then(() => {
         const btn = document.getElementById('copyBungieId');
         const orig = btn.textContent;
         btn.textContent = '✅ Gekopieerd!';
         setTimeout(() => { btn.textContent = orig; }, 2000);
       }).catch(() => {
-        showToast('Bungie ID: Guardian#8472 — kopieer dit handmatig');
+        showToast('Bungie ID: RemaisNL#5842 — kopieer dit handmatig');
       });
     }
 
-    // ── WISHLIST MET ECHTE BUNGIE ICONEN ──
-    // Item hashes voor bekende wapens (Bungie Manifest hash)
+    // ── WISHLIST MET ECHTE BUNGIE ICONEN (directe CDN URLs, geen API key nodig) ──
     const WISHLIST_WEAPONS = [
-      { hash: 1392919471, name: 'Palindrome (PvP God Roll)',       perks: 'Rapid Hit · Explosive Payload · Range MW',         tag: 'PvP',  tagClass: 'badge-event'  },
-      { hash: 2015804457, name: 'Igneous Hammer (PvP)',             perks: 'Perpetual Motion · Explosive Payload',             tag: 'PvP',  tagClass: 'badge-event'  },
-      { hash: 2681395357, name: 'Retrofit Escapade (PvE)',          perks: 'Envious Assassin · Target Lock · Reload MW',       tag: 'PvE',  tagClass: 'badge-live'   },
-      { hash: 2778013567, name: 'Apex Predator (Raid)',             perks: 'Auto-Loading Holster · Bait and Switch',           tag: 'Raid', tagClass: 'badge-hot'    },
-      { hash: 2399120131, name: 'Falling Guillotine (PvE)',         perks: 'Relentless Strikes · Whirlwind Blade',             tag: 'PvE',  tagClass: 'badge-live'   },
-      { hash: 3213791921, name: 'Wish-Ender (Exotic)',              perks: 'Broadhead · Archer\'s Tempo · Exotic',            tag: 'Exotic', tagClass: 'badge-hot'  },
-      { hash: 1234959047, name: 'Likely Suspect (PvE)',             perks: 'Feeding Frenzy · Controlled Burst',               tag: 'PvE',  tagClass: 'badge-live'   },
+      {
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/5e25b9ef3f669e053b428945a31ca8b7.jpg',
+        name: 'The Palindrome (PvP God Roll)', perks: 'Rapid Hit · Explosive Payload · Range MW',
+        tag: 'PvP', tagClass: 'badge-event', tier: 'legendary'
+      },
+      {
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/a3c19584b6a74ecad1e6e0f92f226640.jpg',
+        name: 'Igneous Hammer (PvP)', perks: 'Perpetual Motion · Explosive Payload',
+        tag: 'PvP', tagClass: 'badge-event', tier: 'legendary'
+      },
+      {
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/6c03f3d0a60bc01c72b6d9e33742adf7.jpg',
+        name: 'Retrofit Escapade (PvE)', perks: 'Envious Assassin · Target Lock · Reload MW',
+        tag: 'PvE', tagClass: 'badge-live', tier: 'legendary'
+      },
+      {
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/bfa74e3a4f9bee6b4e92b5783de1c0e3.jpg',
+        name: 'Apex Predator (Raid)', perks: 'Auto-Loading Holster · Bait and Switch',
+        tag: 'Raid', tagClass: 'badge-hot', tier: 'legendary'
+      },
+      {
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/43dc99b6bc83f91cf3680ac38b7c9820.jpg',
+        name: 'Falling Guillotine (PvE)', perks: 'Relentless Strikes · Whirlwind Blade',
+        tag: 'PvE', tagClass: 'badge-live', tier: 'legendary'
+      },
+      {
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/e634f41e35cb92dfee2f1fefb8ac5001.jpg',
+        name: 'Wish-Ender (Exotic)', perks: "Broadhead · Archer's Tempo · Always Exotic",
+        tag: 'Exotic', tagClass: 'badge-hot', tier: 'exotic'
+      },
+      {
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/3c7da1398a70d6e3f2e0bc61e0d72b16.jpg',
+        name: 'Likely Suspect (PvE)', perks: 'Feeding Frenzy · Controlled Burst',
+        tag: 'PvE', tagClass: 'badge-live', tier: 'legendary'
+      },
     ];
 
-    async function loadWishlistIcons() {
+    function loadWishlistIcons() {
       const container = document.getElementById('wishlistContainer');
       if (!container) return;
 
-      // Render eerst met fallback emoji, dan echt icoon ophalen
-      container.innerHTML = WISHLIST_WEAPONS.map((w, i) => `
-        <div class="wish-item" id="wish-${i}">
-          <div class="wish-icon-wrap" style="width:44px;height:44px;border-radius:10px;overflow:hidden;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <img id="wish-img-${i}" src="" alt="" style="width:40px;height:40px;object-fit:contain;display:none;" onerror="this.style.display='none';document.getElementById('wish-fb-${i}').style.display='block'">
-            <span id="wish-fb-${i}" style="font-size:1.4rem;">🔫</span>
+      const tierBorder = { exotic: 'rgba(212,168,67,0.5)', legendary: 'rgba(155,114,207,0.4)' };
+
+      container.innerHTML = WISHLIST_WEAPONS.map((w) => `
+        <div class="wish-item">
+          <div style="width:46px;height:46px;border-radius:10px;overflow:hidden;background:rgba(255,255,255,0.06);
+               display:flex;align-items:center;justify-content:center;flex-shrink:0;
+               border:1px solid ${tierBorder[w.tier] ?? 'rgba(255,255,255,0.1)'};">
+            <img src="${w.icon}" alt="${w.name}"
+                 style="width:46px;height:46px;object-fit:cover;"
+                 onerror="this.style.display='none';this.parentElement.innerHTML='🔫'">
           </div>
           <div style="flex:1;min-width:0;">
             <div class="wish-name">${w.name}</div>
@@ -548,29 +615,6 @@
           <span class="act-badge ${w.tagClass}" style="white-space:nowrap;">${w.tag}</span>
         </div>
       `).join('');
-
-      // Haal iconen op van Bungie Manifest
-      for (let i = 0; i < WISHLIST_WEAPONS.length; i++) {
-        const w = WISHLIST_WEAPONS[i];
-        try {
-          const res = await fetch(
-            `https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/${w.hash}/`
-          );
-          const data = await res.json();
-          const icon = data?.Response?.displayProperties?.icon;
-          if (icon) {
-            const img = document.getElementById(`wish-img-${i}`);
-            const fb  = document.getElementById(`wish-fb-${i}`);
-            if (img) {
-              img.src = 'https://www.bungie.net' + icon;
-              img.style.display = 'block';
-              if (fb) fb.style.display = 'none';
-            }
-          }
-        } catch(e) {
-          // fallback emoji blijft zichtbaar
-        }
-      }
     }
 
     // Laad wishlist iconen wanneer tab geselecteerd wordt
