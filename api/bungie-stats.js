@@ -1,4 +1,3 @@
-
 // ============================================================
 // GUARDIANHQ — api/bungie-stats.js
 // Vercel Serverless Function — Bungie + Steam Live Stats + Activities
@@ -101,6 +100,9 @@ export default async function handler(req, res) {
           if (def) {
             if (!activityName) activityName = def.displayProperties?.name;
             activitySub = def.displayProperties?.description ?? null;
+            // Sla het echte Bungie-icoon op
+            const iconPath = def.displayProperties?.icon;
+            if (iconPath) result._activityIconTmp = 'https://www.bungie.net' + iconPath;
 
             // Try to get the destination/place as subtitle
             if (def.destinationHash) {
@@ -122,9 +124,11 @@ export default async function handler(req, res) {
           name: activityName,
           sub:  activitySub ?? 'Beschikbaar deze week',
           icon,
+          imgUrl: result._activityIconTmp ?? null,
           badge,
           badgeClass,
         });
+        delete result._activityIconTmp;
       }
 
       if (activities.length >= 5) break;
