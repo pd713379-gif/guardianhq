@@ -145,26 +145,17 @@
 
           <!-- Activiteiten -->
           <div class="d-card glass">
-            <div class="d-card-label">⚔️ Activiteiten Vandaag</div>
-            <div class="activity-item">
-              <div class="act-icon" style="background:rgba(79,143,255,0.12)">🏃</div>
-              <div><div class="act-name">Nightfall: The Ordeal</div><div class="act-sub">Proving Ground</div></div>
-              <span class="act-badge badge-live">Actief</span>
-            </div>
-            <div class="activity-item">
-              <div class="act-icon" style="background:rgba(212,168,67,0.12)">⚡</div>
-              <div><div class="act-name">Weekly Story</div><div class="act-sub">Echoes of the Witch</div></div>
-              <span class="act-badge badge-hot">Featured</span>
-            </div>
-            <div class="activity-item">
-              <div class="act-icon" style="background:rgba(232,98,42,0.12)">🎯</div>
-              <div><div class="act-name">Crucible: Rift</div><div class="act-sub">Ranked — Momentum</div></div>
-              <span class="act-badge badge-event">Event</span>
-            </div>
-            <div class="activity-item">
-              <div class="act-icon" style="background:rgba(79,143,255,0.12)">🗡️</div>
-              <div><div class="act-name">Gambit Prime</div><div class="act-sub">Freelance Modus</div></div>
-              <span class="act-badge badge-live">Actief</span>
+            <div class="d-card-label">⚔️ Activiteiten Vandaag <span class="live-dot" id="activitiesLiveDot" style="display:none">Live</span></div>
+            <div id="activitiesContainer">
+              <!-- Skeleton loaders -->
+              <div class="activity-item act-skeleton">
+                <div class="act-icon" style="background:rgba(255,255,255,0.05)">···</div>
+                <div><div class="act-name" style="color:var(--text3)">Laden...</div><div class="act-sub">Bungie data ophalen</div></div>
+              </div>
+              <div class="activity-item act-skeleton">
+                <div class="act-icon" style="background:rgba(255,255,255,0.05)">···</div>
+                <div><div class="act-name" style="color:var(--text3)">Laden...</div><div class="act-sub">Even geduld</div></div>
+              </div>
             </div>
             <div class="timer-widget">
               <div class="timer-label">Reset over</div>
@@ -373,7 +364,55 @@
       return date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
     }
 
-    // ── LIVE STATS ──
+    // ── ACTIVITEITEN ──
+    function renderActivities(activities) {
+      const container = document.getElementById('activitiesContainer');
+      const dot = document.getElementById('activitiesLiveDot');
+      if (!container) return;
+
+      if (!activities || activities.length === 0) {
+        container.innerHTML = `
+          <div class="activity-item">
+            <div class="act-icon" style="background:rgba(255,255,255,0.05)">🎮</div>
+            <div><div class="act-name" style="color:var(--text3)">Activiteiten niet beschikbaar</div>
+            <div class="act-sub">Probeer het later opnieuw</div></div>
+          </div>`;
+        return;
+      }
+
+      // Icon → background color mapping
+      const iconBg = {
+        '⚡': 'rgba(212,168,67,0.12)',
+        '📖': 'rgba(212,168,67,0.12)',
+        '🎯': 'rgba(232,98,42,0.12)',
+        '🗡️': 'rgba(79,143,255,0.12)',
+        '🏃': 'rgba(79,143,255,0.12)',
+        '🏰': 'rgba(155,114,207,0.12)',
+        '🌑': 'rgba(155,114,207,0.12)',
+        '🛡️': 'rgba(232,98,42,0.12)',
+        '☀️': 'rgba(232,98,42,0.12)',
+      };
+
+      container.innerHTML = activities.map(a => `
+        <div class="activity-item">
+          <div class="act-icon" style="background:${iconBg[a.icon] ?? 'rgba(255,255,255,0.06)'}">${a.icon}</div>
+          <div>
+            <div class="act-name">${escHtml(a.name)}</div>
+            <div class="act-sub">${escHtml(a.sub)}</div>
+          </div>
+          <span class="act-badge ${a.badgeClass}">${escHtml(a.badge)}</span>
+        </div>
+      `).join('');
+
+      if (dot) dot.style.display = '';
+    }
+
+    function escHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+
     async function loadLiveStats() {
       try {
         const res  = await fetch('/api/bungie-stats');
@@ -417,6 +456,14 @@
         document.getElementById('statSeasonEnd').textContent = daysLeft > 0
           ? 'Seizoen eindigt over ± ' + daysLeft + ' dagen'
           : 'Seizoen afgelopen';
+
+        // Activiteiten vandaag (live van Bungie)
+        if (data.activities) {
+          renderActivities(data.activities);
+        } else {
+          // Fallback: toon een nette melding ipv skeleton
+          renderActivities([]);
+        }
 
         // Laatste update tijd
         document.getElementById('statsLastUpdate').textContent =
