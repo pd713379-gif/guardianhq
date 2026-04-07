@@ -92,19 +92,53 @@
           <!-- Live Stats -->
           <div class="d-card glass">
             <div class="d-card-label">📊 Live Stats</div>
+
             <div class="stat-row">
-              <span class="stat-label">Online Guardians</span>
-              <span class="stat-val val-blue online-players">482.391</span>
+              <span class="stat-label">Online Guardians <span style="font-size:0.7rem;color:var(--text3)">(Steam)</span></span>
+              <span class="stat-val val-blue" id="statSteam">—</span>
             </div>
-            <div class="stat-row"><span class="stat-label">PvE Activiteiten</span><span class="stat-val">68%</span></div>
-            <div class="stat-row"><span class="stat-label">PvP Activiteiten</span><span class="stat-val">22%</span></div>
-            <div class="stat-row"><span class="stat-label">Server Status</span><span class="stat-val val-green">● Online</span></div>
-            <div class="stat-row"><span class="stat-label">Season Power Cap</span><span class="stat-val val-gold">2100</span></div>
             <div class="stat-row">
-              <span class="stat-label">Jouw Power</span>
-              <span class="stat-val val-orange" id="myPower">—</span>
+              <span class="stat-label">Server Status</span>
+              <span class="stat-val" id="statServer">—</span>
             </div>
+            <div class="stat-row">
+              <span class="stat-label">Season Power Cap</span>
+              <span class="stat-val val-gold" id="statPowerCap">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Soft Cap</span>
+              <span class="stat-val val-gold" id="statSoftCap">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Pinnacle Cap</span>
+              <span class="stat-val val-gold" id="statPinnacle">—</span>
+            </div>
+
+            <div style="margin:12px 0 6px;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px">
+              <div class="stat-row">
+                <span class="stat-label">Weekly Reset</span>
+                <span class="stat-val" id="statWeekly" style="font-size:0.82rem;font-variant-numeric:tabular-nums">—</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Daily Reset</span>
+                <span class="stat-val" id="statDaily" style="font-size:0.82rem;font-variant-numeric:tabular-nums">—</span>
+              </div>
+            </div>
+
+            <div style="margin:12px 0 4px;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
+                <span class="stat-label">Seizoen Voortgang</span>
+                <span class="stat-val val-orange" id="statSeasonPct">—</span>
+              </div>
+              <div style="background:rgba(255,255,255,0.08);border-radius:4px;height:6px;overflow:hidden">
+                <div id="statSeasonBar" style="height:100%;width:0%;background:linear-gradient(90deg,#e8622a,#d4a843);border-radius:4px;transition:width 1.2s ease"></div>
+              </div>
+              <div style="font-size:0.72rem;color:var(--text3);margin-top:5px" id="statSeasonEnd">—</div>
+            </div>
+
+            <div style="font-size:0.68rem;color:var(--text3);margin-top:10px;text-align:right" id="statsLastUpdate">Laden...</div>
           </div>
+
         </div>
 
         <div class="d-grid-3" style="margin-top:1.25rem">
@@ -289,15 +323,15 @@
         document.getElementById('destinyContent').style.display = 'block';
         const nameEl = document.getElementById('welcomeName');
         if (nameEl) nameEl.textContent = user.username;
-        const powerEl = document.getElementById('myPower');
-        if (powerEl) powerEl.textContent = Math.floor(Math.random() * 50 + 2050);
         renderInvGrid('weaponsGrid', WEAPONS);
         renderInvGrid('armorGrid', ARMOR);
         loadBungieNews();
+        loadLiveStats();
       }
       document.documentElement.style.visibility = '';
     });
 
+    // ── NIEUWS ──
     async function loadBungieNews() {
       try {
         const res  = await fetch('/api/bungie-news');
@@ -330,7 +364,7 @@
       if (!dateStr) return '—';
       const date = new Date(dateStr);
       const now  = new Date();
-      const diff = Math.floor((now - date) / 1000 / 60 / 60); // hours
+      const diff = Math.floor((now - date) / 1000 / 60 / 60);
       if (diff < 1)  return 'Zojuist';
       if (diff < 24) return diff + ' uur geleden';
       const days = Math.floor(diff / 24);
@@ -338,6 +372,84 @@
       if (days < 7)  return days + ' dagen geleden';
       return date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
     }
+
+    // ── LIVE STATS ──
+    async function loadLiveStats() {
+      try {
+        const res  = await fetch('/api/bungie-stats');
+        const data = await res.json();
+
+        // Steam spelers
+        const steamEl = document.getElementById('statSteam');
+        if (data.steamPlayers) {
+          steamEl.textContent = data.steamPlayers.toLocaleString('nl-NL');
+        } else {
+          steamEl.textContent = '—';
+        }
+
+        // Server status
+        const serverEl = document.getElementById('statServer');
+        if (data.serverOnline === true) {
+          serverEl.innerHTML = '<span class="val-green">● Online</span>';
+        } else if (data.serverOnline === false) {
+          serverEl.innerHTML = '<span style="color:#e8622a">⚠ Onderhoud</span>';
+        } else {
+          serverEl.textContent = '—';
+        }
+
+        // Power caps
+        if (data.powerCap)      document.getElementById('statPowerCap').textContent  = data.powerCap;
+        if (data.softCap)       document.getElementById('statSoftCap').textContent   = data.softCap;
+        if (data.pinnacleFloor) document.getElementById('statPinnacle').textContent  = data.pinnacleFloor;
+
+        // Reset timers
+        if (data.weeklyResetMs) startCountdown('statWeekly', data.weeklyResetMs);
+        if (data.dailyResetMs)  startCountdown('statDaily',  data.dailyResetMs);
+
+        // Seizoen voortgang — pas deze datums aan naar het huidige seizoen
+        const seasonStart = new Date('2025-02-04T17:00:00Z').getTime();
+        const seasonEnd   = new Date('2025-05-06T17:00:00Z').getTime();
+        const now         = Date.now();
+        const pct         = Math.min(100, Math.max(0, Math.round((now - seasonStart) / (seasonEnd - seasonStart) * 100)));
+        const daysLeft    = Math.max(0, Math.ceil((seasonEnd - now) / 86400000));
+        document.getElementById('statSeasonPct').textContent = pct + '%';
+        document.getElementById('statSeasonBar').style.width = pct + '%';
+        document.getElementById('statSeasonEnd').textContent = daysLeft > 0
+          ? 'Seizoen eindigt over ± ' + daysLeft + ' dagen'
+          : 'Seizoen afgelopen';
+
+        // Laatste update tijd
+        document.getElementById('statsLastUpdate').textContent =
+          'Bijgewerkt: ' + new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+
+      } catch(err) {
+        console.warn('[live-stats] Fout:', err.message);
+        document.getElementById('statsLastUpdate').textContent = 'Stats tijdelijk niet beschikbaar';
+      }
+    }
+
+    // Countdown timer (live aftellen per seconde)
+    function startCountdown(elId, targetMs) {
+      function tick() {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        const diff = targetMs - Date.now();
+        if (diff <= 0) { el.textContent = 'Nu!'; return; }
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000)  / 60000);
+        const s = Math.floor((diff % 60000)    / 1000);
+        el.textContent = (d > 0 ? d + 'd ' : '')
+          + String(h).padStart(2,'0') + ':'
+          + String(m).padStart(2,'0') + ':'
+          + String(s).padStart(2,'0');
+      }
+      tick();
+      setInterval(tick, 1000);
+    }
+
+    // Stats elke 2 minuten verversen
+    setInterval(loadLiveStats, 120000);
   </script>
 
 </body>
