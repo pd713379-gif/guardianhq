@@ -287,14 +287,8 @@
           <div style="font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:4px">Community Wishlist</div>
           <div style="font-size:0.875rem;color:var(--text2)">God rolls en aanbevolen perks samengesteld door de Destiny 2 community.</div>
         </div>
-        <div class="d-card glass">
-          <div class="wish-item"><div class="wish-emoji">🔫</div><div><div class="wish-name">Palindrome (PvP God Roll)</div><div class="wish-perks">Rapid Hit · Explosive Payload · Range MW</div></div><div class="wish-thumb">👍</div></div>
-          <div class="wish-item"><div class="wish-emoji">🎯</div><div><div class="wish-name">Igneous Hammer (PvP)</div><div class="wish-perks">Perpetual Motion · Explosive Payload</div></div><div class="wish-thumb">👍</div></div>
-          <div class="wish-item"><div class="wish-emoji">⚡</div><div><div class="wish-name">Retrofit Escapade (PvE)</div><div class="wish-perks">Envious Assassin · Target Lock · Reload MW</div></div><div class="wish-thumb">👍</div></div>
-          <div class="wish-item"><div class="wish-emoji">🌙</div><div><div class="wish-name">Likely Suspect (PvE)</div><div class="wish-perks">Feeding Frenzy · Controlled Burst</div></div><div class="wish-thumb">👍</div></div>
-          <div class="wish-item"><div class="wish-emoji">🚀</div><div><div class="wish-name">Apex Predator (Raid)</div><div class="wish-perks">Auto-Loading Holster · Bait and Switch</div></div><div class="wish-thumb">👍</div></div>
-          <div class="wish-item"><div class="wish-emoji">🗡️</div><div><div class="wish-name">Falling Guillotine (PvE)</div><div class="wish-perks">Relentless Strikes · Whirlwind Blade</div></div><div class="wish-thumb">👍</div></div>
-          <div class="wish-item"><div class="wish-emoji">🏹</div><div><div class="wish-name">Wish-Ender (Exotic)</div><div class="wish-perks">Broadhead · Archer's Tempo · Always exotic</div></div><div class="wish-thumb">👍</div></div>
+        <div class="d-card glass" id="wishlistCard">
+          <div style="opacity:0.4;font-size:0.8rem;color:var(--text3);padding:8px 0">Wapen iconen laden...</div>
         </div>
       </div>
 
@@ -318,6 +312,7 @@
         renderInvGrid('armorGrid', ARMOR);
         loadBungieNews();
         loadLiveStats();
+        loadWishlistIcons();
       }
       document.documentElement.style.visibility = '';
     });
@@ -498,6 +493,49 @@
 
     // Stats elke 2 minuten verversen
     setInterval(loadLiveStats, 120000);
+
+    // WISHLIST ICONEN (live via Bungie Manifest)
+    const WISHLIST = [
+      { hash: 432476743,  name: 'Palindrome (PvP God Roll)',   perks: 'Rapid Hit · Explosive Payload · Range MW',     tag: 'PvP',    tagClass: 'badge-event' },
+      { hash: 2351180975, name: 'Igneous Hammer (PvP)',        perks: 'Perpetual Motion · Explosive Payload',         tag: 'PvP',    tagClass: 'badge-event' },
+      { hash: 1800914354, name: 'Retrofit Escapade (PvE)',     perks: 'Envious Assassin · Target Lock · Reload MW',   tag: 'PvE',    tagClass: 'badge-live'  },
+      { hash: 2382172050, name: 'Likely Suspect (PvE)',        perks: 'Feeding Frenzy · Controlled Burst',            tag: 'PvE',    tagClass: 'badge-live'  },
+      { hash: 2971750135, name: 'Apex Predator (Raid)',        perks: 'Auto-Loading Holster · Bait and Switch',       tag: 'Raid',   tagClass: 'badge-hot'   },
+      { hash: 2194955522, name: 'Falling Guillotine (PvE)',    perks: 'Relentless Strikes · Whirlwind Blade',         tag: 'PvE',    tagClass: 'badge-live'  },
+      { hash: 1890422124, name: 'Wish-Ender (Exotic)',         perks: "Broadhead · Archer's Tempo · Always exotic",   tag: 'Exotic', tagClass: 'badge-hot'   },
+    ];
+
+    async function loadWishlistIcons() {
+      const card = document.getElementById('wishlistCard');
+      if (!card) return;
+
+      const results = await Promise.all(WISHLIST.map(async (w) => {
+        try {
+          const res  = await fetch('/api/bungie-item?hash=' + w.hash);
+          const data = await res.json();
+          return { ...w, icon: data.iconPath ? 'https://www.bungie.net' + data.iconPath : null, isExotic: data.tier === 'Exotic' };
+        } catch {
+          return { ...w, icon: null, isExotic: w.tag === 'Exotic' };
+        }
+      }));
+
+      const fallbackEmoji = { PvP: '🎯', Raid: '🏰', Exotic: '⭐', PvE: '⚡' };
+      card.innerHTML = results.map(w => {
+        const border  = w.isExotic ? 'rgba(212,168,67,0.5)' : 'rgba(79,143,255,0.2)';
+        const imgHtml = w.icon
+          ? '<img src="' + w.icon + '" alt="' + w.name + '" style="width:48px;height:48px;border-radius:6px;border:2px solid ' + border + ';object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">'
+          : '<div class="wish-emoji">' + (fallbackEmoji[w.tag] || '🔫') + '</div>';
+        return '<div class="wish-item">'
+          + imgHtml
+          + '<div style="flex:1;min-width:0">'
+          + '<div class="wish-name">' + w.name + '</div>'
+          + '<div class="wish-perks">' + w.perks + '</div>'
+          + '</div>'
+          + '<span class="act-badge ' + w.tagClass + '" style="font-size:0.65rem;padding:2px 7px">' + w.tag + '</span>'
+          + '<div class="wish-thumb">&#128077;</div>'
+          + '</div>';
+      }).join('');
+    }
   </script>
 
 </body>
