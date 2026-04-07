@@ -523,7 +523,7 @@
       card.innerHTML = results.map(w => {
         const border  = w.isExotic ? 'rgba(212,168,67,0.5)' : 'rgba(79,143,255,0.2)';
         const imgHtml = w.icon
-          ? '<img src="' + w.icon + '" alt="' + w.name + '" style="width:48px;height:48px;border-radius:6px;border:2px solid ' + border + ';object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">'
+          ? '<img src="' + w.icon + '" alt="' + w.name + '" style="width:48px;height:48px;border-radius:6px;border:2px solid ' + border + ';object-fit:cover;flex-shrink:0" onerror="this.style.display=&apos;none&apos;">'
           : '<div class="wish-emoji">' + (fallbackEmoji[w.tag] || '🔫') + '</div>';
         return '<div class="wish-item">'
           + imgHtml
