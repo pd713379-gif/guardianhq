@@ -40,6 +40,17 @@ export default async function handler(req, res) {
   result.powerCap      = 550;
   result.pinnacleFloor = 550;
 
+  // ── 3b. SEIZOEN VOORTGANG ──
+  // Pas deze datums aan als een nieuw seizoen begint (bron: bungie.net/7/en/Seasons)
+  const SEASON_START_MS = new Date('2025-12-02T17:00:00Z').getTime();
+  const SEASON_END_MS   = new Date('2026-06-10T17:00:00Z').getTime();
+  const _nowMs          = Date.now();
+  result.seasonStartMs  = SEASON_START_MS;
+  result.seasonEndMs    = SEASON_END_MS;
+  result.seasonPct      = Math.min(100, Math.max(0,
+    Math.round((_nowMs - SEASON_START_MS) / (SEASON_END_MS - SEASON_START_MS) * 100)
+  ));
+
   // ── 4. WEEKLY + DAILY RESET ──
   const now = new Date();
   const weekly = new Date(now);
