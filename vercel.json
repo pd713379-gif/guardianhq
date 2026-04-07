@@ -1,19 +1,7 @@
 {
   "rewrites": [
-    { "source": "/api/bungie-auth", "destination": "/api/bungie-auth" },
     { "source": "/api/bungie-news", "destination": "/api/bungie-news" },
     { "source": "/api/bungie-stats", "destination": "/api/bungie-stats" },
     { "source": "/api/bungie-item", "destination": "/api/bungie-item" }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
-      ]
-    }
   ]
 }
