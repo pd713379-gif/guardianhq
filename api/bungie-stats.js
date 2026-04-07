@@ -35,27 +35,13 @@ export default async function handler(req, res) {
     result.alerts = [];
   }
 
-  // ── 3. BUNGIE SEASON INFO (Power Cap + Season naam + einddatum) ──
-  try {
-    const settingsRes = await fetch('https://www.bungie.net/Platform/Settings/', {
-      headers: { 'X-API-Key': API_KEY }
-    });
-    const settingsData = await settingsRes.json();
-    const destiny = settingsData?.Response?.destiny2CoreSettings;
-
-    result.currentSeasonHash = destiny?.currentSeasonHash ?? null;
-    result.powerFloor = destiny?.powerFloor ?? null;
-    result.softCap = destiny?.softCap ?? null;
-    result.powerCap = destiny?.powerCap ?? null;
-    result.pinnacleFloor = destiny?.pinnacleFloor ?? null;
-
-  } catch (e) {
-    result.powerCap = null;
-  }
+  // ── 3. POWER CAPS (hardcoded — Bungie geeft deze niet meer via API terug sinds Edge of Fate)
+  result.softCap       = 200;
+  result.powerCap      = 550;
+  result.pinnacleFloor = 550;
 
   // ── 4. WEEKLY + DAILY RESET (berekend server-side) ──
   const now = new Date();
-  // Weekly reset = elke dinsdag 17:00 UTC
   const weekly = new Date(now);
   weekly.setUTCHours(17, 0, 0, 0);
   const dayOfWeek = weekly.getUTCDay();
@@ -63,7 +49,6 @@ export default async function handler(req, res) {
   weekly.setUTCDate(weekly.getUTCDate() + daysUntilTuesday);
   result.weeklyResetMs = weekly.getTime();
 
-  // Daily reset = elke dag 17:00 UTC
   const daily = new Date(now);
   daily.setUTCHours(17, 0, 0, 0);
   if (daily <= now) daily.setUTCDate(daily.getUTCDate() + 1);
