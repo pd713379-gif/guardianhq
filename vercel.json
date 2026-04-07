@@ -1,6 +1,7 @@
 {
   "rewrites": [
-    { "source": "/api/bungie-auth", "destination": "/api/bungie-auth" }
+    { "source": "/api/bungie-auth", "destination": "/api/bungie-auth" },
+    { "source": "/api/bungie-news", "destination": "/api/bungie-news" }
   ],
   "headers": [
     {
