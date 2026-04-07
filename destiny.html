@@ -81,25 +81,11 @@
           <!-- Nieuws -->
           <div class="d-card glass">
             <div class="d-card-label">📡 Live Nieuws <span class="live-dot">Bungie Feed</span></div>
-            <div class="news-item">
-              <div class="news-time">Vandaag 10:32</div>
-              <div class="news-headline">Heresy Act III — Nieuwe exotics aangekondigd voor Season 27</div>
-            </div>
-            <div class="news-item">
-              <div class="news-time">Gisteren 19:15</div>
-              <div class="news-headline">Server onderhoud gepland dinsdag 07:00–09:00 uur (alle platforms)</div>
-            </div>
-            <div class="news-item">
-              <div class="news-time">Gisteren 14:00</div>
-              <div class="news-headline">Iron Banner keert terug volgende week met nieuwe beloningen</div>
-            </div>
-            <div class="news-item">
-              <div class="news-time">2 dagen geleden</div>
-              <div class="news-headline">Patch 8.3.1 live — Bug fixes en PvP balans updates</div>
-            </div>
-            <div class="news-item">
-              <div class="news-time">3 dagen geleden</div>
-              <div class="news-headline">Double Exotic Engrams event actief dit weekend</div>
+            <div id="newsContainer">
+              <div class="news-item" style="opacity:0.4">
+                <div class="news-time">Laden...</div>
+                <div class="news-headline">Bungie nieuws wordt opgehaald...</div>
+              </div>
             </div>
           </div>
 
@@ -307,11 +293,52 @@
         if (powerEl) powerEl.textContent = Math.floor(Math.random() * 50 + 2050);
         renderInvGrid('weaponsGrid', WEAPONS);
         renderInvGrid('armorGrid', ARMOR);
+        loadBungieNews();
       }
       document.documentElement.style.visibility = '';
     });
+
+    async function loadBungieNews() {
+      try {
+        const res  = await fetch('/api/bungie-news');
+        const data = await res.json();
+        if (!data.results || !data.results.length) throw new Error('Geen nieuws');
+
+        const container = document.getElementById('newsContainer');
+        container.innerHTML = data.results.slice(0, 6).map(item => {
+          const date = formatNewsDate(item.CreationDate);
+          const title = item.Content && item.Content.properties && item.Content.properties.Title
+            ? item.Content.properties.Title
+            : item.Subject || 'Geen titel';
+          const url = item.Url ? 'https://www.bungie.net' + item.Url : 'https://www.bungie.net/7/en/News';
+          return `<div class="news-item" onclick="window.open('${url}','_blank')" style="cursor:pointer">
+            <div class="news-time">${date}</div>
+            <div class="news-headline">${title}</div>
+          </div>`;
+        }).join('');
+      } catch(err) {
+        console.warn('Nieuws laden mislukt:', err.message);
+        document.getElementById('newsContainer').innerHTML = `
+          <div class="news-item">
+            <div class="news-time">—</div>
+            <div class="news-headline" style="color:var(--text3)">Nieuws tijdelijk niet beschikbaar</div>
+          </div>`;
+      }
+    }
+
+    function formatNewsDate(dateStr) {
+      if (!dateStr) return '—';
+      const date = new Date(dateStr);
+      const now  = new Date();
+      const diff = Math.floor((now - date) / 1000 / 60 / 60); // hours
+      if (diff < 1)  return 'Zojuist';
+      if (diff < 24) return diff + ' uur geleden';
+      const days = Math.floor(diff / 24);
+      if (days === 1) return 'Gisteren';
+      if (days < 7)  return days + ' dagen geleden';
+      return date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+    }
   </script>
 
 </body>
 </html>
-
