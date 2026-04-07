@@ -1,57 +1,48 @@
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const API_KEY = process.env.BUNGIE_API_KEY;
-
-  if (!API_KEY) {
-    return res.status(500).json({ error: 'BUNGIE_API_KEY ontbreekt op de server' });
-  }
-
-  const hash = req.query.hash;
-
-  if (!hash) {
-    return res.status(400).json({ error: 'Missing item hash' });
-  }
-
   try {
-    const response = await fetch(
-      'https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/' + hash + '/',
-      {
-        headers: {
-          'X-API-Key': API_KEY
-        }
-      }
-    );
+    const hash = req.query.hash;
+    if (!hash) {
+      return res.status(400).json({ error: 'Missing hash' });
+    }
 
-    const data = await response.json();
+    const apiKey = process.env.BUNGIE_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'BUNGIE_API_KEY missing in Vercel env' });
+    }
 
-    if (!response.ok || !data.Response) {
+    const manifestRes = await fetch('https://www.bungie.net/Platform/Destiny2/Manifest/', {
+      headers: { 'X-API-Key': apiKey }
+    });
+
+    const manifestData = await manifestRes.json();
+
+    const itemPath = manifestData?.Response?.jsonWorldComponentContentPaths?.en?.DestinyInventoryItemDefinition;
+    if (!itemPath) {
+      return res.status(500).json({ error: 'Manifest item definition path not found' });
+    }
+
+    const dbUrl = 'https://www.bungie.net' + itemPath;
+    const dbRes = await fetch(dbUrl);
+    const db = await dbRes.json();
+
+    const item = db[String(hash)];
+    if (!item) {
       return res.status(404).json({ error: 'Item not found', hash });
     }
 
-    const item = data.Response;
+    const tier = item?.inventory?.tierTypeName || null;
 
     return res.status(200).json({
-      hash: item.hash,
-      name: item.displayProperties?.name || 'Unknown Item',
+      hash: Number(hash),
+      name: item.displayProperties?.name || null,
       iconPath: item.displayProperties?.icon || null,
-      tier: item.inventory?.tierTypeName || 'Unknown',
-      itemType: item.itemTypeDisplayName || 'Unknown'
+      tier,
+      itemType: item.itemTypeDisplayName || null
     });
-  } catch (error) {
+  } catch (err) {
     return res.status(500).json({
-      error: 'Failed to fetch item from Bungie API',
-      details: error.message
+      error: 'Internal server error',
+      message: err.message
     });
   }
 }
