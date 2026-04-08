@@ -1,1 +1,73 @@
 
+// ============================================================
+// GUARDIANHQ — api/bungie-manifest.js
+// Vercel Serverless Function — Bungie Manifest Proxy
+// Haalt item/activiteit definities op zonder API key in de browser
+// Gebruik: /api/bungie-manifest?type=DestinyInventoryItemDefinition&hash=3185005938
+// ============================================================
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Content-Type', 'application/json');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  const API_KEY = process.env.BUNGIE_API_KEY;
+  if (!API_KEY) {
+    return res.status(500).json({ error: 'API key niet geconfigureerd' });
+  }
+
+  const { type, hash } = req.query;
+
+  // Alleen toegestane definition types (veiligheid)
+  const ALLOWED_TYPES = [
+    'DestinyInventoryItemDefinition',
+    'DestinyActivityDefinition',
+    'DestinyDestinationDefinition',
+    'DestinyClassDefinition',
+    'DestinyDamageTypeDefinition',
+  ];
+
+  if (!type || !hash) {
+    return res.status(400).json({ error: 'type en hash zijn verplicht' });
+  }
+
+  if (!ALLOWED_TYPES.includes(type)) {
+    return res.status(400).json({ error: 'Ongeldig definition type' });
+  }
+
+  if (!/^\d+$/.test(hash)) {
+    return res.status(400).json({ error: 'Ongeldige hash' });
+  }
+
+  try {
+    const bungieRes = await fetch(
+      `https://www.bungie.net/Platform/Destiny2/Manifest/${type}/${hash}/`,
+      { headers: { 'X-API-Key': API_KEY } }
+    );
+
+    const data = await bungieRes.json();
+
+    if (!data?.Response) {
+      return res.status(404).json({ error: 'Niet gevonden', raw: data?.ErrorStatus });
+    }
+
+    const def = data.Response;
+
+    // Geef alleen de velden terug die de frontend nodig heeft
+    const result = {
+      name:     def.displayProperties?.name     ?? null,
+      icon:     def.displayProperties?.icon     ?? null,
+      desc:     def.displayProperties?.description ?? null,
+      pgcrImage: def.pgcrImage                  ?? null,
+      itemType:  def.itemTypeDisplayName        ?? null,
+      tierType:  def.inventory?.tierTypeName    ?? null,
+    };
+
+    // Cache 24 uur — manifest data verandert zelden
+    res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=3600');
+    return res.status(200).json(result);
+
+  } catch (err) {
+    console.error('[bungie-manifest] Fout:', err.message);
+    return res.status(500).json({ error: 'Bungie API niet bereikbaar' });
+  }
+}
