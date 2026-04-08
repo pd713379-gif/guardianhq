@@ -1,1 +1,42 @@
 
+// ============================================================
+// GUARDIANHQ — api/image-proxy.js
+// Vercel Serverless Function — Bungie afbeelding proxy
+// ============================================================
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  const { url } = req.query;
+  if (!url) return res.status(400).send('Missing url parameter');
+
+  let decoded;
+  try { decoded = decodeURIComponent(url); }
+  catch { return res.status(400).send('Invalid url parameter'); }
+
+  if (!decoded.startsWith('https://www.bungie.net/img/')) {
+    return res.status(403).send('Only bungie.net/img/ URLs allowed');
+  }
+
+  try {
+    const response = await fetch(decoded, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; GuardianHQ/1.0)',
+        'Referer': 'https://www.bungie.net/',
+      }
+    });
+
+    if (!response.ok) return res.status(response.status).send('Upstream error');
+
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    const buffer = await response.arrayBuffer();
+
+    res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=3600');
+    res.setHeader('Content-Type', contentType);
+    return res.status(200).send(Buffer.from(buffer));
+
+  } catch (err) {
+    console.error('[image-proxy] Fout:', err.message);
+    return res.status(500).send('Proxy error');
+  }
+}
