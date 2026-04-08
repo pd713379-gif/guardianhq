@@ -569,45 +569,30 @@
       });
     }
 
-    // ── BUNGIE PROFIEL AVATAR LADEN VIA API ──
+    // ── BUNGIE PROFIEL AVATAR LADEN VIA SERVER PROXY ──
+    // Directe Bungie calls vanuit browser worden geblokkeerd (CORS/500).
+    // Alles loopt via /api/bungie-proxy op de Vercel server.
     async function loadBungieAvatar() {
       const avatarImg      = document.getElementById('bungieProfileAvatar');
       const avatarFallback = document.getElementById('bungieAvatarFallback');
       if (!avatarImg) return;
       try {
-        // Haal het Bungie profiel op via de API (membership zoeken op naam)
-        const res  = await fetch('https://www.bungie.net/Platform/Destiny2/SearchDestinyPlayer/-1/RemaisNL/', {
-          headers: { 'X-API-Key': '8dde842300df4ffbae605b0f48cf43f9' }
-        });
+        const res  = await fetch('/api/bungie-proxy?action=avatar');
         const data = await res.json();
-        if (data.Response && data.Response.length > 0) {
-          const member = data.Response[0];
-          // Haal de echte Bungie Net gebruiker op voor de avatar
-          const memberType = member.membershipType;
-          const memberId   = member.membershipId;
-          const profileRes = await fetch(
-            `https://www.bungie.net/Platform/Destiny2/${memberType}/Profile/${memberId}/?components=100`,
-            { headers: { 'X-API-Key': '8dde842300df4ffbae605b0f48cf43f9' } }
-          );
-          const profileData = await profileRes.json();
-          const emblemPath  = profileData.Response?.profile?.data?.userInfo?.iconPath || member.iconPath;
-          if (emblemPath) {
-            avatarImg.src             = 'https://www.bungie.net' + emblemPath;
-            avatarImg.style.display   = 'block';
-            if (avatarFallback) avatarFallback.style.display = 'none';
-            return;
+        if (data.avatarUrl) {
+          avatarImg.src           = data.avatarUrl;
+          avatarImg.style.display = 'block';
+          if (avatarFallback) avatarFallback.style.display = 'none';
+          if (data.displayName) {
+            const nameEl = document.getElementById('bungieIdDisplay');
+            if (nameEl) nameEl.textContent = 'Bungie ID: ' + data.displayName;
           }
+        } else {
+          if (avatarFallback) avatarFallback.style.display = 'flex';
         }
-        // Fallback: directe bekende avatar URL
-        avatarImg.src           = 'https://www.bungie.net/common/destiny2_content/icons/e3f7fed1fa5e506b39aefd60a4e44ce4.jpg';
-        avatarImg.style.display = 'block';
-        if (avatarFallback) avatarFallback.style.display = 'none';
       } catch(err) {
         console.warn('Avatar laden mislukt:', err.message);
-        // Fallback naar bekende URL
-        avatarImg.src           = 'https://www.bungie.net/common/destiny2_content/icons/e3f7fed1fa5e506b39aefd60a4e44ce4.jpg';
-        avatarImg.style.display = 'block';
-        if (avatarFallback) avatarFallback.style.display = 'none';
+        if (avatarFallback) avatarFallback.style.display = 'flex';
       }
     }
     loadBungieAvatar();
@@ -659,32 +644,35 @@
       },
     ];
 
-    // Gebruik Bungie API om de echte iconen op te halen via weapon hash
-    const WEAPON_HASHES = {
-      'The Palindrome':    1912364120,
-      'Igneous Hammer':    2340537481,
-      'Retrofit Escapade': 2478919240,
-      'Apex Predator':     1498167238,
-      'Falling Guillotine':3550669227,
-      'Wish-Ender':        1999250506,
-      'Likely Suspect':    2820737395,
-    };
-
+    // Haal echte weapon icons op via server proxy
     async function fetchRealWeaponIcons() {
-      const hashes = Object.values(WEAPON_HASHES).join(',');
       try {
-        const res  = await fetch(
-          `https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/${Object.values(WEAPON_HASHES)[0]}/`,
-          { headers: { 'X-API-Key': '8dde842300df4ffbae605b0f48cf43f9' } }
-        );
-        const data = await res.json();
-        if (data.Response && data.Response.displayProperties && data.Response.displayProperties.icon) {
-          // Werkt voor één wapen tegelijk — update The Palindrome icon
-          const iconPath = data.Response.displayProperties.icon;
-          WISHLIST_WEAPONS[0].icon = 'https://www.bungie.net' + iconPath;
-          loadWishlistIcons();
+        const res  = await fetch('/api/bungie-proxy?action=weaponicons');
+        if (!res.ok) return;
+        const icons = await res.json();
+
+        // Koppel de iconen aan de juiste wapens
+        const MAP = {
+          palindrome:        0,
+          igneous:           1,
+          retrofit:          2,
+          apex:              3,
+          fallingGuillotine: 4,
+          wishEnder:         5,
+          likelySuspect:     6,
+        };
+        let changed = false;
+        for (const [key, idx] of Object.entries(MAP)) {
+          if (icons[key]) {
+            WISHLIST_WEAPONS[idx].icon = icons[key];
+            changed = true;
+          }
         }
-      } catch(e) { /* Stil falen, gebruik statische fallbacks */ }
+        if (changed) loadWishlistIcons();
+      } catch(e) {
+        console.warn('Weapon icons laden mislukt:', e.message);
+        // Stilletjes falen — statische fallback URLs blijven actief
+      }
     }
     fetchRealWeaponIcons();
 
