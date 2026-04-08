@@ -84,7 +84,6 @@ export default async function handler(req, res) {
 
       let activityName = preset?.name ?? null;
       let activitySub  = null;
-      let iconPath     = null;
       let icon         = preset?.icon ?? '🎮';
       let badge        = preset?.badge ?? 'actief';
       let badgeClass   = preset?.badgeClass ?? 'badge-live';
@@ -101,13 +100,9 @@ export default async function handler(req, res) {
           if (def) {
             if (!activityName) activityName = def.displayProperties?.name;
             activitySub = def.displayProperties?.description ?? null;
-
-            // Haal het echte Bungie icoon op
-            if (def.displayProperties?.icon) {
-              iconPath = def.displayProperties.icon;
-            } else if (def.pgcrImage) {
-              iconPath = def.pgcrImage;
-            }
+            // Sla het echte Bungie-icoon op
+            const iconPath = def.displayProperties?.icon;
+            if (iconPath) result._activityIconTmp = 'https://www.bungie.net' + iconPath;
 
             // Try to get the destination/place as subtitle
             if (def.destinationHash) {
@@ -129,10 +124,11 @@ export default async function handler(req, res) {
           name: activityName,
           sub:  activitySub ?? 'Beschikbaar deze week',
           icon,
-          iconPath,
+          imgUrl: result._activityIconTmp ?? null,
           badge,
           badgeClass,
         });
+        delete result._activityIconTmp;
       }
 
       if (activities.length >= 5) break;
