@@ -39,12 +39,12 @@
     .dc-hero {
       position:relative; z-index:1;
       text-align:center;
-      padding: 120px 24px 60px;
+      padding: 72px 24px 30px;
     }
 
-    .dc-emblem { width:100px; height:100px; margin:0 auto 32px; position:relative; }
+    .dc-emblem { width:80px; height:80px; margin:0 auto 20px; position:relative; }
     .dc-emblem-ring {
-      width:100px; height:100px; border-radius:50%;
+      width:80px; height:80px; border-radius:50%;
       border:2px solid rgba(88,101,242,0.5);
       background:radial-gradient(circle at 40% 35%, rgba(88,101,242,0.25), rgba(10,12,20,0.9));
       display:flex; align-items:center; justify-content:center;
@@ -55,14 +55,14 @@
       0%,100% { box-shadow: 0 0 30px rgba(88,101,242,0.2), 0 0 60px rgba(88,101,242,0.08); }
       50%      { box-shadow: 0 0 40px rgba(88,101,242,0.35), 0 0 80px rgba(88,101,242,0.15); }
     }
-    .dc-emblem-svg { width:50px; height:50px; }
+    .dc-emblem-svg { width:40px; height:40px; }
 
     .dc-eyebrow {
       display:inline-flex; align-items:center; gap:8px;
       background:rgba(88,101,242,0.1); border:1px solid rgba(88,101,242,0.25);
       border-radius:20px; padding:5px 16px;
       font-size:0.7rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase;
-      color:rgba(140,153,246,0.9); margin-bottom:24px;
+      color:rgba(140,153,246,0.9); margin-bottom:16px;
     }
     .dc-pulse { width:6px; height:6px; border-radius:50%; background:#5865F2; animation:pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
@@ -71,7 +71,7 @@
       font-family:'Space Grotesk',sans-serif;
       font-size:clamp(2.2rem, 6vw, 4rem);
       font-weight:900; line-height:1.05;
-      letter-spacing:-0.03em; margin-bottom:12px;
+      letter-spacing:-0.03em; margin-bottom:10px;
     }
     .dc-title .t-white { color:var(--text); }
     .dc-title .t-gold  { background:var(--grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
@@ -86,31 +86,29 @@
       margin-bottom:0;
     }
 
-    /* ── JOIN BUTTON — direct onder "The Tower is open." ── */
+    /* ── JOIN BUTTON — official Discord style ── */
     .dc-join-wrap {
-      margin: 28px 0 32px;
+      margin: 22px 0 24px;
       display:flex; justify-content:center;
     }
     .dc-join-btn {
-      display:inline-flex; align-items:center; gap:12px;
-      background:linear-gradient(135deg, #5865F2 0%, #7289da 100%);
-      color:#fff; font-weight:800; font-size:1.05rem;
-      padding:16px 44px; border-radius:14px;
+      display:inline-flex; align-items:center; gap:10px;
+      background:#5865F2;
+      color:#fff; font-weight:700; font-size:1.05rem;
+      padding:14px 40px; border-radius:50px;
       text-decoration:none; border:none; cursor:pointer;
-      position:relative; overflow:hidden; transition:all 0.25s;
-      box-shadow: 0 4px 28px rgba(88,101,242,0.45), 0 0 0 1px rgba(255,255,255,0.07) inset;
-      letter-spacing:0.03em;
+      position:relative; overflow:hidden; transition:all 0.2s ease;
+      box-shadow: 0 8px 32px rgba(88,101,242,0.5);
+      letter-spacing:0.01em; font-family:'Whitney','Helvetica Neue','Helvetica','Arial',sans-serif;
     }
     .dc-join-btn:hover {
-      transform:translateY(-3px) scale(1.03);
-      box-shadow: 0 10px 40px rgba(88,101,242,0.6), 0 0 0 1px rgba(255,255,255,0.12) inset;
+      background:#4752c4;
+      transform:translateY(-2px);
+      box-shadow: 0 12px 40px rgba(88,101,242,0.65);
     }
-    .dc-join-btn::before {
-      content:''; position:absolute; inset:0;
-      background:linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
-    }
-    .dc-join-btn svg { width:22px; height:22px; fill:currentColor; position:relative; flex-shrink:0; }
-    .dc-join-btn-text { position:relative; }
+    .dc-join-btn:active { transform:translateY(0); }
+    .dc-join-btn svg { width:24px; height:24px; fill:currentColor; flex-shrink:0; }
+    .dc-join-btn-text { font-size:1.05rem; font-weight:700; }
 
     .dc-divider {
       display:flex; align-items:center; gap:16px;
