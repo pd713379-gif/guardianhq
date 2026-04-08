@@ -228,32 +228,31 @@
           <button class="search-btn" onclick="doSearch()">Zoeken</button>
         </div>
 
-        <!-- Characters -->
-        <div class="char-cards">
-          <div class="char-card hunter active-char" onclick="selectChar(this,'Hunter')">
-            <div class="char-class">Hunter</div>
-            <div class="char-power">2087</div>
-            <div class="char-subclass">⚡ Arc Strider</div>
-            <div class="char-icon">🏹</div>
+        <!-- Characters — worden live gevuld via Bungie API -->
+        <div class="char-cards" id="charCards">
+          <!-- Loading state -->
+          <div class="char-card char-loading" style="opacity:0.5;cursor:default;flex:1;justify-content:center;align-items:center;gap:8px;display:flex">
+            <div style="font-size:0.8rem;color:var(--text3)">⏳ Karakters laden...</div>
           </div>
-          <div class="char-card warlock" onclick="selectChar(this,'Warlock')">
-            <div class="char-class">Warlock</div>
-            <div class="char-power">2071</div>
-            <div class="char-subclass">🔥 Solar Dawnblade</div>
-            <div class="char-icon">✨</div>
-          </div>
-          <div class="char-card titan" onclick="selectChar(this,'Titan')">
-            <div class="char-class">Titan</div>
-            <div class="char-power">2094</div>
-            <div class="char-subclass">🌑 Void Sentinel</div>
-            <div class="char-icon">🛡️</div>
+        </div>
+
+        <!-- Bungie OAuth connect banner (zichtbaar als geen token) -->
+        <div id="bungieConnectBanner" style="display:none;margin-bottom:16px;">
+          <div style="background:rgba(88,101,242,0.08);border:1px solid rgba(88,101,242,0.25);border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:200px;">
+              <div style="font-weight:700;font-size:0.9rem;margin-bottom:4px;">🔗 Verbind je Bungie account</div>
+              <div style="font-size:0.78rem;color:var(--text2);">Koppel je Bungie account om live power level, subclass, wapens en armor te zien.</div>
+            </div>
+            <button onclick="startBungieOAuth()" style="background:#5865F2;color:#fff;border:none;padding:10px 22px;border-radius:10px;font-weight:700;font-size:0.85rem;cursor:pointer;white-space:nowrap;">
+              Verbinden met Bungie
+            </button>
           </div>
         </div>
 
         <div class="d-card glass">
-          <div class="inv-section-title" id="invTitle1">🔫 Wapens — Hunter</div>
+          <div class="inv-section-title" id="invTitle1">🔫 Wapens</div>
           <div class="inv-grid" id="weaponsGrid"></div>
-          <div class="inv-section-title" id="invTitle2">🛡️ Armor — Hunter</div>
+          <div class="inv-section-title" id="invTitle2">🛡️ Armor</div>
           <div class="inv-grid" id="armorGrid"></div>
         </div>
       </div>
@@ -336,7 +335,8 @@
         renderActivities(null); // Start rotatie direct met statische mix
         loadBungieNews();
         loadLiveStats();
-        loadWishlistIcons(); // Laad wishlist iconen alvast voor
+        loadWishlistIcons();
+        loadLiveCharacters(); // Live Bungie karakter data
       }
       document.documentElement.style.visibility = '';
     });
@@ -842,11 +842,464 @@
     window.switchTab = function(tab) {
       if (typeof origSwitchTab === 'function') origSwitchTab(tab);
       if (tab === 'wishlist') loadWishlistIcons();
+      if (tab === 'dim') initDimTab();
     };
-    // Ook direct laden als wishlist al actief is
     if (document.getElementById('pane-wishlist')?.classList.contains('active')) {
       loadWishlistIcons();
     }
+
+    // ══════════════════════════════════════════════════════════
+    // ── LIVE BUNGIE CHARACTER DATA ────────────────────────────
+    // ══════════════════════════════════════════════════════════
+
+    // Subclass hash → naam + kleur + SVG icon (officiële Destiny 2 subclasses)
+    const SUBCLASS_MAP = {
+      // Arc
+      2328211300: { name:'Arc Strider',    color:'#79c8f0', element:'arc'   },
+      2958378809: { name:'Arc Striker',    color:'#79c8f0', element:'arc'   },
+      3006627468: { name:'Stormcaller',    color:'#79c8f0', element:'arc'   },
+      1751782730: { name:'Striker',        color:'#79c8f0', element:'arc'   },
+      // Solar
+      2240888816: { name:'Gunslinger',     color:'#f0a830', element:'solar' },
+      3941205951: { name:'Dawnblade',      color:'#f0a830', element:'solar' },
+      2550323932: { name:'Sunbreaker',     color:'#f0a830', element:'solar' },
+      // Void
+      2453351420: { name:'Nightstalker',   color:'#b574de', element:'void'  },
+      3887892656: { name:'Voidwalker',     color:'#b574de', element:'void'  },
+      2842471112: { name:'Sentinel',       color:'#b574de', element:'void'  },
+      // Stasis
+      873720784:  { name:'Revenant',       color:'#4ec3e0', element:'stasis'},
+      3291545503: { name:'Shadebinder',    color:'#4ec3e0', element:'stasis'},
+      2842471113: { name:'Behemoth',       color:'#4ec3e0', element:'stasis'},
+      // Strand
+      2932390016: { name:'Threadrunner',   color:'#31c48d', element:'strand'},
+      613647897:  { name:'Broodweaver',    color:'#31c48d', element:'strand'},
+      242419885:  { name:'Berserker',      color:'#31c48d', element:'strand'},
+      // Prismatic
+      3855807587: { name:'Prismatic Hunter', color:'#d4a843', element:'prismatic'},
+      1216399026: { name:'Prismatic Warlock',color:'#d4a843', element:'prismatic'},
+      3452049687: { name:'Prismatic Titan', color:'#d4a843', element:'prismatic'},
+    };
+
+    // Element → SVG icon (officiële Destiny element kleuren)
+    const ELEMENT_ICONS = {
+      arc:      { color:'#79c8f0', bg:'rgba(121,200,240,0.15)', svg:`<svg viewBox="0 0 32 32" width="28" height="28"><path d="M18 4L8 18h8L14 28l12-16h-8z" fill="#79c8f0"/></svg>` },
+      solar:    { color:'#f0a830', bg:'rgba(240,168,48,0.15)',  svg:`<svg viewBox="0 0 32 32" width="28" height="28"><circle cx="16" cy="16" r="6" fill="#f0a830"/><g stroke="#f0a830" stroke-width="2" stroke-linecap="round"><line x1="16" y1="3" x2="16" y2="7"/><line x1="16" y1="25" x2="16" y2="29"/><line x1="3" y1="16" x2="7" y2="16"/><line x1="25" y1="16" x2="29" y2="16"/><line x1="7" y1="7" x2="10" y2="10"/><line x1="22" y1="22" x2="25" y2="25"/><line x1="25" y1="7" x2="22" y2="10"/><line x1="10" y1="22" x2="7" y2="25"/></g></svg>` },
+      void:     { color:'#b574de', bg:'rgba(181,116,222,0.15)', svg:`<svg viewBox="0 0 32 32" width="28" height="28"><circle cx="16" cy="16" r="10" fill="none" stroke="#b574de" stroke-width="2"/><circle cx="16" cy="16" r="5" fill="#b574de" opacity="0.7"/><circle cx="16" cy="16" r="2" fill="#b574de"/></svg>` },
+      stasis:   { color:'#4ec3e0', bg:'rgba(78,195,224,0.15)',  svg:`<svg viewBox="0 0 32 32" width="28" height="28"><polygon points="16,3 19.5,12 29,12 21.5,18 24.5,28 16,22 7.5,28 10.5,18 3,12 12.5,12" fill="none" stroke="#4ec3e0" stroke-width="1.8" stroke-linejoin="round"/><circle cx="16" cy="16" r="3" fill="#4ec3e0"/></svg>` },
+      strand:   { color:'#31c48d', bg:'rgba(49,196,141,0.15)',  svg:`<svg viewBox="0 0 32 32" width="28" height="28"><path d="M6 16 Q10 8 16 12 Q22 16 26 8" stroke="#31c48d" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M6 20 Q10 12 16 16 Q22 20 26 12" stroke="#31c48d" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/></svg>` },
+      prismatic:{ color:'#d4a843', bg:'rgba(212,168,67,0.15)',  svg:`<svg viewBox="0 0 32 32" width="28" height="28"><polygon points="16,4 28,12 28,20 16,28 4,20 4,12" fill="none" stroke="#d4a843" stroke-width="1.8"/><circle cx="16" cy="16" r="4" fill="#d4a843"/></svg>` },
+    };
+
+    // Armor slot bucket hashes
+    const ARMOR_SLOTS = {
+      3448274439: { label:'Helm',       icon:'🪖' },
+      3551918588: { label:'Gauntlets',  icon:'🥊' },
+      14239492:   { label:'Borst',      icon:'🦺' },
+      20886954:   { label:'Benen',      icon:'👖' },
+      1585787867: { label:'Class Item', icon:'💎' },
+    };
+
+    // Wapenslot bucket hashes
+    const WEAPON_SLOTS = {
+      1498876634: { label:'Kinetisch', icon:'🔫' },
+      2465295065: { label:'Energie',   icon:'⚡' },
+      953998645:  { label:'Zwaar',     icon:'🚀' },
+    };
+
+    // Rarity tier kleuren
+    const TIER_COLORS = {
+      6: { name:'Exotic',    color:'#CEAE33', bg:'rgba(206,174,51,0.12)'  },
+      5: { name:'Legendary', color:'#522f65', bg:'rgba(82,47,101,0.18)'   },
+      4: { name:'Rare',      color:'#5076a3', bg:'rgba(80,118,163,0.15)'  },
+      3: { name:'Uncommon',  color:'#366f42', bg:'rgba(54,111,66,0.12)'   },
+    };
+
+    let _liveChars = [];       // opgeslagen live karakter data
+    let _activeCharIdx = 0;    // actief geselecteerde karakter
+
+    // ── Haal Bungie access token op uit localStorage (gezet door OAuth flow) ──
+    function getBungieToken() {
+      try {
+        const t = localStorage.getItem('bungie_access_token');
+        const exp = parseInt(localStorage.getItem('bungie_token_expires') || '0');
+        if (t && Date.now() < exp) return t;
+      } catch {}
+      return null;
+    }
+
+    // ── Bungie API aanroepen via de server proxy ──
+    async function bungieApi(endpoint, accessToken) {
+      const res = await fetch('/api/bungie-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'api', endpoint, access_token: accessToken }),
+      });
+      if (!res.ok) throw new Error('Bungie API fout: ' + res.status);
+      return res.json();
+    }
+
+    // ── Start Bungie OAuth ──
+    function startBungieOAuth() {
+      const clientId = '49474'; // Bungie client_id uit vercel.json of hard-coded
+      const redirectUri = encodeURIComponent(window.location.origin + '/destiny.html?bungie_callback=1');
+      const state = Math.random().toString(36).slice(2);
+      localStorage.setItem('bungie_oauth_state', state);
+      const url = `https://www.bungie.net/en/OAuth/Authorize?client_id=${clientId}&response_type=code&state=${state}&redirect_uri=${redirectUri}`;
+      window.location.href = url;
+    }
+
+    // ── Verwerk OAuth callback (code in URL) ──
+    async function handleOAuthCallback() {
+      const params = new URLSearchParams(window.location.search);
+      const code  = params.get('code');
+      const state = params.get('state');
+      if (!code) return false;
+
+      // Verwijder code uit URL
+      window.history.replaceState({}, '', '/destiny.html');
+
+      try {
+        const res = await fetch('/api/bungie-auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code }),
+        });
+        const data = await res.json();
+        if (data.access_token) {
+          localStorage.setItem('bungie_access_token',  data.access_token);
+          localStorage.setItem('bungie_refresh_token', data.refresh_token || '');
+          localStorage.setItem('bungie_membership_id', data.membership_id || '');
+          localStorage.setItem('bungie_token_expires', String(Date.now() + (data.expires_in || 3600) * 1000));
+          showToast('✅ Bungie account verbonden!');
+          return true;
+        }
+      } catch(e) {
+        console.warn('OAuth callback fout:', e.message);
+      }
+      return false;
+    }
+
+    // ── Laad live karakterdata van Bungie ──
+    async function loadLiveCharacters() {
+      const charCards = document.getElementById('charCards');
+      const banner    = document.getElementById('bungieConnectBanner');
+
+      const token = getBungieToken();
+      if (!token) {
+        // Toon connect banner, val terug op statische data
+        if (banner) banner.style.display = 'block';
+        renderStaticChars();
+        return;
+      }
+      if (banner) banner.style.display = 'none';
+
+      // Toon loading
+      charCards.innerHTML = `<div style="flex:1;padding:20px;text-align:center;color:var(--text3);font-size:0.85rem;">⏳ Live data ophalen van Bungie...</div>`;
+
+      try {
+        // Stap 1: haal membership info op
+        const membershipId = localStorage.getItem('bungie_membership_id');
+        const meRes = await bungieApi(`/User/GetMembershipsById/${membershipId}/254/`, token);
+        const destinyMemberships = meRes?.Response?.destinyMemberships ?? [];
+        const primary = destinyMemberships[0];
+        if (!primary) throw new Error('Geen Destiny membership gevonden');
+
+        const mType = primary.membershipType;
+        const mId   = primary.membershipId;
+
+        // Stap 2: haal profiel op met karakters + uitrusting (components 200=chars, 205=equipment, 300=itemComponents)
+        const profileData = await bungieApi(
+          `/Destiny2/${mType}/Profile/${mId}/?components=200,205,300`,
+          token
+        );
+
+        const chars     = profileData?.Response?.characters?.data     ?? {};
+        const equipment = profileData?.Response?.characterEquipment?.data ?? {};
+        const itemComps = profileData?.Response?.itemComponents ?? {};
+
+        _liveChars = [];
+        const classNames = { 0:'Titan', 1:'Hunter', 2:'Warlock' };
+
+        for (const [charId, char] of Object.entries(chars)) {
+          const className  = classNames[char.classType] ?? 'Unknown';
+          const light      = char.light ?? 0;
+          const emblemPath = char.emblemPath ? 'https://www.bungie.net' + char.emblemPath : null;
+          const emblemBg   = char.emblemBackgroundPath ? 'https://www.bungie.net' + char.emblemBackgroundPath : null;
+
+          // Subclass uit uitrusting
+          const charEquip  = equipment[charId]?.items ?? [];
+          const subclassItem = charEquip.find(i => i.bucketHash === 3284755031);
+          const subclassHash = subclassItem?.itemHash;
+          const subclassInfo = SUBCLASS_MAP[subclassHash] ?? { name:'Onbekend', color:'#aaa', element:'void' };
+          const elementInfo  = ELEMENT_ICONS[subclassInfo.element] ?? ELEMENT_ICONS.void;
+
+          // Wapens (bucket hashes voor kinetic/energy/heavy)
+          const weaponItems = charEquip.filter(i => WEAPON_SLOTS[i.bucketHash]);
+          const armorItems  = charEquip.filter(i => ARMOR_SLOTS[i.bucketHash]);
+
+          _liveChars.push({
+            charId, className, light, emblemPath, emblemBg,
+            subclassInfo, elementInfo,
+            weaponItems, armorItems,
+            rawEquip: charEquip,
+          });
+        }
+
+        // Sorteer: Hunter, Warlock, Titan
+        const order = ['Hunter','Warlock','Titan'];
+        _liveChars.sort((a,b) => order.indexOf(a.className) - order.indexOf(b.className));
+
+        renderLiveChars();
+
+        // Laad direct de eerste karakter
+        if (_liveChars.length > 0) {
+          await loadCharEquipment(_liveChars[0], mType, mId, token);
+        }
+
+      } catch(err) {
+        console.warn('Live karakters laden mislukt:', err.message);
+        renderStaticChars();
+        if (err.message.includes('401') || err.message.includes('token')) {
+          // Token verlopen — verwijder en toon connect banner
+          localStorage.removeItem('bungie_access_token');
+          if (banner) banner.style.display = 'block';
+        }
+      }
+    }
+
+    // ── Render live karakterkaarten ──
+    function renderLiveChars() {
+      const charCards = document.getElementById('charCards');
+      if (!charCards || !_liveChars.length) return;
+
+      charCards.innerHTML = _liveChars.map((c, idx) => {
+        const ei = c.elementInfo;
+        const si = c.subclassInfo;
+        const classLower = c.className.toLowerCase();
+        const isActive   = idx === _activeCharIdx;
+        return `
+        <div class="char-card ${classLower} ${isActive ? 'active-char' : ''}"
+             onclick="selectLiveChar(${idx})"
+             style="position:relative;overflow:hidden;${c.emblemBg ? `background-image:url('${c.emblemBg}');background-size:cover;background-position:center;` : ''}">
+          ${c.emblemBg ? '<div style="position:absolute;inset:0;background:rgba(3,5,10,0.65);border-radius:inherit;"></div>' : ''}
+          <div style="position:relative;z-index:1;display:flex;flex-direction:column;gap:4px;width:100%;">
+            <div class="char-class">${c.className}</div>
+            <div class="char-power" style="font-size:1.4rem;font-weight:900;color:var(--gold2);">⚡ ${c.light}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+              <div style="background:${ei.bg};border-radius:6px;padding:3px;display:flex;align-items:center;justify-content:center;">
+                ${ei.svg}
+              </div>
+              <div style="font-size:0.72rem;font-weight:600;color:${ei.color};line-height:1.2;">${si.name}</div>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // ── Selecteer karakter en laad uitrusting ──
+    async function selectLiveChar(idx) {
+      _activeCharIdx = idx;
+      document.querySelectorAll('.char-card').forEach((c,i) => {
+        c.classList.toggle('active-char', i === idx);
+      });
+
+      const char = _liveChars[idx];
+      if (!char) return;
+
+      const t1 = document.getElementById('invTitle1');
+      const t2 = document.getElementById('invTitle2');
+      if (t1) t1.innerHTML = `🔫 Wapens — <span style="color:var(--gold2)">${char.className}</span>`;
+      if (t2) t2.innerHTML = `🛡️ Armor — <span style="color:var(--gold2)">${char.className}</span>`;
+
+      // Laad uitgerust gear
+      const wGrid = document.getElementById('weaponsGrid');
+      const aGrid = document.getElementById('armorGrid');
+      if (wGrid) wGrid.innerHTML = `<div style="color:var(--text3);font-size:0.8rem;padding:12px">⏳ Laden...</div>`;
+      if (aGrid) aGrid.innerHTML = '';
+
+      // Render direct vanuit cache
+      renderCharGear(char);
+    }
+
+    // ── Render wapens en armor voor een karakter ──
+    function renderCharGear(char) {
+      renderLiveWeapons(char.weaponItems);
+      renderLiveArmor(char.armorItems);
+      const t1 = document.getElementById('invTitle1');
+      const t2 = document.getElementById('invTitle2');
+      if (t1) t1.innerHTML = `🔫 Wapens — <span style="color:var(--gold2)">${char.className}</span>`;
+      if (t2) t2.innerHTML = `🛡️ Armor — <span style="color:var(--gold2)">${char.className}</span>`;
+    }
+
+    // ── Render wapens met echte Bungie icons ──
+    function renderLiveWeapons(items) {
+      const el = document.getElementById('weaponsGrid');
+      if (!el) return;
+      if (!items || !items.length) {
+        el.innerHTML = `<div style="color:var(--text3);font-size:0.8rem;padding:8px">Geen wapens gevonden</div>`;
+        return;
+      }
+
+      el.innerHTML = items.map(item => {
+        const slotInfo = WEAPON_SLOTS[item.bucketHash] ?? { label:'Wapen', icon:'🔫' };
+        const tier = TIER_COLORS[item.itemTierType] ?? TIER_COLORS[5];
+        const iconUrl = item.itemIcon ? 'https://www.bungie.net' + item.itemIcon : null;
+        const power   = item.primaryStat ?? item.light ?? '';
+        return `
+        <div class="inv-item" style="border:1.5px solid ${tier.color};background:${tier.bg};flex-direction:column;height:auto;padding:8px;gap:4px;min-width:80px;max-width:96px;"
+             title="${item.name ?? slotInfo.label} · ⚡${power}" onclick="showToast('${(item.name||slotInfo.label).replace(/'/g,"\\'")}')">
+          <div style="width:52px;height:52px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.05);flex-shrink:0;position:relative;margin:0 auto;">
+            ${iconUrl
+              ? `<img src="${iconUrl}" style="width:52px;height:52px;object-fit:cover;" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML='${slotInfo.icon}';this.parentElement.style.display='flex';this.parentElement.style.alignItems='center';this.parentElement.style.justifyContent='center';this.parentElement.style.fontSize='1.8rem';">`
+              : `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:1.8rem;">${slotInfo.icon}</div>`}
+          </div>
+          <div style="font-size:0.65rem;font-weight:600;color:var(--text2);text-align:center;line-height:1.2;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${item.name ?? slotInfo.label}</div>
+          ${power ? `<div style="font-size:0.68rem;color:var(--gold2);font-weight:700;text-align:center;">⚡${power}</div>` : ''}
+          <div style="font-size:0.6rem;color:${tier.color};text-align:center;">${slotInfo.label}</div>
+        </div>`;
+      }).join('');
+    }
+
+    // ── Render armor met echte Bungie icons ──
+    function renderLiveArmor(items) {
+      const el = document.getElementById('armorGrid');
+      if (!el) return;
+      if (!items || !items.length) {
+        el.innerHTML = `<div style="color:var(--text3);font-size:0.8rem;padding:8px">Geen armor gevonden</div>`;
+        return;
+      }
+
+      el.innerHTML = items.map(item => {
+        const slotInfo = ARMOR_SLOTS[item.bucketHash] ?? { label:'Armor', icon:'🛡️' };
+        const tier = TIER_COLORS[item.itemTierType] ?? TIER_COLORS[5];
+        const iconUrl = item.itemIcon ? 'https://www.bungie.net' + item.itemIcon : null;
+        const power   = item.primaryStat ?? item.light ?? '';
+        return `
+        <div class="inv-item" style="border:1.5px solid ${tier.color};background:${tier.bg};flex-direction:column;height:auto;padding:8px;gap:4px;min-width:80px;max-width:96px;"
+             title="${item.name ?? slotInfo.label} · ⚡${power}" onclick="showToast('${(item.name||slotInfo.label).replace(/'/g,"\\'")}')">
+          <div style="width:52px;height:52px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.05);flex-shrink:0;position:relative;margin:0 auto;">
+            ${iconUrl
+              ? `<img src="${iconUrl}" style="width:52px;height:52px;object-fit:cover;" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML='${slotInfo.icon}';this.parentElement.style.display='flex';this.parentElement.style.alignItems='center';this.parentElement.style.justifyContent='center';this.parentElement.style.fontSize='1.8rem';">`
+              : `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:1.8rem;">${slotInfo.icon}</div>`}
+          </div>
+          <div style="font-size:0.65rem;font-weight:600;color:var(--text2);text-align:center;line-height:1.2;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${item.name ?? slotInfo.label}</div>
+          ${power ? `<div style="font-size:0.68rem;color:var(--gold2);font-weight:700;text-align:center;">⚡${power}</div>` : ''}
+          <div style="font-size:0.6rem;color:${tier.color};text-align:center;">${slotInfo.label}</div>
+        </div>`;
+      }).join('');
+    }
+
+    // ── Haal gedetailleerde item data op (voor icon, naam, tier) ──
+    async function loadCharEquipment(char, mType, mId, token) {
+      try {
+        // Haal manifest item definities op voor de uitgerusite items
+        const allItemHashes = [
+          ...char.weaponItems.map(i => i.itemHash),
+          ...char.armorItems.map(i => i.itemHash),
+        ].filter(Boolean);
+
+        if (!allItemHashes.length) return;
+
+        // Via de proxy elk item defintion ophalen (Destiny2/Manifest endpoint)
+        // We gebruiken GetItem endpoint per hash via bulk approach
+        const defRes = await fetch('/api/bungie-auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'api',
+            endpoint: `/Destiny2/Manifest/DestinyInventoryItemDefinition/${allItemHashes.join(',')}/`,
+            access_token: token,
+          }),
+        });
+
+        if (defRes.ok) {
+          const defData = await defRes.json();
+          const defs = defData?.Response ?? {};
+
+          // Verrijk weapon items
+          char.weaponItems = char.weaponItems.map(item => ({
+            ...item,
+            name:          defs[item.itemHash]?.displayProperties?.name ?? null,
+            itemIcon:      defs[item.itemHash]?.displayProperties?.icon ?? null,
+            itemTierType:  defs[item.itemHash]?.inventory?.tierType ?? 5,
+          }));
+
+          // Verrijk armor items
+          char.armorItems = char.armorItems.map(item => ({
+            ...item,
+            name:          defs[item.itemHash]?.displayProperties?.name ?? null,
+            itemIcon:      defs[item.itemHash]?.displayProperties?.icon ?? null,
+            itemTierType:  defs[item.itemHash]?.inventory?.tierType ?? 5,
+          }));
+
+          // Re-render
+          if (_liveChars[_activeCharIdx]?.charId === char.charId) {
+            renderCharGear(char);
+          }
+        }
+      } catch(e) {
+        console.warn('Item definities laden mislukt:', e.message);
+        // Render zonder naam/icon — valt terug op bucket naam
+        renderCharGear(char);
+      }
+    }
+
+    // ── Statische fallback als er geen Bungie token is ──
+    function renderStaticChars() {
+      const charCards = document.getElementById('charCards');
+      const STATIC = [
+        { className:'Hunter', light:2087, element:'arc',   subclassName:'Arc Strider'   },
+        { className:'Warlock',light:2071, element:'solar',  subclassName:'Dawnblade'     },
+        { className:'Titan',  light:2094, element:'void',   subclassName:'Sentinel'      },
+      ];
+
+      charCards.innerHTML = STATIC.map((c, idx) => {
+        const ei = ELEMENT_ICONS[c.element];
+        return `
+        <div class="char-card ${c.className.toLowerCase()} ${idx===0?'active-char':''}"
+             onclick="selectStaticChar(this,'${c.className}')">
+          <div class="char-class">${c.className}</div>
+          <div class="char-power" style="font-size:1.4rem;font-weight:900;color:var(--gold2);">⚡ ${c.light}</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+            <div style="background:${ei.bg};border-radius:6px;padding:3px;display:flex;">${ei.svg}</div>
+            <div style="font-size:0.72rem;font-weight:600;color:${ei.color};">${c.subclassName}</div>
+          </div>
+        </div>`;
+      }).join('');
+
+      // Render statische wapens/armor
+      renderInvGrid('weaponsGrid', WEAPONS);
+      renderInvGrid('armorGrid', ARMOR);
+      const t1 = document.getElementById('invTitle1');
+      const t2 = document.getElementById('invTitle2');
+      if (t1) t1.innerHTML = '🔫 Wapens — <span style="color:var(--gold2)">Hunter</span>';
+      if (t2) t2.innerHTML = '🛡️ Armor — <span style="color:var(--gold2)">Hunter</span>';
+    }
+
+    function selectStaticChar(el, name) {
+      document.querySelectorAll('.char-card').forEach(c => c.classList.remove('active-char'));
+      el.classList.add('active-char');
+      const t1 = document.getElementById('invTitle1');
+      const t2 = document.getElementById('invTitle2');
+      if (t1) t1.innerHTML = `🔫 Wapens — <span style="color:var(--gold2)">${name}</span>`;
+      if (t2) t2.innerHTML = `🛡️ Armor — <span style="color:var(--gold2)">${name}</span>`;
+      showToast(name + ' geselecteerd');
+    }
+
+    // ── Init DIM tab ──
+    function initDimTab() {
+      loadLiveCharacters();
+    }
+
+    // ── Verwerk OAuth callback als die er is ──
+    (async () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('code') || params.get('bungie_callback')) {
+        await handleOAuthCallback();
+      }
+    })();
+
   </script>
 
 </body>
