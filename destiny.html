@@ -383,35 +383,40 @@
       return date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
     }
 
-    // ── ACTIVITEITEN MET ROTATIE ──
-    // Volledige mix van alle activiteitstypen — roteert elke 4 seconden
+    // ── ACTIVITEITEN STATISCHE FALLBACK (als Bungie API niets teruggeeft) ──
     const ALL_ACTIVITIES = [
       // Raids
-      { name: "King's Fall",          sub: 'Dreadnaught, Rings of Saturn',   icon: '🏰', badge: 'Featured Raid',  badgeClass: 'badge-hot',   type: 'raid'    },
-      { name: 'Root of Nightmares',   sub: 'Pyramid Ship, The Witness',      icon: '🏰', badge: 'Raid',           badgeClass: 'badge-hot',   type: 'raid'    },
-      { name: "Crota's End",          sub: 'Hellmouth, The Moon',            icon: '🏰', badge: 'Raid',           badgeClass: 'badge-hot',   type: 'raid'    },
+      { name: "King's Fall",            sub: 'Dreadnaught, Rings of Saturn',  type: 'raid',       badge: 'Raid',          badgeClass: 'badge-hot',   pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/raid_kings_fall.jpg' },
+      { name: "Vault of Glass",         sub: 'Ishtar Sink, Venus',            type: 'raid',       badge: 'Raid',          badgeClass: 'badge-hot',   pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/raid_vault_of_glass.jpg' },
+      { name: "Crota's End",            sub: 'Hellmouth, The Moon',           type: 'raid',       badge: 'Raid',          badgeClass: 'badge-hot',   pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/raid_crota.jpg' },
+      { name: "Deep Stone Crypt",       sub: 'Europa',                        type: 'raid',       badge: 'Raid',          badgeClass: 'badge-hot',   pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/raid_deep_stone_crypt.jpg' },
       // Dungeons
-      { name: 'Spire of the Watcher', sub: 'Tangled Shore, Seraph Station',  icon: '🌑', badge: 'Dungeon',        badgeClass: 'badge-hot',   type: 'dungeon' },
-      { name: 'Ghosts of the Deep',   sub: 'Ocean of Storms, The Moon',      icon: '🌑', badge: 'Featured Dungeon', badgeClass: 'badge-hot', type: 'dungeon' },
-      { name: 'Warlord\'s Ruin',      sub: 'EDZ, Urzok\'s Keep',            icon: '🌑', badge: 'Dungeon',        badgeClass: 'badge-hot',   type: 'dungeon' },
-      // Strikes / Nightfalls
-      { name: 'Nightfall: Fallen SABER', sub: 'Platinum rewards actief',     icon: '⚡', badge: 'Nightfall',      badgeClass: 'badge-live',  type: 'nightfall' },
-      { name: 'Nightfall: The Insight Terminus', sub: 'Nessus, Vex Nexus',   icon: '⚡', badge: 'Grandmaster',   badgeClass: 'badge-event', type: 'nightfall' },
-      { name: 'Vanguard Ops',         sub: 'Beschikbaar deze week',          icon: '🏃', badge: 'Actief',         badgeClass: 'badge-live',  type: 'strike'  },
-      // Lost Sectors
-      { name: 'Exotic Lost Sector',   sub: 'Helm, Gloves mogelijk',          icon: '🗺️', badge: 'Lost Sector',   badgeClass: 'badge-live',  type: 'lostsector' },
-      { name: 'Metamorphosis',        sub: 'Savathûn\'s Throne World',       icon: '🗺️', badge: 'Lost Sector',   badgeClass: 'badge-live',  type: 'lostsector' },
+      { name: "Spire of the Watcher",   sub: 'Tangled Shore',                 type: 'dungeon',    badge: 'Dungeon',       badgeClass: 'badge-hot',   pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/dungeon_spire_of_the_watcher.jpg' },
+      { name: "Ghosts of the Deep",     sub: 'Ocean of Storms, The Moon',     type: 'dungeon',    badge: 'Dungeon',       badgeClass: 'badge-hot',   pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/dungeon_ghosts_of_the_deep.jpg' },
+      { name: "Warlord's Ruin",         sub: 'EDZ',                           type: 'dungeon',    badge: 'Dungeon',       badgeClass: 'badge-hot',   pgcrImage: null },
+      // Nightfall
+      { name: "Nightfall: The Ordeal",  sub: 'Platinum rewards actief',       type: 'nightfall',  badge: 'Nightfall',     badgeClass: 'badge-live',  pgcrImage: null },
+      { name: "Grandmaster Nightfall",  sub: 'Adept wapens beschikbaar',      type: 'nightfall',  badge: 'Grandmaster',   badgeClass: 'badge-event', pgcrImage: null },
+      // Vanguard
+      { name: "Vanguard Ops",           sub: 'Beschikbaar deze week',         type: 'strike',     badge: 'Vanguard',      badgeClass: 'badge-live',  pgcrImage: null },
       // Crucible
-      { name: 'Crucible: Clash',      sub: 'Team Deathmatch, 6v6',           icon: '🎯', badge: 'Crucible',       badgeClass: 'badge-event', type: 'crucible' },
-      { name: 'Crucible: Control',    sub: 'Zone Control, 6v6',              icon: '🎯', badge: 'Featured',       badgeClass: 'badge-event', type: 'crucible' },
-      { name: 'Crucible: Trials',     sub: 'Flawless rewards beschikbaar',   icon: '☀️', badge: 'Trials of Osiris', badgeClass: 'badge-event', type: 'trials' },
+      { name: "Crucible: Control",      sub: 'Zone Control, 6v6',             type: 'crucible',   badge: 'Crucible',      badgeClass: 'badge-live',  pgcrImage: null },
+      { name: "Crucible: Clash",        sub: 'Team Deathmatch, 6v6',          type: 'crucible',   badge: 'Crucible',      badgeClass: 'badge-live',  pgcrImage: null },
+      // Trials
+      { name: "Trials of Osiris",       sub: 'Flawless rewards beschikbaar',  type: 'trials',     badge: 'Trials',        badgeClass: 'badge-event', pgcrImage: null },
       // Iron Banner
-      { name: 'Iron Banner: Rift',    sub: 'Saladin\'s Challenge actief',    icon: '🛡️', badge: 'Iron Banner',   badgeClass: 'badge-event', type: 'ironbanner' },
+      { name: "Iron Banner",            sub: "Saladin's uitdaging actief",    type: 'ironbanner', badge: 'Iron Banner',   badgeClass: 'badge-event', pgcrImage: null },
       // Gambit
-      { name: 'Gambit',               sub: 'Mote banking & invasion',        icon: '🗡️', badge: 'Actief',         badgeClass: 'badge-live',  type: 'gambit'  },
+      { name: "Gambit",                 sub: 'Mote banking & invasion',       type: 'gambit',     badge: 'Gambit',        badgeClass: 'badge-live',  pgcrImage: null },
+      // Lost Sectors
+      { name: "Exotic Lost Sector",     sub: 'Legendarisch & Exotisch',       type: 'lostsector', badge: 'Lost Sector',   badgeClass: 'badge-live',  pgcrImage: null },
+      // Exotic Missions
+      { name: "Exotic Mission",         sub: 'Speciaal wapen te verdienen',   type: 'exotic',     badge: 'Exotic Mission',badgeClass: 'badge-event', pgcrImage: null },
+      // Seasonal
+      { name: "Seasonal Activity",      sub: 'Seizoensgebonden activiteit',   type: 'seasonal',   badge: 'Seizoen',       badgeClass: 'badge-live',  pgcrImage: null },
     ];
 
-    // Activiteit-specifieke SVG iconen per type — Destiny-accuraat
+        // Activiteit-specifieke SVG iconen per type — Destiny-accuraat
     const ACT_ICONS = {
       // Raid: schild met kruis (Raid banner stijl)
       raid: { bg: 'rgba(155,114,207,0.22)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L4 5.5V11c0 4.8 3.4 9.3 8 10.5C16.6 20.3 20 15.8 20 11V5.5L12 2z" stroke="rgba(155,114,207,0.95)" stroke-width="1.5" fill="rgba(155,114,207,0.15)"/><line x1="12" y1="7" x2="12" y2="16" stroke="rgba(155,114,207,0.95)" stroke-width="1.5" stroke-linecap="round"/><line x1="7.5" y1="11.5" x2="16.5" y2="11.5" stroke="rgba(155,114,207,0.95)" stroke-width="1.5" stroke-linecap="round"/></svg>` },
@@ -462,17 +467,40 @@
         setTimeout(() => {
           container.innerHTML = slice.map(a => {
             const iconDef = ACT_ICONS[a.type] ?? { bg: 'rgba(255,255,255,0.06)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>` };
-            const iconContent = a.typeIconUrl
-              ? `<img src="${escHtml(a.typeIconUrl)}" referrerpolicy="no-referrer"
-                   style="width:28px;height:28px;object-fit:contain;filter:brightness(1.15) drop-shadow(0 0 3px rgba(212,168,67,0.3));"
-                   onerror="this.replaceWith(document.createRange().createContextualFragment('${iconDef.svg.replace(/'/g, "\x27")}'))">`
-              : iconDef.svg;
+
+            // Bouw het icoon-blokje:
+            // Als pgcrImage beschikbaar → gebruik die als achtergrond (raid screenshot stijl)
+            // Als typeIconUrl beschikbaar → toon het officiële type-icoon
+            // Anders → SVG fallback
+            let iconHtml;
+            if (a.pgcrImage) {
+              // Activiteits-screenshot als achtergrond met type-icoon overlay
+              const overlay = a.typeIconUrl
+                ? `<img src="${escHtml(a.typeIconUrl)}" referrerpolicy="no-referrer"
+                     style="position:absolute;bottom:3px;right:3px;width:18px;height:18px;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.8)) brightness(1.2);"
+                     onerror="this.style.display='none'">`
+                : '';
+              iconHtml = `<div style="position:relative;width:100%;height:100%;">
+                <img src="${escHtml(a.pgcrImage)}" referrerpolicy="no-referrer"
+                     style="width:100%;height:100%;object-fit:cover;border-radius:8px;"
+                     onerror="this.style.display='none'">
+                ${overlay}
+              </div>`;
+            } else if (a.typeIconUrl) {
+              iconHtml = `<img src="${escHtml(a.typeIconUrl)}" referrerpolicy="no-referrer"
+                style="width:30px;height:30px;object-fit:contain;filter:brightness(1.2) drop-shadow(0 0 4px rgba(212,168,67,0.4));"
+                onerror="this.style.display='none';this.parentElement.innerHTML='${iconDef.svg.replace(/'/g,"&#39;")}'">`;
+            } else {
+              iconHtml = iconDef.svg;
+            }
+
             return `
             <div class="activity-item" style="">
-              <div style="background:${iconDef.bg};display:flex;align-items:center;justify-content:center;
+              <div style="background:${a.pgcrImage ? 'transparent' : iconDef.bg};
+                display:flex;align-items:center;justify-content:center;
                 min-width:44px;width:44px;height:44px;border-radius:10px;flex-shrink:0;
-                border:1px solid rgba(255,255,255,0.08);
-                box-shadow:inset 0 0 8px rgba(0,0,0,0.3);">${iconContent}</div>
+                border:1px solid rgba(255,255,255,0.1);overflow:hidden;
+                box-shadow:0 2px 8px rgba(0,0,0,0.4);">${iconHtml}</div>
               <div style="flex:1;min-width:0;">
                 <div class="act-name">${escHtml(a.name)}</div>
                 <div class="act-sub">${escHtml(a.sub)}</div>
@@ -483,7 +511,6 @@
           container.style.opacity = '1';
         }, 350);
 
-        // Verschuif 1 positie zodat bij elke tick een andere 4 te zien zijn
         actOffset = (actOffset + 1) % _actSrc.length;
       }
 
