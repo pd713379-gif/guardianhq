@@ -1,4 +1,3 @@
-
 // ============================================================
 // GUARDIANHQ — api/bungie-auth.js
 // Vercel Serverless Function — Bungie OAuth + API proxy
