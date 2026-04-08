@@ -1,4 +1,3 @@
-
 {
   "rewrites": [
     { "source": "/api/bungie-auth", "destination": "/api/bungie-auth" },
