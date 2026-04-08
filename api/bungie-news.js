@@ -1,4 +1,3 @@
-
 // ============================================================
 // GUARDIANHQ — api/bungie-news.js
 // Vercel Serverless Function — Bungie RSS Feed
