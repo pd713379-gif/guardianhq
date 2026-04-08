@@ -383,37 +383,31 @@
       return date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
     }
 
-    // ── ACTIVITEITEN STATISCHE FALLBACK (als Bungie API niets teruggeeft) ──
+    // ── ALTIJD-ACTIEVE ACTIVITEITEN (worden altijd toegevoegd aan de live mix) ──
+    // Dit zijn activiteiten die elke dag beschikbaar zijn in Destiny 2
+    const ALWAYS_ACTIVE = [
+      { name: 'Vanguard Ops',        sub: 'Strikes & Playlist',            type: 'strike',     badge: 'Vanguard',       badgeClass: 'badge-live',  pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/strike_io.jpg' },
+      { name: 'Crucible',            sub: 'PvP · Control, Clash, Rift',    type: 'crucible',   badge: 'Crucible',       badgeClass: 'badge-live',  pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/crucible_zone_based_score.jpg' },
+      { name: 'Gambit',              sub: 'PvEvP · Motes & Invasion',      type: 'gambit',     badge: 'Gambit',         badgeClass: 'badge-live',  pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/gambit.jpg' },
+      { name: 'Dares of Eternity',   sub: 'Eternity, Xûr's Realm',        type: 'seasonal',   badge: 'Seizoen',        badgeClass: 'badge-live',  pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/dares_of_eternity.jpg' },
+      { name: 'Lost Sector',         sub: 'Legendarisch · Exotic drops',   type: 'lostsector', badge: 'Lost Sector',    badgeClass: 'badge-live',  pgcrImage: null },
+      { name: 'Onslaught',           sub: 'Hall of Champions · 50 waves',  type: 'seasonal',   badge: 'Seizoen',        badgeClass: 'badge-live',  pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/onslaught.jpg' },
+      { name: 'Nightfall: The Ordeal', sub: 'Weekly Nightfall Strike',     type: 'nightfall',  badge: 'Nightfall',      badgeClass: 'badge-live',  pgcrImage: null },
+      { name: 'Crucible: Competitive', sub: 'Ranked · Glory points',       type: 'crucible',   badge: 'Crucible',       badgeClass: 'badge-live',  pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/crucible_zone_based_score.jpg' },
+      { name: 'Tomb of Elders',      sub: 'Prison of Elders rebooted',     type: 'seasonal',   badge: 'Seizoen',        badgeClass: 'badge-live',  pgcrImage: null },
+      { name: 'Court of Blades',     sub: 'The Edge of Fate',              type: 'seasonal',   badge: 'Seizoen',        badgeClass: 'badge-live',  pgcrImage: null },
+      { name: 'Exotic Mission',      sub: 'Weekly Exotic · Speciaal wapen',type: 'exotic',     badge: 'Exotic Mission', badgeClass: 'badge-event', pgcrImage: null },
+    ];
+
+    // Volledige fallback als de API helemaal niets teruggeeft
     const ALL_ACTIVITIES = [
-      // Raids
-      { name: "King's Fall",            sub: 'Dreadnaught, Rings of Saturn',  type: 'raid',       badge: 'Raid',          badgeClass: 'badge-hot',   pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/raid_kings_fall.jpg' },
-      { name: "Vault of Glass",         sub: 'Ishtar Sink, Venus',            type: 'raid',       badge: 'Raid',          badgeClass: 'badge-hot',   pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/raid_vault_of_glass.jpg' },
-      { name: "Crota's End",            sub: 'Hellmouth, The Moon',           type: 'raid',       badge: 'Raid',          badgeClass: 'badge-hot',   pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/raid_crota.jpg' },
-      { name: "Deep Stone Crypt",       sub: 'Europa',                        type: 'raid',       badge: 'Raid',          badgeClass: 'badge-hot',   pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/raid_deep_stone_crypt.jpg' },
-      // Dungeons
-      { name: "Spire of the Watcher",   sub: 'Tangled Shore',                 type: 'dungeon',    badge: 'Dungeon',       badgeClass: 'badge-hot',   pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/dungeon_spire_of_the_watcher.jpg' },
-      { name: "Ghosts of the Deep",     sub: 'Ocean of Storms, The Moon',     type: 'dungeon',    badge: 'Dungeon',       badgeClass: 'badge-hot',   pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/dungeon_ghosts_of_the_deep.jpg' },
-      { name: "Warlord's Ruin",         sub: 'EDZ',                           type: 'dungeon',    badge: 'Dungeon',       badgeClass: 'badge-hot',   pgcrImage: null },
-      // Nightfall
-      { name: "Nightfall: The Ordeal",  sub: 'Platinum rewards actief',       type: 'nightfall',  badge: 'Nightfall',     badgeClass: 'badge-live',  pgcrImage: null },
-      { name: "Grandmaster Nightfall",  sub: 'Adept wapens beschikbaar',      type: 'nightfall',  badge: 'Grandmaster',   badgeClass: 'badge-event', pgcrImage: null },
-      // Vanguard
-      { name: "Vanguard Ops",           sub: 'Beschikbaar deze week',         type: 'strike',     badge: 'Vanguard',      badgeClass: 'badge-live',  pgcrImage: null },
-      // Crucible
-      { name: "Crucible: Control",      sub: 'Zone Control, 6v6',             type: 'crucible',   badge: 'Crucible',      badgeClass: 'badge-live',  pgcrImage: null },
-      { name: "Crucible: Clash",        sub: 'Team Deathmatch, 6v6',          type: 'crucible',   badge: 'Crucible',      badgeClass: 'badge-live',  pgcrImage: null },
-      // Trials
-      { name: "Trials of Osiris",       sub: 'Flawless rewards beschikbaar',  type: 'trials',     badge: 'Trials',        badgeClass: 'badge-event', pgcrImage: null },
-      // Iron Banner
-      { name: "Iron Banner",            sub: "Saladin's uitdaging actief",    type: 'ironbanner', badge: 'Iron Banner',   badgeClass: 'badge-event', pgcrImage: null },
-      // Gambit
-      { name: "Gambit",                 sub: 'Mote banking & invasion',       type: 'gambit',     badge: 'Gambit',        badgeClass: 'badge-live',  pgcrImage: null },
-      // Lost Sectors
-      { name: "Exotic Lost Sector",     sub: 'Legendarisch & Exotisch',       type: 'lostsector', badge: 'Lost Sector',   badgeClass: 'badge-live',  pgcrImage: null },
-      // Exotic Missions
-      { name: "Exotic Mission",         sub: 'Speciaal wapen te verdienen',   type: 'exotic',     badge: 'Exotic Mission',badgeClass: 'badge-event', pgcrImage: null },
-      // Seasonal
-      { name: "Seasonal Activity",      sub: 'Seizoensgebonden activiteit',   type: 'seasonal',   badge: 'Seizoen',       badgeClass: 'badge-live',  pgcrImage: null },
+      { name: "Salvation's Edge",    sub: 'The Pale Heart',                type: 'raid',       badge: 'Raid',           badgeClass: 'badge-hot',   pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/raid_salvations_edge.jpg' },
+      { name: "King's Fall",         sub: 'Dreadnaught, Rings of Saturn',  type: 'raid',       badge: 'Raid',           badgeClass: 'badge-hot',   pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/raid_kings_fall.jpg' },
+      { name: "Crota's End",         sub: 'Hellmouth, The Moon',           type: 'raid',       badge: 'Raid',           badgeClass: 'badge-hot',   pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/raid_crota.jpg' },
+      { name: "Deep Stone Crypt",    sub: 'Europa',                        type: 'raid',       badge: 'Raid',           badgeClass: 'badge-hot',   pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/raid_deep_stone_crypt.jpg' },
+      { name: "Ghosts of the Deep",  sub: 'Ocean of Storms, The Moon',     type: 'dungeon',    badge: 'Dungeon',        badgeClass: 'badge-hot',   pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/dungeon_ghosts_of_the_deep.jpg' },
+      { name: "Spire of the Watcher",sub: 'Tangled Shore',                 type: 'dungeon',    badge: 'Dungeon',        badgeClass: 'badge-hot',   pgcrImage: 'https://www.bungie.net/img/destiny_content/pgcr/dungeon_spire_of_the_watcher.jpg' },
+      ...ALWAYS_ACTIVE,
     ];
 
         // Activiteit-specifieke SVG iconen per type — Destiny-accuraat
@@ -462,8 +456,25 @@
     }
 
     function renderActivities(liveData) {
-      const src = (liveData && liveData.length > 0) ? liveData : ALL_ACTIVITIES;
-      _rotationQueue = buildMixedQueue([...src]);
+      // Combineer altijd: live Bungie data (raids/dungeons/events) + altijd-actieve activiteiten
+      // Zo zit er altijd een mix van alle types in, ook als de API alleen raids teruggeeft
+      let combined = [...ALWAYS_ACTIVE];
+      if (liveData && liveData.length > 0) {
+        // Voeg live items toe — maar voorkom duplicaten op naam
+        const existingNames = new Set(combined.map(a => a.name.toLowerCase().replace(/[:\s]+/g,'')));
+        liveData.forEach(a => {
+          const key = a.name.toLowerCase().replace(/[:\s]+/g,'');
+          if (!existingNames.has(key)) {
+            combined.push(a);
+            existingNames.add(key);
+          } else {
+            // Update bestaande met live info (betere naam, pgcrImage etc.)
+            const idx = combined.findIndex(x => x.name.toLowerCase().replace(/[:\s]+/g,'') === key);
+            if (idx >= 0) combined[idx] = { ...combined[idx], ...a };
+          }
+        });
+      }
+      _rotationQueue = buildMixedQueue(combined);
       _rotationIdx = 0;
       const container = document.getElementById('activitiesContainer');
       const dot = document.getElementById('activitiesLiveDot');
