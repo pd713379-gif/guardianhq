@@ -1,8 +1,10 @@
+
 {
   "rewrites": [
-    { "source": "/api/bungie-auth", "destination": "/api/bungie-auth" },
-    { "source": "/api/bungie-news", "destination": "/api/bungie-news" },
-    { "source": "/api/bungie-stats", "destination": "/api/bungie-stats" }
+    { "source": "/api/bungie-auth",   "destination": "/api/bungie-auth" },
+    { "source": "/api/bungie-news",   "destination": "/api/bungie-news" },
+    { "source": "/api/bungie-stats",  "destination": "/api/bungie-stats" },
+    { "source": "/api/image-proxy",   "destination": "/api/image-proxy" }
   ],
   "headers": [
     {
