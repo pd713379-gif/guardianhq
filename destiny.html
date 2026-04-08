@@ -576,6 +576,35 @@
       const avatarImg      = document.getElementById('bungieProfileAvatar');
       const avatarFallback = document.getElementById('bungieAvatarFallback');
       if (!avatarImg) return;
+
+      // ── Stap 1: gebruik de eigen avatar van de profielpagina (localStorage) ──
+      const avatarType  = localStorage.getItem('ghq_avatar_type') || 'icon';
+      const avatarEmoji = localStorage.getItem('ghq_avatar') || '';
+      const avatarPhoto = localStorage.getItem('ghq_avatar_photo') || '';
+
+      if (avatarType === 'photo' && avatarPhoto) {
+        // Eigen foto geüpload op profielpagina → toon die in de gele cirkel
+        avatarImg.src           = avatarPhoto;
+        avatarImg.style.display = 'block';
+        avatarImg.style.width   = '100%';
+        avatarImg.style.height  = '100%';
+        avatarImg.style.objectFit = 'cover';
+        if (avatarFallback) avatarFallback.style.display = 'none';
+        return;
+      }
+
+      if (avatarType === 'icon' && avatarEmoji && avatarEmoji !== '⬡') {
+        // Eigen icoon/emoji gekozen → toon die als tekst in de fallback div
+        avatarImg.style.display = 'none';
+        if (avatarFallback) {
+          avatarFallback.style.display = 'flex';
+          avatarFallback.textContent   = avatarEmoji;
+          avatarFallback.style.fontSize = '2.2rem';
+        }
+        return;
+      }
+
+      // ── Stap 2: geen eigen avatar → probeer Bungie API ──
       try {
         const res  = await fetch('/api/bungie-proxy?action=avatar');
         const data = await res.json();
