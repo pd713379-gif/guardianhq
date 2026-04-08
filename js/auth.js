@@ -1,4 +1,3 @@
-
 // ============================================================
 // GUARDIANHQ — AUTH.JS
 // Firebase Authentication + Firestore + EmailJS
