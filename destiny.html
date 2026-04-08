@@ -438,15 +438,33 @@
       lostsector: { bg: 'rgba(232,98,42,0.14)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="rgba(232,98,42,0.85)" stroke-width="1.5"/><polygon points="12,5 14.5,12 12,10.5 9.5,12" fill="rgba(232,98,42,0.9)"/><polygon points="12,19 9.5,12 12,13.5 14.5,12" fill="rgba(255,255,255,0.35)"/></svg>` },
     };
 
-    // Rotatie: 4 activiteiten tegelijk, elke 5s schuift 1 op
+    // Rotatie: 4 tegelijk, elke 5s één nieuw — altijd gemixed types
     const ACTS_VISIBLE = 4;
-    let actOffset = 0;
     let actRotateTimer = null;
-    let _actSrc = [];
+    let _rotationQueue = []; // gespreide volgorde
+    let _rotationIdx = 0;
+
+    // Bouw een gespreide volgorde zodat types nooit clumpen
+    function buildMixedQueue(src) {
+      if (!src.length) return [...src];
+      // Groepeer per type
+      const byType = {};
+      src.forEach(a => { (byType[a.type] = byType[a.type] || []).push(a); });
+      const groups = Object.values(byType);
+      // Interleave: neem om beurt 1 uit elke groep
+      const mixed = [];
+      let changed = true;
+      while (changed) {
+        changed = false;
+        groups.forEach(g => { if (g.length) { mixed.push(g.shift()); changed = true; } });
+      }
+      return mixed;
+    }
 
     function renderActivities(liveData) {
-      // Gebruik live data van Bungie; fallback op statische mix
-      _actSrc = (liveData && liveData.length > 0) ? liveData : ALL_ACTIVITIES;
+      const src = (liveData && liveData.length > 0) ? liveData : ALL_ACTIVITIES;
+      _rotationQueue = buildMixedQueue([...src]);
+      _rotationIdx = 0;
       const container = document.getElementById('activitiesContainer');
       const dot = document.getElementById('activitiesLiveDot');
       if (!container) return;
@@ -454,10 +472,11 @@
       if (actRotateTimer) clearInterval(actRotateTimer);
 
       function showSlice() {
-        if (!_actSrc.length) return;
+        if (!_rotationQueue.length) return;
+        // Pak 4 opeenvolgende items uit de gemixte queue (wraps around)
         const slice = [];
         for (let i = 0; i < ACTS_VISIBLE; i++) {
-          slice.push(_actSrc[(actOffset + i) % _actSrc.length]);
+          slice.push(_rotationQueue[(_rotationIdx + i) % _rotationQueue.length]);
         }
 
         // Fade-out → update → fade-in
@@ -511,11 +530,12 @@
           container.style.opacity = '1';
         }, 350);
 
-        actOffset = (actOffset + 1) % _actSrc.length;
+        // Verschuif 1 per tick — zo zie je elke ronde een andere mix
+        _rotationIdx = (_rotationIdx + 1) % _rotationQueue.length;
       }
 
       showSlice();
-      // Roteer elke 5 seconden — 1 activiteit verschuift
+      // Elke 5 seconden 1 verschuiving — volledige ronde = alle activiteiten gezien
       actRotateTimer = setInterval(showSlice, 5000);
       if (dot) dot.style.display = '';
     }
