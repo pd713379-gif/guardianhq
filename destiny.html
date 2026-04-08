@@ -178,12 +178,32 @@
           <!-- Bungie -->
           <div class="d-card glass bungie-card">
             <div class="d-card-label" style="justify-content:center">👥 Bungie Connect</div>
-            <div class="bungie-avatar-ring"><div class="bungie-avatar-inner">⬡</div></div>
-            <div class="bungie-name">GuardianHQ Owner</div>
-            <div class="bungie-id">Bungie ID: Guardian#8472</div>
+            <div class="bungie-avatar-ring">
+              <div class="bungie-avatar-inner" style="padding:0;overflow:hidden;background:transparent;">
+                <img src="https://www.bungie.net/common/destiny2_content/icons/e3f7fed1fa5e506b39aefd60a4e44ce4.jpg"
+                     alt="RemaisNL avatar"
+                     style="width:100%;height:100%;object-fit:cover;border-radius:50%;"
+                     onerror="this.style.display='none';this.parentElement.innerHTML='⬡'">
+              </div>
+            </div>
+            <div class="bungie-name">RemaisNL</div>
+            <div class="bungie-id" id="bungieIdDisplay">Bungie ID: RemaisNL#5842</div>
             <div class="bungie-desc">Stuur een vriendschapsverzoek om samen te raiden, strikes te doen of te chillen in de Tower!</div>
-            <button class="bungie-btn" onclick="openBungie()">Vriendschapsverzoek Sturen ↗</button>
-            <div style="font-size:0.75rem;color:var(--text3);margin-top:10px">Opent bungie.net in nieuw tabblad</div>
+
+            <!-- Stap 1: kopieer ID -->
+            <button class="bungie-btn" id="copyBungieId" onclick="copyBungieIdFn()" style="background:linear-gradient(135deg,rgba(155,114,207,0.25),rgba(79,143,255,0.15));border:1px solid rgba(155,114,207,0.4);">
+              📋 Kopieer Bungie ID
+            </button>
+
+            <!-- Stap 2: open app.bungie.net/friends -->
+            <a href="https://app.bungie.net/friends" target="_blank" class="bungie-btn" style="display:block;text-align:center;margin-top:8px;background:linear-gradient(135deg,rgba(232,98,42,0.2),rgba(212,168,67,0.1));border:1px solid rgba(232,98,42,0.35);text-decoration:none;">
+              🔗 Open Bungie Friends ↗
+            </a>
+
+            <div style="font-size:0.72rem;color:var(--text3);margin-top:10px;line-height:1.5;text-align:center;">
+              ⓘ Vanwege Bungie's beveiliging kan een vriendschapsverzoek niet direct via de site worden verstuurd.<br>
+              Kopieer het ID → plak in Bungie Friends → klaar!
+            </div>
           </div>
 
         </div>
@@ -288,8 +308,8 @@
           <div style="font-size:0.875rem;color:var(--text2)">God rolls en aanbevolen perks samengesteld door de Destiny 2 community.</div>
         </div>
         <div class="d-card glass" id="wishlistContainer">
-          <!-- Wordt dynamisch gevuld met echte wapen iconen -->
-          <div style="color:var(--text3);font-size:0.85rem;padding:8px 0">Iconen laden...</div>
+          <!-- Wordt gevuld door JS met echte wapen-iconen -->
+          <div style="color:var(--text3);font-size:0.85rem;padding:12px">Wapen-iconen laden...</div>
         </div>
       </div>
 
@@ -311,8 +331,10 @@
         if (nameEl) nameEl.textContent = user.username;
         renderInvGrid('weaponsGrid', WEAPONS);
         renderInvGrid('armorGrid', ARMOR);
+        renderActivities(null); // Start rotatie direct met statische mix
         loadBungieNews();
         loadLiveStats();
+        loadWishlistIcons(); // Laad wishlist iconen alvast voor
       }
       document.documentElement.style.visibility = '';
     });
@@ -359,56 +381,86 @@
       return date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
     }
 
-    // ── ACTIVITEITEN ──
-    function renderActivities(activities) {
+    // ── ACTIVITEITEN MET ROTATIE ──
+    // Volledige mix van alle activiteitstypen — roteert elke 4 seconden
+    const ALL_ACTIVITIES = [
+      // Raids
+      { name: "King's Fall",          sub: 'Dreadnaught, Rings of Saturn',   icon: '🏰', badge: 'Featured Raid',  badgeClass: 'badge-hot',   type: 'raid'    },
+      { name: 'Root of Nightmares',   sub: 'Pyramid Ship, The Witness',      icon: '🏰', badge: 'Raid',           badgeClass: 'badge-hot',   type: 'raid'    },
+      { name: "Crota's End",          sub: 'Hellmouth, The Moon',            icon: '🏰', badge: 'Raid',           badgeClass: 'badge-hot',   type: 'raid'    },
+      // Dungeons
+      { name: 'Spire of the Watcher', sub: 'Tangled Shore, Seraph Station',  icon: '🌑', badge: 'Dungeon',        badgeClass: 'badge-hot',   type: 'dungeon' },
+      { name: 'Ghosts of the Deep',   sub: 'Ocean of Storms, The Moon',      icon: '🌑', badge: 'Featured Dungeon', badgeClass: 'badge-hot', type: 'dungeon' },
+      { name: 'Warlord\'s Ruin',      sub: 'EDZ, Urzok\'s Keep',            icon: '🌑', badge: 'Dungeon',        badgeClass: 'badge-hot',   type: 'dungeon' },
+      // Strikes / Nightfalls
+      { name: 'Nightfall: Fallen SABER', sub: 'Platinum rewards actief',     icon: '⚡', badge: 'Nightfall',      badgeClass: 'badge-live',  type: 'nightfall' },
+      { name: 'Nightfall: The Insight Terminus', sub: 'Nessus, Vex Nexus',   icon: '⚡', badge: 'Grandmaster',   badgeClass: 'badge-event', type: 'nightfall' },
+      { name: 'Vanguard Ops',         sub: 'Beschikbaar deze week',          icon: '🏃', badge: 'Actief',         badgeClass: 'badge-live',  type: 'strike'  },
+      // Lost Sectors
+      { name: 'Exotic Lost Sector',   sub: 'Helm, Gloves mogelijk',          icon: '🗺️', badge: 'Lost Sector',   badgeClass: 'badge-live',  type: 'lostsector' },
+      { name: 'Metamorphosis',        sub: 'Savathûn\'s Throne World',       icon: '🗺️', badge: 'Lost Sector',   badgeClass: 'badge-live',  type: 'lostsector' },
+      // Crucible
+      { name: 'Crucible: Clash',      sub: 'Team Deathmatch, 6v6',           icon: '🎯', badge: 'Crucible',       badgeClass: 'badge-event', type: 'crucible' },
+      { name: 'Crucible: Control',    sub: 'Zone Control, 6v6',              icon: '🎯', badge: 'Featured',       badgeClass: 'badge-event', type: 'crucible' },
+      { name: 'Crucible: Trials',     sub: 'Flawless rewards beschikbaar',   icon: '☀️', badge: 'Trials of Osiris', badgeClass: 'badge-event', type: 'trials' },
+      // Iron Banner
+      { name: 'Iron Banner: Rift',    sub: 'Saladin\'s Challenge actief',    icon: '🛡️', badge: 'Iron Banner',   badgeClass: 'badge-event', type: 'ironbanner' },
+      // Gambit
+      { name: 'Gambit',               sub: 'Mote banking & invasion',        icon: '🗡️', badge: 'Actief',         badgeClass: 'badge-live',  type: 'gambit'  },
+    ];
+
+    // Activiteit-specifieke SVG iconen per type
+    const ACT_ICONS = {
+      raid:       { bg: 'rgba(155,114,207,0.18)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="rgba(155,114,207,0.9)" stroke-width="1.6"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7l-9-5z"/><path d="M9 12l2 2 4-4"/></svg>` },
+      dungeon:    { bg: 'rgba(79,143,255,0.15)',  svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="rgba(79,143,255,0.9)" stroke-width="1.6"><rect x="3" y="11" width="18" height="10" rx="1"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1.5" fill="rgba(79,143,255,0.9)" stroke="none"/></svg>` },
+      nightfall:  { bg: 'rgba(212,168,67,0.16)',  svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="rgba(212,168,67,0.9)" stroke-width="1.6"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" stroke-linejoin="round"/></svg>` },
+      strike:     { bg: 'rgba(79,143,255,0.12)',  svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="rgba(79,143,255,0.85)" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg>` },
+      lostsector: { bg: 'rgba(232,98,42,0.13)',   svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="rgba(232,98,42,0.9)" stroke-width="1.6"><path d="M3 12h18M12 3l9 9-9 9-9-9 9-9z"/></svg>` },
+      crucible:   { bg: 'rgba(232,98,42,0.14)',   svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="rgba(232,98,42,0.9)" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="3" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="21"/><line x1="3" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="21" y2="12"/></svg>` },
+      trials:     { bg: 'rgba(212,168,67,0.18)',  svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="rgba(212,168,67,0.95)" stroke-width="1.6"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" stroke-linejoin="round"/></svg>` },
+      ironbanner: { bg: 'rgba(212,168,67,0.14)',  svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="rgba(212,168,67,0.85)" stroke-width="1.6"><path d="M12 2l2.5 7.5H22l-6.5 4.5 2.5 7.5L12 17l-6 4.5 2.5-7.5L3 9.5h7.5L12 2z"/></svg>` },
+      gambit:     { bg: 'rgba(60,180,90,0.14)',   svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="rgba(60,200,100,0.9)" stroke-width="1.6"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>` },
+    };
+
+    // Hoeveel items tegelijk zichtbaar
+    const ACTS_VISIBLE = 4;
+    let actOffset = 0;
+    let actRotateTimer = null;
+
+    function renderActivities(liveData) {
+      // Als Bungie live data stuurt: gebruik die, anders de statische mix
+      const src = (liveData && liveData.length > 0) ? liveData : ALL_ACTIVITIES;
       const container = document.getElementById('activitiesContainer');
       const dot = document.getElementById('activitiesLiveDot');
       if (!container) return;
 
-      if (!activities || activities.length === 0) {
-        container.innerHTML = `
-          <div class="activity-item">
-            <div class="act-icon" style="background:rgba(255,255,255,0.05)">🎮</div>
-            <div><div class="act-name" style="color:var(--text3)">Activiteiten niet beschikbaar</div>
-            <div class="act-sub">Probeer het later opnieuw</div></div>
-          </div>`;
-        return;
-      }
+      // Stop oude rotatie
+      if (actRotateTimer) clearInterval(actRotateTimer);
 
-      // Icon → background color mapping
-      const iconBg = {
-        '⚡': 'rgba(212,168,67,0.12)',
-        '📖': 'rgba(212,168,67,0.12)',
-        '🎯': 'rgba(232,98,42,0.12)',
-        '🗡️': 'rgba(79,143,255,0.12)',
-        '🏃': 'rgba(79,143,255,0.12)',
-        '🏰': 'rgba(155,114,207,0.12)',
-        '🌑': 'rgba(155,114,207,0.12)',
-        '🛡️': 'rgba(232,98,42,0.12)',
-        '☀️': 'rgba(232,98,42,0.12)',
-      };
-
-      container.innerHTML = activities.map(a => {
-        // Gebruik het echte Bungie manifest icoon als beschikbaar, anders emoji fallback
-        const bg = iconBg[a.icon] ?? 'rgba(255,255,255,0.06)';
-        const iconHtml = a.iconPath
-          ? `<img src="https://www.bungie.net${a.iconPath}"
-               alt="${escHtml(a.name)}"
-               class="act-icon"
-               style="object-fit:cover;padding:0"
-               onerror="this.outerHTML='<div class=\\'act-icon\\' style=\\'background:${bg}\\'>${a.icon}</div>'">`
-          : `<div class="act-icon" style="background:${bg}">${a.icon}</div>`;
-        return `
-          <div class="activity-item">
-            ${iconHtml}
-            <div>
+      function showSlice() {
+        const slice = [];
+        for (let i = 0; i < ACTS_VISIBLE; i++) {
+          slice.push(src[(actOffset + i) % src.length]);
+        }
+        container.innerHTML = slice.map(a => {
+          const iconDef = ACT_ICONS[a.type] ?? { bg: 'rgba(255,255,255,0.06)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>` };
+          return `
+          <div class="activity-item" style="animation:fadeIn 0.4s ease;">
+            <div style="background:${iconDef.bg};display:flex;align-items:center;justify-content:center;
+              min-width:42px;width:42px;height:42px;border-radius:10px;flex-shrink:0;
+              border:1px solid rgba(255,255,255,0.07);">${iconDef.svg}</div>
+            <div style="flex:1;min-width:0;">
               <div class="act-name">${escHtml(a.name)}</div>
               <div class="act-sub">${escHtml(a.sub)}</div>
             </div>
             <span class="act-badge ${a.badgeClass}">${escHtml(a.badge)}</span>
           </div>`;
-      }).join('');
+        }).join('');
+        actOffset = (actOffset + 1) % src.length;
+      }
 
+      showSlice();
+      actRotateTimer = setInterval(showSlice, 7000);
       if (dot) dot.style.display = '';
     }
 
@@ -450,18 +502,16 @@
         if (data.weeklyResetMs) startCountdown('statWeekly', data.weeklyResetMs);
         if (data.dailyResetMs)  startCountdown('statDaily',  data.dailyResetMs);
 
-        // Seizoen voortgang — Epilogue / huidige seizoen
-        // Start: 2 december 2025 | Verwacht einde: ~juli 2026 (schatting op basis van forum-info)
+        // Seizoen voortgang — Seizoen van de Heks: 2 dec 2025 t/m ~15 juli 2026 (schatting)
         const seasonStart = new Date('2025-12-02T17:00:00Z').getTime();
         const seasonEnd   = new Date('2026-07-15T17:00:00Z').getTime();
         const now         = Date.now();
-        const pct         = Math.min(100, Math.max(0, Math.round((now - seasonStart) / (seasonEnd - seasonStart) * 100)));
+        const pct         = Math.min(99, Math.max(1, Math.round((now - seasonStart) / (seasonEnd - seasonStart) * 100)));
         const daysLeft    = Math.max(0, Math.ceil((seasonEnd - now) / 86400000));
         document.getElementById('statSeasonPct').textContent = pct + '%';
         document.getElementById('statSeasonBar').style.width = pct + '%';
-        document.getElementById('statSeasonEnd').textContent = daysLeft > 0
-          ? '📅 Begonnen: 2 dec 2025 · Verwacht einde: ± ' + daysLeft + ' dagen'
-          : 'Seizoen afgelopen';
+        document.getElementById('statSeasonEnd').textContent =
+          '📅 Begonnen: 2 dec 2025 · Verwacht einde: ~15 juli 2026 (±' + daysLeft + ' dagen)';
 
         // Activiteiten vandaag (live van Bungie)
         if (data.activities) {
@@ -504,66 +554,62 @@
     // Stats elke 2 minuten verversen
     setInterval(loadLiveStats, 120000);
 
-    // ── WISHLIST — echte wapen iconen via Bungie Manifest ──
-    // Item hashes opzoeken op https://www.light.gg of https://data.destinysets.com
-    const WISHLIST = [
-      { hash: 3185005938,  name: 'Palindrome (PvP God Roll)',     perks: 'Rapid Hit · Explosive Payload · Range MW',        fallback: '🔫' },
-      { hash: 2199267610,  name: 'Igneous Hammer (PvP)',          perks: 'Perpetual Motion · Explosive Payload',             fallback: '🎯' },
-      { hash: 2991810007,  name: 'Retrofit Escapade (PvE)',       perks: 'Envious Assassin · Target Lock · Reload MW',       fallback: '⚡' },
-      { hash: 2116086124,  name: 'Likely Suspect (PvE)',          perks: 'Feeding Frenzy · Controlled Burst',                fallback: '🌙' },
-      { hash: 2869466556,  name: 'Apex Predator (Raid)',          perks: 'Auto-Loading Holster · Bait and Switch',           fallback: '🚀' },
-      { hash: 2032534090,  name: 'Falling Guillotine (PvE)',      perks: 'Relentless Strikes · Whirlwind Blade',             fallback: '🗡️' },
-      { hash: 1290894376,  name: 'Wish-Ender (Exotic)',           perks: 'Broadhead · Archer\'s Tempo · Always exotic',      fallback: '🏹' },
+    // ── BUNGIE ID KOPIËREN ──
+    function copyBungieIdFn() {
+      const id = 'RemaisNL#5842';
+      navigator.clipboard.writeText(id).then(() => {
+        const btn = document.getElementById('copyBungieId');
+        const orig = btn.textContent;
+        btn.textContent = '✅ Gekopieerd!';
+        setTimeout(() => { btn.textContent = orig; }, 2000);
+      }).catch(() => {
+        showToast('Bungie ID: RemaisNL#5842 — kopieer dit handmatig');
+      });
+    }
+
+    // ── WISHLIST MET ECHTE BUNGIE ICONEN (directe CDN URLs, geen API key nodig) ──
+    const WISHLIST_WEAPONS = [
+      {
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/5e25b9ef3f669e053b428945a31ca8b7.jpg',
+        name: 'The Palindrome (PvP God Roll)', perks: 'Rapid Hit · Explosive Payload · Range MW',
+        tag: 'PvP', tagClass: 'badge-event', tier: 'legendary'
+      },
     ];
 
-    async function loadWishlistIcons() {
+    function loadWishlistIcons() {
       const container = document.getElementById('wishlistContainer');
       if (!container) return;
 
-      // Render eerst met fallback emoji's zodat de lijst meteen zichtbaar is
-      container.innerHTML = WISHLIST.map((w, i) => `
-        <div class="wish-item" id="wish-${i}">
-          <div class="wish-icon-wrap" id="wish-icon-${i}" style="width:40px;height:40px;border-radius:8px;overflow:hidden;flex-shrink:0;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:1.3rem">${w.fallback}</div>
-          <div style="flex:1;min-width:0">
+      const tierBorder = { exotic: 'rgba(212,168,67,0.5)', legendary: 'rgba(155,114,207,0.4)' };
+
+      container.innerHTML = WISHLIST_WEAPONS.map((w) => `
+        <div class="wish-item">
+          <div style="width:46px;height:46px;border-radius:10px;overflow:hidden;background:rgba(255,255,255,0.06);
+               display:flex;align-items:center;justify-content:center;flex-shrink:0;
+               border:1px solid ${tierBorder[w.tier] ?? 'rgba(255,255,255,0.1)'};">
+            <img src="${w.icon}" alt="${w.name}"
+                 style="width:46px;height:46px;object-fit:cover;"
+                 onerror="this.style.display='none';this.parentElement.innerHTML='🔫'">
+          </div>
+          <div style="flex:1;min-width:0;">
             <div class="wish-name">${w.name}</div>
             <div class="wish-perks">${w.perks}</div>
           </div>
-          <div class="wish-thumb">👍</div>
+          <span class="act-badge ${w.tagClass}" style="white-space:nowrap;">${w.tag}</span>
         </div>
       `).join('');
-
-      // Laad daarna asynchroon de echte iconen per wapen via onze eigen proxy
-      for (let i = 0; i < WISHLIST.length; i++) {
-        const w = WISHLIST[i];
-        try {
-          const res  = await fetch(
-            `/api/bungie-manifest?type=DestinyInventoryItemDefinition&hash=${w.hash}`
-          );
-          const data = await res.json();
-          const icon = data?.icon;
-          if (icon) {
-            const wrap = document.getElementById(`wish-icon-${i}`);
-            if (wrap) {
-              wrap.innerHTML = `<img src="https://www.bungie.net${icon}"
-                style="width:40px;height:40px;border-radius:8px;object-fit:cover;display:block"
-                alt="${w.name}"
-                onerror="this.parentElement.innerHTML='${w.fallback}'">`;
-            }
-          }
-        } catch (e) {
-          // Emoji fallback blijft staan als manifest call mislukt
-        }
-      }
     }
 
-    // Wishlist laden zodra tab actief wordt
-    document.querySelector('[onclick="switchTab(\'wishlist\')"]')?.addEventListener('click', () => {
-      const container = document.getElementById('wishlistContainer');
-      if (container && !container.dataset.loaded) {
-        container.dataset.loaded = '1';
-        loadWishlistIcons();
-      }
-    });
+    // Laad wishlist iconen wanneer tab geselecteerd wordt
+    const origSwitchTab = window.switchTab;
+    window.switchTab = function(tab) {
+      if (typeof origSwitchTab === 'function') origSwitchTab(tab);
+      if (tab === 'wishlist') loadWishlistIcons();
+    };
+    // Ook direct laden als wishlist al actief is
+    if (document.getElementById('pane-wishlist')?.classList.contains('active')) {
+      loadWishlistIcons();
+    }
   </script>
 
 </body>
