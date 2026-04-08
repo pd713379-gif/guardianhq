@@ -1,4 +1,3 @@
-
 // ============================================================
 // GUARDIANHQ — MAIN.JS
 // Shared utilities, timer, live stats
