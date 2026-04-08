@@ -502,6 +502,8 @@
             // Als pgcrImage beschikbaar → gebruik die als achtergrond (raid screenshot stijl)
             // Als typeIconUrl beschikbaar → toon het officiële type-icoon
             // Anders → SVG fallback
+            const svgFallback = iconDef.svg.replace(/'/g,"&#39;");
+            const bgFallback = iconDef.bg.replace(/'/g,"&#39;");
             let iconHtml;
             if (a.pgcrImage) {
               // Activiteits-screenshot als achtergrond met type-icoon overlay
@@ -513,7 +515,7 @@
               iconHtml = `<div style="position:relative;width:100%;height:100%;">
                 <img src="${escHtml(a.pgcrImage)}" referrerpolicy="no-referrer"
                      style="width:100%;height:100%;object-fit:cover;border-radius:8px;"
-                     onerror="this.style.display='none'">
+                     onerror="this.closest('.act-icon-box').style.background='${bgFallback}';this.parentElement.innerHTML='${svgFallback}'">
                 ${overlay}
               </div>`;
             } else if (a.typeIconUrl) {
@@ -526,7 +528,7 @@
 
             return `
             <div class="activity-item" style="">
-              <div style="background:${a.pgcrImage ? 'transparent' : iconDef.bg};
+              <div class="act-icon-box" style="background:${a.pgcrImage ? 'transparent' : iconDef.bg};
                 display:flex;align-items:center;justify-content:center;
                 min-width:44px;width:44px;height:44px;border-radius:10px;flex-shrink:0;
                 border:1px solid rgba(255,255,255,0.1);overflow:hidden;
