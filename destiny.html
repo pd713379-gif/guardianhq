@@ -502,8 +502,6 @@
             // Als pgcrImage beschikbaar → gebruik die als achtergrond (raid screenshot stijl)
             // Als typeIconUrl beschikbaar → toon het officiële type-icoon
             // Anders → SVG fallback
-            const svgFallback = iconDef.svg.replace(/'/g,"&#39;");
-            const bgFallback = iconDef.bg.replace(/'/g,"&#39;");
             let iconHtml;
             if (a.pgcrImage) {
               // Activiteits-screenshot als achtergrond met type-icoon overlay
@@ -515,7 +513,7 @@
               iconHtml = `<div style="position:relative;width:100%;height:100%;">
                 <img src="${escHtml(a.pgcrImage)}" referrerpolicy="no-referrer"
                      style="width:100%;height:100%;object-fit:cover;border-radius:8px;"
-                     onerror="this.closest('.act-icon-box').style.background='${bgFallback}';this.parentElement.innerHTML='${svgFallback}'">
+                     onerror="actIconFallback(this,'${a.type}')">
                 ${overlay}
               </div>`;
             } else if (a.typeIconUrl) {
@@ -556,6 +554,13 @@
     function escHtml(str) {
       if (!str) return '';
       return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function actIconFallback(imgEl, type) {
+      const def = ACT_ICONS[type] || { bg: 'rgba(255,255,255,0.06)', svg: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>' };
+      const box = imgEl.closest('.act-icon-box');
+      if (box) box.style.background = def.bg;
+      imgEl.parentElement.innerHTML = def.svg;
     }
 
 
