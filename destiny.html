@@ -433,49 +433,63 @@
       lostsector: { bg: 'rgba(232,98,42,0.14)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="rgba(232,98,42,0.85)" stroke-width="1.5"/><polygon points="12,5 14.5,12 12,10.5 9.5,12" fill="rgba(232,98,42,0.9)"/><polygon points="12,19 9.5,12 12,13.5 14.5,12" fill="rgba(255,255,255,0.35)"/></svg>` },
     };
 
-    // Hoeveel items tegelijk zichtbaar
+    // Rotatie: 4 activiteiten tegelijk, elke 5s schuift 1 op
     const ACTS_VISIBLE = 4;
     let actOffset = 0;
     let actRotateTimer = null;
+    let _actSrc = [];
 
     function renderActivities(liveData) {
-      // Als Bungie live data stuurt: gebruik die, anders de statische mix
-      const src = (liveData && liveData.length > 0) ? liveData : ALL_ACTIVITIES;
+      // Gebruik live data van Bungie; fallback op statische mix
+      _actSrc = (liveData && liveData.length > 0) ? liveData : ALL_ACTIVITIES;
       const container = document.getElementById('activitiesContainer');
       const dot = document.getElementById('activitiesLiveDot');
       if (!container) return;
 
-      // Stop oude rotatie
       if (actRotateTimer) clearInterval(actRotateTimer);
 
       function showSlice() {
+        if (!_actSrc.length) return;
         const slice = [];
         for (let i = 0; i < ACTS_VISIBLE; i++) {
-          slice.push(src[(actOffset + i) % src.length]);
+          slice.push(_actSrc[(actOffset + i) % _actSrc.length]);
         }
-        container.innerHTML = slice.map(a => {
-          const iconDef = ACT_ICONS[a.type] ?? { bg: 'rgba(255,255,255,0.06)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>` };
-          // Gebruik officieel Bungie type-icoon als beschikbaar, anders SVG fallback
-          const iconContent = a.typeIconUrl
-            ? `<img src="${escHtml(a.typeIconUrl)}" referrerpolicy="no-referrer" style="width:28px;height:28px;object-fit:contain;filter:brightness(1.1);" onerror="this.style.display='none'">`
-            : iconDef.svg;
-          return `
-          <div class="activity-item" style="animation:fadeIn 0.4s ease;">
-            <div style="background:${iconDef.bg};display:flex;align-items:center;justify-content:center;
-              min-width:42px;width:42px;height:42px;border-radius:10px;flex-shrink:0;
-              border:1px solid rgba(255,255,255,0.07);">${iconContent}</div>
-            <div style="flex:1;min-width:0;">
-              <div class="act-name">${escHtml(a.name)}</div>
-              <div class="act-sub">${escHtml(a.sub)}</div>
-            </div>
-            <span class="act-badge ${a.badgeClass}">${escHtml(a.badge)}</span>
-          </div>`;
-        }).join('');
-        actOffset = (actOffset + 1) % src.length;
+
+        // Fade-out → update → fade-in
+        container.style.transition = 'opacity 0.35s ease';
+        container.style.opacity = '0';
+
+        setTimeout(() => {
+          container.innerHTML = slice.map(a => {
+            const iconDef = ACT_ICONS[a.type] ?? { bg: 'rgba(255,255,255,0.06)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>` };
+            const iconContent = a.typeIconUrl
+              ? `<img src="${escHtml(a.typeIconUrl)}" referrerpolicy="no-referrer"
+                   style="width:28px;height:28px;object-fit:contain;filter:brightness(1.15) drop-shadow(0 0 3px rgba(212,168,67,0.3));"
+                   onerror="this.replaceWith(document.createRange().createContextualFragment('${iconDef.svg.replace(/'/g, "\x27")}'))">`
+              : iconDef.svg;
+            return `
+            <div class="activity-item" style="">
+              <div style="background:${iconDef.bg};display:flex;align-items:center;justify-content:center;
+                min-width:44px;width:44px;height:44px;border-radius:10px;flex-shrink:0;
+                border:1px solid rgba(255,255,255,0.08);
+                box-shadow:inset 0 0 8px rgba(0,0,0,0.3);">${iconContent}</div>
+              <div style="flex:1;min-width:0;">
+                <div class="act-name">${escHtml(a.name)}</div>
+                <div class="act-sub">${escHtml(a.sub)}</div>
+              </div>
+              <span class="act-badge ${a.badgeClass}">${escHtml(a.badge)}</span>
+            </div>`;
+          }).join('');
+          container.style.opacity = '1';
+        }, 350);
+
+        // Verschuif 1 positie zodat bij elke tick een andere 4 te zien zijn
+        actOffset = (actOffset + 1) % _actSrc.length;
       }
 
       showSlice();
-      actRotateTimer = setInterval(showSlice, 7000);
+      // Roteer elke 5 seconden — 1 activiteit verschuift
+      actRotateTimer = setInterval(showSlice, 5000);
       if (dot) dot.style.display = '';
     }
 
