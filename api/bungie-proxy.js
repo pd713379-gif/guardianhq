@@ -83,13 +83,13 @@ export default async function handler(req, res) {
   if (action === 'weaponicons') {
     // Weapon hashes voor de wishlist wapens
     const HASHES = {
-      palindrome:       1912364120,
-      igneous:          2340537481,
-      retrofit:         2478919240,
-      apex:             1498167238,
-      fallingGuillotine:3550669227,
-      wishEnder:        1999250506,
-      likelySuspect:    2820737395,
+      palindrome:        1912364120,  // The Palindrome
+      igneous:           2314610827,  // Igneous Hammer — light.gg verified
+      retrofit:          3103325054,  // Retrofit Escapade — light.gg verified
+      apex:              1851777734,  // Apex Predator — light.gg verified
+      fallingGuillotine: 1815105249,  // Falling Guillotine — light.gg verified
+      wishEnder:          814876684,  // Wish-Ender — light.gg verified
+      likelySuspect:     1994645182,  // Likely Suspect — light.gg verified
     };
 
     const icons = {};
