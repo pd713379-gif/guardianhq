@@ -22,22 +22,56 @@ export default async function handler(req, res) {
     return d.Response;
   }
 
-  // ── AVATAR ─────────────────────────────────────────────────
+  // ── AVATAR — dynamisch via OAuth token of via naam zoeken ──
   if (action === 'avatar') {
-    try {
-      const sd = await fetch('https://www.bungie.net/Platform/User/Search/GlobalName/0/', {
-        method: 'POST', headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ displayNamePrefix: 'RemaisNL' })
-      }).then(r => r.json());
-      const match = (sd?.Response?.searchResults ?? []).find(u => u.bungieGlobalDisplayName?.toLowerCase() === 'remaisnl') ?? sd?.Response?.searchResults?.[0];
-      if (match?.destinyMemberships?.[0]) {
-        const dm = match.destinyMemberships[0];
-        const pd = await fetch(`https://www.bungie.net/Platform/Destiny2/${dm.membershipType}/Profile/${dm.membershipId}/?components=100`, { headers: { 'X-API-Key': API_KEY } }).then(r => r.json());
-        const icon = pd?.Response?.profile?.data?.userInfo?.iconPath;
-        if (icon) return res.status(200).json({ avatarUrl: 'https://www.bungie.net' + icon, displayName: match.bungieGlobalDisplayName + '#' + String(match.bungieGlobalDisplayNameCode ?? '').padStart(4, '0') });
-      }
+    const token = (req.headers['authorization'] || '').replace('Bearer ', '').trim();
+
+    // Als OAuth token beschikbaar → gebruik dat (voor ingelogde gebruiker)
+    if (token) {
+      try {
+        const user = await bFetch('/User/GetMembershipsForCurrentUser/', token);
+        const mems = user?.destinyMemberships ?? [];
+        let primary = mems[0];
+        for (const m of mems) { if (m.crossSaveOverride === m.membershipType) { primary = m; break; } }
+        if (primary) {
+          const profile = await bFetch(`/Destiny2/${primary.membershipType}/Profile/${primary.membershipId}/?components=100`, token);
+          const iconPath = profile?.profile?.data?.userInfo?.iconPath;
+          const bungieUser = user?.bungieNetUser;
+          const displayName = bungieUser
+            ? (bungieUser.cachedBungieGlobalDisplayName || bungieUser.uniqueName || bungieUser.displayName) + (bungieUser.cachedBungieGlobalDisplayNameCode ? '#' + String(bungieUser.cachedBungieGlobalDisplayNameCode).padStart(4,'0') : '')
+            : null;
+          return res.status(200).json({
+            avatarUrl:   iconPath ? 'https://www.bungie.net' + iconPath : null,
+            displayName: displayName,
+          });
+        }
+      } catch {}
       return res.status(200).json({ avatarUrl: null });
-    } catch { return res.status(200).json({ avatarUrl: null }); }
+    }
+
+    // Geen token → zoek op naam (publieke fallback, alleen als ?name= meegegeven)
+    const searchName = req.query.name;
+    if (searchName) {
+      try {
+        const sd = await fetch('https://www.bungie.net/Platform/User/Search/GlobalName/0/', {
+          method: 'POST', headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ displayNamePrefix: searchName })
+        }).then(r => r.json());
+        const match = (sd?.Response?.searchResults ?? []).find(u => u.bungieGlobalDisplayName?.toLowerCase() === searchName.toLowerCase()) ?? sd?.Response?.searchResults?.[0];
+        if (match?.destinyMemberships?.[0]) {
+          const dm = match.destinyMemberships[0];
+          const pd = await fetch(`https://www.bungie.net/Platform/Destiny2/${dm.membershipType}/Profile/${dm.membershipId}/?components=100`, { headers: { 'X-API-Key': API_KEY } }).then(r => r.json());
+          const icon = pd?.Response?.profile?.data?.userInfo?.iconPath;
+          if (icon) return res.status(200).json({
+            avatarUrl: 'https://www.bungie.net' + icon,
+            displayName: match.bungieGlobalDisplayName + '#' + String(match.bungieGlobalDisplayNameCode ?? '').padStart(4,'0'),
+            membershipType: dm.membershipType,
+            membershipId: dm.membershipId,
+          });
+        }
+      } catch {}
+    }
+    return res.status(200).json({ avatarUrl: null });
   }
 
   // ── WEAPON ICONS (wishlist) ─────────────────────────────────
