@@ -218,67 +218,24 @@
       <!-- ── DIM ITEM MANAGER ── -->
       <div class="d-pane" id="pane-dim">
 
+        <!-- ── DIM HEADER ── -->
         <div class="dim-header">
           <div class="dim-logo">DIM</div>
           <div class="dim-header-info">
-            <h2>Destiny Item Manager</h2>
-            <p>Beheer je inventory, wissel items tussen characters en de vault, en vind de beste gear — direct vanuit GuardianHQ. Wil je de volledige DIM? Klik rechts!</p>
+            <h2>Item Manager — Build Viewer</h2>
+            <p>Klik op een Guardian om de volledige build te zien: Subclass, Super, Abilities, Aspects, Fragments, Wapens & Armor met mods.</p>
           </div>
           <a href="https://app.destinyitemmanager.com" target="_blank" class="dim-open-btn">Openen op DIM ↗</a>
         </div>
 
-        <div class="search-bar">
-          <input class="search-input" id="dimSearch" placeholder="Zoek items... (bijv. 'hand cannon', 'solar', 'perk:outlaw')">
-          <button class="search-btn" onclick="doSearch()">Zoeken</button>
-        </div>
-
-        <!-- Characters — worden live gevuld via Bungie API -->
+        <!-- ── CHARACTER SELECTOR ── -->
         <div class="char-cards" id="charCards">
-          <!-- Loading state -->
-          <div class="char-card char-loading" style="opacity:0.5;cursor:default;flex:1;justify-content:center;align-items:center;gap:8px;display:flex">
+          <div class="char-card char-loading" style="opacity:0.5;cursor:default;grid-column:1/-1;justify-content:center;align-items:center;gap:8px;display:flex;padding:2rem">
             <div style="font-size:0.8rem;color:var(--text3)">⏳ Karakters laden...</div>
           </div>
         </div>
 
-        <!-- ══ SUBCLASS PANEL ══ -->
-        <div id="subclassPanel" style="display:none;margin-bottom:16px;">
-          <div style="background:linear-gradient(135deg,rgba(10,12,22,0.97),rgba(18,22,42,0.97));border:1px solid var(--subclass-color,rgba(155,114,207,0.4));border-radius:16px;overflow:hidden;box-shadow:0 0 40px var(--subclass-glow,rgba(155,114,207,0.1)),0 8px 32px rgba(0,0,0,0.6);">
-            <!-- Header -->
-            <div id="subclassPanelHeader" style="padding:16px 20px 14px;display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(255,255,255,0.07);">
-              <div id="subclassPanelIcon" style="width:52px;height:52px;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);flex-shrink:0;border:2px solid var(--subclass-color,rgba(155,114,207,0.5));box-shadow:0 0 16px var(--subclass-glow,rgba(155,114,207,0.2));"></div>
-              <div style="flex:1">
-                <div id="subclassPanelName" style="font-size:1.1rem;font-weight:800;letter-spacing:0.02em;color:#fff;"></div>
-                <div id="subclassPanelMeta" style="font-size:0.75rem;font-weight:600;margin-top:2px;opacity:0.8;"></div>
-              </div>
-              <button onclick="document.getElementById('subclassPanel').style.display='none'" style="background:rgba(255,255,255,0.07);border:none;color:rgba(255,255,255,0.5);width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;">✕</button>
-            </div>
-            <!-- Body: 4 kolommen -->
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0;">
-              <!-- Super -->
-              <div style="padding:16px 18px;border-right:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05);">
-                <div data-label="super" style="font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--subclass-color,#9b72cf);margin-bottom:10px;">⚡ Super</div>
-                <div id="subclassSuper"></div>
-              </div>
-              <!-- Abilities -->
-              <div style="padding:16px 18px;border-right:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05);">
-                <div data-label="abilities" style="font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--subclass-color,#9b72cf);margin-bottom:10px;">🔮 Abilities</div>
-                <div id="subclassAbilities"></div>
-              </div>
-              <!-- Aspects -->
-              <div style="padding:16px 18px;border-right:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05);">
-                <div data-label="aspects" style="font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--subclass-color,#9b72cf);margin-bottom:10px;">💎 Aspects</div>
-                <div id="subclassAspects"></div>
-              </div>
-              <!-- Fragments -->
-              <div style="padding:16px 18px;border-bottom:1px solid rgba(255,255,255,0.05);">
-                <div data-label="fragments" style="font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--subclass-color,#9b72cf);margin-bottom:10px;">🔷 Fragments</div>
-                <div id="subclassFragments"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bungie OAuth connect banner (zichtbaar als geen token) -->
+        <!-- ── BUNGIE CONNECT BANNER ── -->
         <div id="bungieConnectBanner" style="display:none;margin-bottom:16px;">
           <div style="background:rgba(88,101,242,0.08);border:1px solid rgba(88,101,242,0.25);border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
             <div style="flex:1;min-width:200px;">
@@ -291,12 +248,98 @@
           </div>
         </div>
 
-        <div class="d-card glass">
-          <div class="inv-section-title" id="invTitle1">🔫 Wapens</div>
-          <div class="inv-grid" id="weaponsGrid"></div>
-          <div class="inv-section-title" id="invTitle2">🛡️ Armor</div>
-          <div class="inv-grid" id="armorGrid"></div>
+        <!-- ══ COMPLETE BUILD PANEL ══ -->
+        <div id="buildPanel" style="display:none;">
+
+          <!-- BUILD HEADER: class + power + subclass naam -->
+          <div id="buildHeader" style="position:relative;overflow:hidden;border-radius:20px;padding:24px 28px;margin-bottom:16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+            <div id="buildHeaderBg" style="position:absolute;inset:0;opacity:0.18;background-size:cover;background-position:center;border-radius:20px;"></div>
+            <div style="position:absolute;inset:0;border-radius:20px;" id="buildHeaderOverlay"></div>
+            <div id="buildEmblem" style="position:relative;z-index:1;width:64px;height:64px;border-radius:12px;overflow:hidden;flex-shrink:0;"></div>
+            <div style="position:relative;z-index:1;flex:1;">
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                <div id="buildClassName" style="font-family:'Space Grotesk',sans-serif;font-size:1.6rem;font-weight:900;letter-spacing:0.04em;"></div>
+                <div id="buildPower" style="font-size:1.3rem;font-weight:800;display:flex;align-items:center;gap:4px;"></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap;">
+                <div id="buildSubclassIcon" style="width:28px;height:28px;border-radius:6px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.1);"></div>
+                <div id="buildSubclassName" style="font-size:0.9rem;font-weight:700;opacity:0.9;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ROW 1: SUBCLASS -->
+          <div id="buildSubclassSection" style="background:rgba(8,10,20,0.95);border:1px solid rgba(255,255,255,0.08);border-radius:18px;margin-bottom:12px;overflow:hidden;">
+
+            <!-- Subclass label bar -->
+            <div id="buildSubclassBar" style="padding:12px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,0.06);">
+              <div id="buildSubclassBarIcon" style="width:32px;height:32px;border-radius:7px;overflow:hidden;display:flex;align-items:center;justify-content:center;"></div>
+              <div style="font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;" id="buildSubclassBarLabel">Subclass</div>
+            </div>
+
+            <!-- 4 kolommen: Super / Abilities / Aspects / Fragments -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));">
+
+              <!-- SUPER -->
+              <div style="padding:16px 18px;border-right:1px solid rgba(255,255,255,0.05);">
+                <div class="build-section-label" id="lbl-super" style="font-size:0.6rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:12px;opacity:0.7;">⚡ Super</div>
+                <div id="bld-super"></div>
+              </div>
+
+              <!-- ABILITIES -->
+              <div style="padding:16px 18px;border-right:1px solid rgba(255,255,255,0.05);">
+                <div class="build-section-label" id="lbl-abilities" style="font-size:0.6rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:12px;opacity:0.7;">🎯 Abilities</div>
+                <div id="bld-abilities"></div>
+              </div>
+
+              <!-- ASPECTS -->
+              <div style="padding:16px 18px;border-right:1px solid rgba(255,255,255,0.05);">
+                <div class="build-section-label" id="lbl-aspects" style="font-size:0.6rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:12px;opacity:0.7;">💠 Aspects</div>
+                <div id="bld-aspects"></div>
+              </div>
+
+              <!-- FRAGMENTS -->
+              <div style="padding:16px 18px;">
+                <div class="build-section-label" id="lbl-fragments" style="font-size:0.6rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:12px;opacity:0.7;">🔷 Fragments</div>
+                <div id="bld-fragments" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ROW 2: WAPENS + ARMOR naast elkaar -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:0;">
+
+            <!-- WAPENS -->
+            <div style="background:rgba(8,10,20,0.95);border:1px solid rgba(255,255,255,0.08);border-radius:18px;overflow:hidden;">
+              <div style="padding:12px 18px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:8px;">
+                <span style="font-size:1rem;">🔫</span>
+                <span style="font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.55);">Wapens</span>
+              </div>
+              <div id="bld-weapons" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;"></div>
+            </div>
+
+            <!-- ARMOR -->
+            <div style="background:rgba(8,10,20,0.95);border:1px solid rgba(255,255,255,0.08);border-radius:18px;overflow:hidden;">
+              <div style="padding:12px 18px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:8px;">
+                <span style="font-size:1rem;">🛡️</span>
+                <span style="font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.55);">Armor</span>
+              </div>
+              <div id="bld-armor" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;"></div>
+            </div>
+
+          </div>
+
+        </div><!-- /buildPanel -->
+
+        <!-- fallback inv-grid (hidden, nog aanwezig voor renderInvGrid compatibiliteit) -->
+        <div style="display:none">
+          <div id="weaponsGrid"></div>
+          <div id="armorGrid"></div>
+          <div id="invTitle1"></div>
+          <div id="invTitle2"></div>
         </div>
+
       </div>
 
       <!-- ── LOADOUTS ── -->
@@ -1003,27 +1046,315 @@
       }
     }
 
+    // ══════════════════════════════════════════════════════════
+    // BUILD PANEL RENDERER — volledig nieuw ontwerp
+    // ══════════════════════════════════════════════════════════
+
+    // Kleur-thema per klasse
+    var CLASS_THEMES = {
+      Hunter:  { color:'#e8622a', color2:'#d4a843', glow:'rgba(232,98,42,0.18)',  grad:'linear-gradient(135deg,rgba(232,98,42,0.22),rgba(212,168,67,0.12))', border:'rgba(232,98,42,0.3)'  },
+      Warlock: { color:'#4f8fff', color2:'#9b72cf', glow:'rgba(79,143,255,0.18)', grad:'linear-gradient(135deg,rgba(79,143,255,0.22),rgba(123,94,167,0.12))',  border:'rgba(79,143,255,0.3)'  },
+      Titan:   { color:'#4caf82', color2:'#4f8fff', glow:'rgba(76,175,130,0.18)', grad:'linear-gradient(135deg,rgba(76,175,130,0.22),rgba(79,143,255,0.12))',  border:'rgba(76,175,130,0.3)'  },
+    };
+
+    var ARMOR_SLOTS = ['Helm','Gauntlets','Chest Armor','Leg Armor','Class Item'];
+    var ARMOR_EMOJIS = ['⛑️','🧤','🦺','👢','📿'];
+
+    // Mod placeholder icoon (SVG)
+    function modIcon(idx) {
+      var colors = ['rgba(155,114,207,0.9)','rgba(79,143,255,0.85)','rgba(76,175,130,0.85)'];
+      var c = colors[idx % colors.length];
+      return '<svg viewBox="0 0 24 24" width="18" height="18" fill="none"><polygon points="12,2 22,7 22,17 12,22 2,17 2,7" stroke="' + c + '" stroke-width="1.5" fill="' + c.replace('0.9','0.12').replace('0.85','0.12') + '"/><circle cx="12" cy="12" r="3" fill="' + c + '"/></svg>';
+    }
+
+    // Render een enkel subclass item (super/ability/aspect)
+    function renderBuildItem(item, accentColor) {
+      var hasRealIcon = item.icon && item.icon.indexOf('bungie.net') !== -1;
+      var fallbackEmojis = { super:'⚡', ability:'🔵', aspect:'💠', fragment:'🔷' };
+      var iconHtml;
+      if (hasRealIcon) {
+        iconHtml = '<img src="' + item.icon + '" width="44" height="44" style="border-radius:8px;object-fit:cover;" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">';
+      } else {
+        var sym = fallbackEmojis[item._type] || '●';
+        iconHtml = '<div style="width:44px;height:44px;border-radius:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">' + sym + '</div>';
+      }
+      var badge = '';
+      if (item.type) badge = '<span style="font-size:0.58rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.4);margin-left:5px;">' + item.type + '</span>';
+      if (item.fragments != null) badge = '<span style="font-size:0.58rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.4);margin-left:5px;">⟡ ' + item.fragments + '</span>';
+      return '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:11px;">'
+        + '<div style="flex-shrink:0;width:44px;height:44px;border-radius:8px;overflow:hidden;border:1.5px solid ' + (accentColor || 'rgba(255,255,255,0.1)') + '20;">' + iconHtml + '</div>'
+        + '<div style="flex:1;min-width:0;padding-top:2px;">'
+        + '<div style="font-size:0.78rem;font-weight:700;color:#fff;line-height:1.2;">' + (item.name || '') + badge + '</div>'
+        + '<div style="font-size:0.67rem;color:rgba(255,255,255,0.42);line-height:1.4;margin-top:3px;">' + (item.desc || '') + '</div>'
+        + '</div></div>';
+    }
+
+    // Render fragment chip
+    function renderFragmentChip(frag, accentColor) {
+      var hasRealIcon = frag.icon && frag.icon.indexOf('bungie.net') !== -1;
+      var iconHtml = hasRealIcon
+        ? '<img src="' + frag.icon + '" width="36" height="36" style="border-radius:7px;object-fit:cover;" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">'
+        : '<div style="width:36px;height:36px;border-radius:7px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:1rem;">🔷</div>';
+      var statColor = frag.stat ? (frag.stat[0]==='+' ? '#4caf82' : '#e8622a') : '';
+      return '<div title="' + (frag.name||'') + ': ' + (frag.desc||'') + '" style="position:relative;width:44px;height:44px;border-radius:9px;overflow:hidden;border:1.5px solid ' + (accentColor||'rgba(255,255,255,0.15)') + '30;cursor:pointer;transition:transform 0.15s;" onmouseover="this.style.transform=\'scale(1.08)\'" onmouseout="this.style.transform=\'scale(1)\'">'
+        + iconHtml
+        + (frag.stat ? '<div style="position:absolute;bottom:1px;right:2px;font-size:0.5rem;font-weight:800;color:' + statColor + ';text-shadow:0 0 4px rgba(0,0,0,0.8);">' + frag.stat.split(',')[0] + '</div>' : '')
+        + '</div>';
+    }
+
+    // Render een wapen rij
+    function renderWeaponRow(item, accentColor) {
+      var tier = TIER_COLORS[item.tierType] || TIER_COLORS[5];
+      var iconHtml = item.icon
+        ? '<img src="' + item.icon + '" style="width:52px;height:52px;object-fit:cover;border-radius:8px;" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">'
+        : '<div style="width:52px;height:52px;border-radius:8px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">🔫</div>';
+      var tierLabel = item.isExotic ? 'Exotic' : 'Legendary';
+      var tierColor = item.isExotic ? '#f5c842' : '#9b72cf';
+      var perkHtml = (item.perks && item.perks.length)
+        ? '<div style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;">'
+          + item.perks.slice(0,4).map(function(p){
+              return '<div title="' + (p.name||'') + '" style="width:26px;height:26px;border-radius:5px;overflow:hidden;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);">'
+                + (p.icon && p.icon.indexOf('bungie.net')!==-1
+                    ? '<img src="' + p.icon + '" width="26" height="26" style="object-fit:cover;" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">'
+                    : '<div style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;">⬡</div>')
+                + '</div>';
+            }).join('')
+          + '</div>'
+        : '';
+      return '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid ' + tier.border + ';">'
+        + '<div style="flex-shrink:0;border-radius:9px;overflow:hidden;border:2px solid ' + tier.border + ';">' + iconHtml + '</div>'
+        + '<div style="flex:1;min-width:0;">'
+        + '<div style="font-size:0.82rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (item.name||item.slotName||'—') + '</div>'
+        + '<div style="font-size:0.68rem;margin-top:2px;display:flex;align-items:center;gap:8px;">'
+        + '<span style="color:' + tierColor + ';font-weight:700;font-size:0.63rem;text-transform:uppercase;letter-spacing:0.05em;">' + tierLabel + '</span>'
+        + (item.typeName ? '<span style="color:rgba(255,255,255,0.35);">' + item.typeName + '</span>' : '')
+        + '</div>'
+        + perkHtml
+        + '</div>'
+        + (item.power ? '<div style="font-size:0.85rem;font-weight:800;color:var(--gold2);white-space:nowrap;">⚡' + item.power + '</div>' : '')
+        + '</div>';
+    }
+
+    // Render armor rij met mods
+    function renderArmorRow(item, slotIdx, accentColor) {
+      var tier = TIER_COLORS[item && item.tierType] || TIER_COLORS[5];
+      var slotName = (item && item.slotName) || ARMOR_SLOTS[slotIdx] || 'Slot';
+      var emoji = ARMOR_EMOJIS[slotIdx] || '🛡️';
+      var isExotic = item && item.isExotic;
+      var tierColor = isExotic ? '#f5c842' : '#9b72cf';
+
+      var iconHtml = (item && item.icon)
+        ? '<img src="' + item.icon + '" style="width:52px;height:52px;object-fit:cover;border-radius:8px;" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML=\'<div style=\\\"width:52px;height:52px;border-radius:8px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:1.5rem;\\\">' + emoji + '</div>\'">'
+        : '<div style="width:52px;height:52px;border-radius:8px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:1.5rem;">' + emoji + '</div>';
+
+      // Mods: max 3
+      var mods = (item && item.mods) || [];
+      var modHtml = '<div style="display:flex;gap:4px;margin-top:5px;">';
+      for (var i = 0; i < 3; i++) {
+        var mod = mods[i];
+        if (mod && (mod.icon || mod.name)) {
+          var modIconHtml = (mod.icon && mod.icon.indexOf('bungie.net')!==-1)
+            ? '<img src="' + mod.icon + '" width="26" height="26" style="border-radius:5px;object-fit:cover;" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">'
+            : '<div style="width:26px;height:26px;border-radius:5px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;">' + modIcon(i) + '</div>';
+          modHtml += '<div title="' + (mod.name||'Mod') + '" style="width:26px;height:26px;border-radius:5px;overflow:hidden;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);">' + modIconHtml + '</div>';
+        } else {
+          // lege mod slot
+          modHtml += '<div style="width:26px;height:26px;border-radius:5px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 18 18" width="14" height="14"><polygon points="9,1 17,5 17,13 9,17 1,13 1,5" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.2"/></svg></div>';
+        }
+      }
+      modHtml += '</div>';
+
+      return '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid ' + (item ? tier.border : 'rgba(255,255,255,0.06)') + ';">'
+        + '<div style="flex-shrink:0;border-radius:9px;overflow:hidden;border:2px solid ' + (item ? tier.border : 'rgba(255,255,255,0.08)') + ';">' + iconHtml + '</div>'
+        + '<div style="flex:1;min-width:0;">'
+        + '<div style="font-size:0.78rem;font-weight:700;color:' + (item ? '#fff' : 'rgba(255,255,255,0.25)') + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (item ? (item.name||slotName) : slotName) + '</div>'
+        + '<div style="font-size:0.63rem;margin-top:2px;display:flex;align-items:center;gap:8px;">'
+        + (item ? '<span style="color:' + tierColor + ';font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">' + (isExotic?'Exotic':'Legendary') + '</span>' : '<span style="color:rgba(255,255,255,0.2);">Leeg</span>')
+        + '</div>'
+        + modHtml
+        + '</div>'
+        + (item && item.power ? '<div style="font-size:0.85rem;font-weight:800;color:var(--gold2);white-space:nowrap;">⚡' + item.power + '</div>' : '')
+        + '</div>';
+    }
+
+    // HOOFD: render de complete build in het panel
+    function renderBuildPanel(char) {
+      var panel = document.getElementById('buildPanel');
+      if (!panel) return;
+
+      var className  = char.className || 'Hunter';
+      var theme      = CLASS_THEMES[className] || CLASS_THEMES.Hunter;
+      var subEl      = char.subclass   || {};
+      var element    = (subEl.element  || 'void').toLowerCase();
+      var ec         = ELEM_COLORS[element]    || ELEM_COLORS.void;
+      var subSVG     = ELEM_SVGS[element]      || ELEM_SVGS.void;
+      var subName    = subEl.name || element.charAt(0).toUpperCase() + element.slice(1);
+
+      // ── HEADER ──
+      var hdr = document.getElementById('buildHeader');
+      var hdrBg = document.getElementById('buildHeaderBg');
+      var hdrOv = document.getElementById('buildHeaderOverlay');
+      if (hdr) { hdr.style.background = theme.grad; hdr.style.border = '1px solid ' + theme.border; hdr.style.boxShadow = '0 0 40px ' + theme.glow; }
+      if (hdrBg && char.emblemBg) { hdrBg.style.backgroundImage = 'url(' + char.emblemBg + ')'; }
+      if (hdrOv) hdrOv.style.background = 'linear-gradient(135deg,rgba(3,5,10,0.7),rgba(3,5,10,0.3))';
+
+      // Emblem
+      var emblemEl = document.getElementById('buildEmblem');
+      if (emblemEl) {
+        if (char.emblemIcon) {
+          emblemEl.innerHTML = '<img src="' + char.emblemIcon + '" style="width:64px;height:64px;object-fit:cover;border-radius:10px;" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">';
+        } else {
+          var classEmojis = { Hunter:'🏹', Warlock:'🔮', Titan:'🛡️' };
+          emblemEl.innerHTML = '<div style="width:64px;height:64px;border-radius:10px;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:2rem;">' + (classEmojis[className]||'⬡') + '</div>';
+        }
+      }
+
+      var classEl = document.getElementById('buildClassName');
+      if (classEl) { classEl.textContent = className; classEl.style.color = theme.color; }
+
+      var pwrEl = document.getElementById('buildPower');
+      if (pwrEl) pwrEl.innerHTML = '<span style="color:var(--gold2)">⚡</span><span style="color:var(--gold2)">' + (char.light||'—') + '</span>';
+
+      var subIconEl = document.getElementById('buildSubclassIcon');
+      if (subIconEl) {
+        if (subEl.icon && subEl.icon.indexOf('bungie.net')!==-1) {
+          subIconEl.innerHTML = '<img src="' + subEl.icon + '" width="28" height="28" style="border-radius:5px;object-fit:cover;" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML=\'' + subSVG.replace(/'/g,"&#39;") + '\'">';
+        } else { subIconEl.innerHTML = subSVG; }
+      }
+      var subNameEl = document.getElementById('buildSubclassName');
+      if (subNameEl) { subNameEl.textContent = subName; subNameEl.style.color = ec.color; }
+
+      // ── SUBCLASS SECTION ──
+      var subSection = document.getElementById('buildSubclassSection');
+      if (subSection) { subSection.style.borderColor = ec.color + '30'; }
+
+      var subBar = document.getElementById('buildSubclassBar');
+      if (subBar) { subBar.style.background = ec.glow; }
+
+      var subBarIcon = document.getElementById('buildSubclassBarIcon');
+      if (subBarIcon) {
+        subBarIcon.style.background = ec.glow;
+        if (subEl.icon && subEl.icon.indexOf('bungie.net')!==-1) {
+          subBarIcon.innerHTML = '<img src="' + subEl.icon + '" width="32" height="32" style="border-radius:6px;object-fit:cover;" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML=\'' + subSVG.replace(/'/g,"&#39;") + '\'">';
+        } else { subBarIcon.innerHTML = subSVG; }
+      }
+
+      var subBarLabel = document.getElementById('buildSubclassBarLabel');
+      if (subBarLabel) { subBarLabel.textContent = subName; subBarLabel.style.color = ec.color; }
+
+      // Kleur labels
+      ['lbl-super','lbl-abilities','lbl-aspects','lbl-fragments'].forEach(function(id){
+        var el = document.getElementById(id);
+        if (el) el.style.color = ec.color;
+      });
+
+      // ── Haal subclass data op uit de DB ──
+      var classDB = (typeof SUBCLASS_DB !== 'undefined') ? SUBCLASS_DB[className] : null;
+      var elemKey = element;
+      // Map subclass naam → element key
+      var n = subName.toLowerCase();
+      if (n.indexOf('prismatic')>=0) elemKey='prismatic';
+      else if (n.indexOf('arc')>=0||n.indexOf('striker')>=0||n.indexOf('arcstrider')>=0) elemKey='arc';
+      else if (n.indexOf('solar')>=0||n.indexOf('dawn')>=0||n.indexOf('sunbreak')>=0||n.indexOf('burning')>=0) elemKey='solar';
+      else if (n.indexOf('void')>=0||n.indexOf('shadow')>=0||n.indexOf('sentinel')>=0||n.indexOf('voidwalker')>=0) elemKey='void';
+      else if (n.indexOf('stasis')>=0||n.indexOf('revenant')>=0||n.indexOf('behemoth')>=0||n.indexOf('shadebinder')>=0) elemKey='stasis';
+      else if (n.indexOf('strand')>=0||n.indexOf('threadrunner')>=0||n.indexOf('broodweaver')>=0||n.indexOf('berserker')>=0) elemKey='strand';
+
+      var subDB = classDB ? (classDB[elemKey.charAt(0).toUpperCase()+elemKey.slice(1)] || Object.values(classDB)[0]) : null;
+
+      // SUPER
+      var superEl = document.getElementById('bld-super');
+      if (superEl) {
+        if (subDB && subDB.super) {
+          var sup = Object.assign({},subDB.super,{_type:'super'});
+          // Probeer live super icon van de Bungie data
+          if (subEl.superIcon) sup.icon = subEl.superIcon;
+          superEl.innerHTML = renderBuildItem(sup, ec.color);
+        } else {
+          superEl.innerHTML = '<div style="color:rgba(255,255,255,0.25);font-size:0.75rem;">Geen data</div>';
+        }
+      }
+
+      // ABILITIES
+      var abEl = document.getElementById('bld-abilities');
+      if (abEl) {
+        var abilities = subDB ? subDB.abilities : [];
+        // Inject live ability icons if available
+        if (subEl.classAbilityIcon || subEl.meleeIcon || subEl.grenadeIcon) {
+          abilities = abilities.map(function(a,i){
+            var icons = [subEl.classAbilityIcon, subEl.meleeIcon, subEl.grenadeIcon];
+            return Object.assign({},a,{icon: icons[i]||a.icon, _type:'ability'});
+          });
+        } else {
+          abilities = abilities.map(function(a){ return Object.assign({},a,{_type:'ability'}); });
+        }
+        abEl.innerHTML = abilities.length ? abilities.map(function(a){ return renderBuildItem(a,ec.color); }).join('') : '<div style="color:rgba(255,255,255,0.25);font-size:0.75rem;">Geen data</div>';
+      }
+
+      // ASPECTS
+      var aspEl = document.getElementById('bld-aspects');
+      if (aspEl) {
+        var aspects = subDB ? subDB.aspects : [];
+        aspects = aspects.map(function(a){ return Object.assign({},a,{_type:'aspect'}); });
+        aspEl.innerHTML = aspects.length ? aspects.map(function(a){ return renderBuildItem(a,ec.color); }).join('') : '<div style="color:rgba(255,255,255,0.25);font-size:0.75rem;">Geen data</div>';
+      }
+
+      // FRAGMENTS
+      var fragEl = document.getElementById('bld-fragments');
+      if (fragEl) {
+        var frags = subDB ? subDB.fragments : [];
+        frags = frags.map(function(f){ return Object.assign({},f,{_type:'fragment'}); });
+        fragEl.innerHTML = frags.length ? frags.map(function(f){ return renderFragmentChip(f,ec.color); }).join('') : '<div style="color:rgba(255,255,255,0.25);font-size:0.75rem;">Geen data</div>';
+      }
+
+      // ── WAPENS ──
+      var wpnEl = document.getElementById('bld-weapons');
+      if (wpnEl) {
+        var weapons = char.weapons || [];
+        wpnEl.innerHTML = weapons.length
+          ? weapons.map(function(w){ return renderWeaponRow(w, theme.color); }).join('')
+          : '<div style="color:rgba(255,255,255,0.25);font-size:0.78rem;padding:8px;">Geen wapens gevonden</div>';
+      }
+
+      // ── ARMOR ──
+      var armEl = document.getElementById('bld-armor');
+      if (armEl) {
+        var armorItems = char.armor || [];
+        var rows = '';
+        for (var i = 0; i < 5; i++) {
+          var piece = armorItems[i] || null;
+          rows += renderArmorRow(piece, i, theme.color);
+        }
+        armEl.innerHTML = rows;
+      }
+
+      panel.style.display = 'block';
+    }
+
     function renderLiveChars() {
-      const charCards = document.getElementById('charCards');
+      var charCards = document.getElementById('charCards');
       if (!charCards || !_liveChars.length) return;
 
       charCards.innerHTML = _liveChars.map(function(c, idx) {
         var ei = ELEMENT_ICONS[c.subclass && c.subclass.element] || ELEMENT_ICONS.void;
         var isActive = idx === _activeCharIdx;
-        var subHtml = (c.subclass && c.subclass.icon)
-          ? '<img src="' + c.subclass.icon + '" width="26" height="26" style="border-radius:4px;object-fit:contain;" referrerpolicy="no-referrer" onerror="this.replaceWith(document.createRange().createContextualFragment(\'' + ei.svg.replace(/'/g, "\\'") + '\'))">'
+        var theme = CLASS_THEMES[c.className] || CLASS_THEMES.Hunter;
+        var subHtml = (c.subclass && c.subclass.icon && c.subclass.icon.indexOf('bungie.net')!==-1)
+          ? '<img src="' + c.subclass.icon + '" width="24" height="24" style="border-radius:4px;object-fit:contain;" referrerpolicy="no-referrer" onerror="this.replaceWith(document.createRange().createContextualFragment(\'' + ei.svg.replace(/'/g, "\\'") + '\'))">'
           : ei.svg;
         var bgStyle = c.emblemBg ? 'background-image:url(' + c.emblemBg + ');background-size:cover;background-position:center left;' : '';
-        var overlay = c.emblemBg ? '<div style="position:absolute;inset:0;background:rgba(3,5,10,0.7);border-radius:inherit;"></div>' : '';
-        return '<div class="char-card ' + c.className.toLowerCase() + ' ' + (isActive ? 'active-char' : '') + '" onclick="selectLiveChar(' + idx + ')" style="position:relative;overflow:hidden;cursor:pointer;' + bgStyle + '">'
+        var overlay = c.emblemBg ? '<div style="position:absolute;inset:0;background:rgba(3,5,10,0.72);border-radius:inherit;"></div>' : '';
+        return '<div class="char-card ' + c.className.toLowerCase() + (isActive?' active-char':'') + '" onclick="selectLiveChar(' + idx + ')" style="position:relative;overflow:hidden;cursor:pointer;' + bgStyle + '">'
           + overlay
           + '<div style="position:relative;z-index:1;display:flex;flex-direction:column;gap:6px;width:100%;">'
-          + '<div class="char-class" style="font-weight:800;">' + c.className + '</div>'
-          + '<div style="font-size:1.5rem;font-weight:900;color:var(--gold2);">&#9889; ' + c.light + '</div>'
+          + '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:0.95rem;font-weight:800;color:' + theme.color + ';">' + c.className + '</div>'
+          + '<div style="font-size:1.4rem;font-weight:900;color:var(--gold2);">&#9889; ' + c.light + '</div>'
           + '<div style="display:flex;align-items:center;gap:7px;margin-top:2px;">'
-          + '<div style="background:' + ei.bg + ';border-radius:7px;padding:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + subHtml + '</div>'
-          + '<div style="font-size:0.73rem;font-weight:700;color:' + ei.color + ';line-height:1.2;">' + ((c.subclass && c.subclass.name) || 'Subclass') + '</div>'
-          + '</div></div></div>';
+          + '<div style="background:' + ei.bg + ';border-radius:6px;padding:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + subHtml + '</div>'
+          + '<div style="font-size:0.72rem;font-weight:700;color:' + ei.color + ';line-height:1.2;">' + ((c.subclass && c.subclass.name) || 'Subclass') + '</div>'
+          + '</div>'
+          + (isActive ? '<div style="position:absolute;top:8px;right:10px;font-size:0.6rem;padding:3px 8px;border-radius:6px;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);font-weight:700;letter-spacing:0.06em;">ACTIEF</div>' : '')
+          + '</div></div>';
       }).join('');
     }
 
@@ -1031,75 +1362,45 @@
       _activeCharIdx = idx;
       document.querySelectorAll('.char-card').forEach(function(c,i){ c.classList.toggle('active-char', i === idx); });
       var char = _liveChars[idx];
-      if (char) renderCharGear(char);
+      if (char) renderBuildPanel(char);
     }
 
-    function renderCharGear(char) {
-      var t1 = document.getElementById('invTitle1');
-      var t2 = document.getElementById('invTitle2');
-      if (t1) t1.innerHTML = '&#128299; Wapens &mdash; <span style="color:var(--gold2)">' + char.className + '</span>';
-      if (t2) t2.innerHTML = '&#128737;&#65039; Armor &mdash; <span style="color:var(--gold2)">' + char.className + '</span>';
-      renderGearGrid('weaponsGrid', char.weapons || []);
-      renderGearGrid('armorGrid',   char.armor   || []);
-    }
-
-    function renderGearGrid(containerId, items) {
-      var el = document.getElementById(containerId);
-      if (!el) return;
-      if (!items.length) {
-        el.innerHTML = '<div style="color:var(--text3);font-size:0.8rem;padding:12px;">Geen items gevonden</div>';
-        return;
-      }
-      el.innerHTML = items.map(function(item) {
-        var tier   = TIER_COLORS[item.tierType] || TIER_COLORS[5];
-        var power  = item.power || '';
-        var safeN  = (item.name || item.slotName || '').replace(/'/g, '');
-        var iconHtml = item.icon
-          ? '<img src="' + item.icon + '" style="width:56px;height:56px;object-fit:cover;display:block;" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">'
-            + '<div style="display:none;width:56px;height:56px;align-items:center;justify-content:center;font-size:1.6rem;">&#128299;</div>'
-          : '<div style="width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;">&#128299;</div>';
-        return '<div class="inv-item" style="border:1.5px solid ' + tier.border + ';background:' + tier.bg + ';flex-direction:column;height:auto;padding:6px;gap:3px;min-width:74px;max-width:90px;" title="' + safeN + (power ? ' \u26a1' + power : '') + '" onclick="showToast(\'' + safeN + '\')">'
-          + '<div style="width:56px;height:56px;border-radius:8px;overflow:hidden;background:rgba(0,0,0,0.3);margin:0 auto;">' + iconHtml + '</div>'
-          + '<div style="font-size:0.62rem;font-weight:600;color:var(--text2);text-align:center;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:82px;">' + (item.name || item.slotName) + '</div>'
-          + (power ? '<div style="font-size:0.66rem;color:var(--gold2);font-weight:700;text-align:center;">&#9889;' + power + '</div>' : '')
-          + '<div style="font-size:0.58rem;color:' + tier.color + ';text-align:center;text-transform:uppercase;letter-spacing:0.04em;">' + (item.isExotic ? 'Exotic' : 'Legendary') + '</div>'
-          + '</div>';
-      }).join('');
-    }
+    // Backwards compat
+    function renderCharGear(char) { renderBuildPanel(char); }
+    function renderGearGrid(cId, items) {}
 
     function renderStaticChars() {
       var charCards = document.getElementById('charCards');
       var STATIC = [
-        { className:'Hunter', light:2087, element:'arc',      subclassName:'Arc Strider'  },
-        { className:'Warlock',light:2071, element:'solar',    subclassName:'Dawnblade'    },
-        { className:'Titan',  light:2094, element:'void',     subclassName:'Sentinel'     },
+        { className:'Hunter', light:2087, element:'prismatic', subclassName:'Prismatic',  emblemBg:null },
+        { className:'Warlock',light:2071, element:'prismatic', subclassName:'Prismatic',  emblemBg:null },
+        { className:'Titan',  light:2094, element:'prismatic', subclassName:'Prismatic',  emblemBg:null },
       ];
       charCards.innerHTML = STATIC.map(function(c, idx) {
-        var ei = ELEMENT_ICONS[c.element];
-        return '<div class="char-card ' + c.className.toLowerCase() + ' ' + (idx===0?'active-char':'') + '" onclick="selectStaticChar(this,\'' + c.className + '\')">'
-          + '<div class="char-class">' + c.className + '</div>'
+        var ei = ELEMENT_ICONS[c.element] || ELEMENT_ICONS.void;
+        var theme = CLASS_THEMES[c.className];
+        return '<div class="char-card ' + c.className.toLowerCase() + (idx===0?' active-char':'') + '" onclick="selectStaticChar(this,' + idx + ')">'
+          + '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:0.95rem;font-weight:800;color:' + theme.color + ';">' + c.className + '</div>'
           + '<div style="font-size:1.4rem;font-weight:900;color:var(--gold2);">&#9889; ' + c.light + '</div>'
           + '<div style="display:flex;align-items:center;gap:6px;margin-top:2px;">'
           + '<div style="background:' + ei.bg + ';border-radius:6px;padding:3px;display:flex;">' + ei.svg + '</div>'
           + '<div style="font-size:0.72rem;font-weight:600;color:' + ei.color + ';">' + c.subclassName + '</div>'
           + '</div></div>';
       }).join('');
-      renderInvGrid('weaponsGrid', WEAPONS);
-      renderInvGrid('armorGrid', ARMOR);
-      var t1 = document.getElementById('invTitle1');
-      var t2 = document.getElementById('invTitle2');
-      if (t1) t1.innerHTML = '&#128299; Wapens &mdash; <span style="color:var(--gold2)">Hunter</span>';
-      if (t2) t2.innerHTML = '&#128737;&#65039; Armor &mdash; <span style="color:var(--gold2)">Hunter</span>';
+      // Toon Hunter build als default
+      selectStaticChar(charCards.children[0], 0);
     }
 
-    function selectStaticChar(el, name) {
+    function selectStaticChar(el, idx) {
       document.querySelectorAll('.char-card').forEach(function(c){ c.classList.remove('active-char'); });
-      el.classList.add('active-char');
-      var t1 = document.getElementById('invTitle1');
-      var t2 = document.getElementById('invTitle2');
-      if (t1) t1.innerHTML = '&#128299; Wapens &mdash; <span style="color:var(--gold2)">' + name + '</span>';
-      if (t2) t2.innerHTML = '&#128737;&#65039; Armor &mdash; <span style="color:var(--gold2)">' + name + '</span>';
-      showToast(name + ' geselecteerd');
+      if (el && el.classList) el.classList.add('active-char');
+      var STATIC_CHARS = [
+        { className:'Hunter', light:2087, subclass:{ element:'prismatic', name:'Prismatic' }, weapons:[], armor:[] },
+        { className:'Warlock',light:2071, subclass:{ element:'prismatic', name:'Prismatic' }, weapons:[], armor:[] },
+        { className:'Titan',  light:2094, subclass:{ element:'prismatic', name:'Prismatic' }, weapons:[], armor:[] },
+      ];
+      var char = STATIC_CHARS[idx] || STATIC_CHARS[0];
+      renderBuildPanel(char);
     }
 
     function initDimTab() {
@@ -1518,6 +1819,10 @@
       }
     };
 
+    // showSubclassPanel en renderSubclassItem zijn niet meer nodig — build panel doet alles
+    function showSubclassPanel() {}
+    function renderSubclassItem() {}
+
     // Subclass element → kleur mapping
     const ELEM_COLORS = {
       prismatic: { color: '#c8a2e8', glow: 'rgba(200,162,232,0.18)', label: 'Prismatic' },
@@ -1538,161 +1843,9 @@
       strand:    `<svg viewBox="0 0 32 32" width="32" height="32"><path d="M5 16 Q9 7 16 12 Q23 17 27 8" stroke="#31c48d" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M5 20 Q9 11 16 16 Q23 21 27 12" stroke="#31c48d" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.6"/><path d="M5 24 Q9 15 16 20 Q23 25 27 16" stroke="#31c48d" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.35"/></svg>`,
     };
 
-    // Render een ability/aspect/fragment item
-    function renderSubclassItem(item, type) {
-      var hasIcon = item.icon && item.icon.indexOf('bungie.net') !== -1;
-      var iconHtml;
-      if (hasIcon) {
-        iconHtml = '<img src="' + item.icon + '" width="38" height="38" style="border-radius:7px;object-fit:cover;" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">';
-      } else {
-        // Fallback gekleurde placeholder per type
-        var symbols = { super: '⚡', ability: '🔮', aspect: '💎', fragment: '🔷' };
-        iconHtml = '<div style="width:38px;height:38px;border-radius:7px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:1.3rem;">' + (symbols[type]||'●') + '</div>';
-      }
-
-      var extra = '';
-      if (type === 'ability' && item.type) {
-        extra = '<span style="font-size:0.6rem;background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;color:rgba(255,255,255,0.5);margin-left:4px;">' + item.type + '</span>';
-      }
-      if (type === 'aspect' && item.fragments) {
-        extra = '<span style="font-size:0.6rem;background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;color:rgba(255,255,255,0.45);margin-left:4px;">⟡ ' + item.fragments + ' slots</span>';
-      }
-      if (type === 'fragment' && item.stat) {
-        var isPos = item.stat.indexOf('+') === 0;
-        extra = '<span style="font-size:0.6rem;padding:2px 6px;border-radius:4px;margin-left:4px;color:' + (isPos?'#4caf82':'#e8622a') + ';background:' + (isPos?'rgba(76,175,130,0.12)':'rgba(232,98,42,0.12)') + ';">' + item.stat + '</span>';
-      }
-
-      return '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">'
-        + '<div style="flex-shrink:0;">' + iconHtml + '</div>'
-        + '<div style="flex:1;min-width:0;">'
-        + '<div style="font-size:0.78rem;font-weight:700;color:#fff;line-height:1.2;margin-bottom:2px;">' + (item.name||'') + extra + '</div>'
-        + '<div style="font-size:0.68rem;color:rgba(255,255,255,0.5);line-height:1.4;">' + (item.desc||'') + '</div>'
-        + '</div></div>';
+    function initDimTab() {
+      loadLiveCharacters();
     }
-
-    // Hoofdfunctie: toon het subclass panel voor een karakter
-    function showSubclassPanel(className, subclassName, element) {
-      var panel   = document.getElementById('subclassPanel');
-      var nameEl  = document.getElementById('subclassPanelName');
-      var metaEl  = document.getElementById('subclassPanelMeta');
-      var iconEl  = document.getElementById('subclassPanelIcon');
-      var superEl = document.getElementById('subclassSuper');
-      var abEl    = document.getElementById('subclassAbilities');
-      var aspEl   = document.getElementById('subclassAspects');
-      var fragEl  = document.getElementById('subclassFragments');
-      if (!panel) return;
-
-      // Haal data op
-      var classData = SUBCLASS_DB[className];
-      if (!classData) { panel.style.display = 'none'; return; }
-
-      // Zoek matching subclass op naam of element
-      var sub = null;
-      // Probeer directe naam-match (Prismatic, Arc, Solar etc)
-      var key = Object.keys(classData).find(function(k) {
-        return k.toLowerCase() === (subclassName||'').toLowerCase()
-          || k.toLowerCase() === (element||'').toLowerCase();
-      });
-      if (!key && element) {
-        // match op element
-        key = Object.keys(classData).find(function(k) {
-          return classData[k].element === element.toLowerCase();
-        });
-      }
-      sub = key ? classData[key] : classData[Object.keys(classData)[0]];
-      if (!sub) { panel.style.display = 'none'; return; }
-
-      var ec = ELEM_COLORS[sub.element] || ELEM_COLORS.void;
-      var svg = ELEM_SVGS[sub.element] || ELEM_SVGS.void;
-
-      // CSS variabelen voor glow
-      panel.querySelector('div').style.setProperty('--subclass-color', ec.color);
-      panel.querySelector('div').style.setProperty('--subclass-glow', ec.glow);
-      panel.querySelector('div').style.borderColor = ec.color.replace('1)', '0.4)') || 'rgba(200,162,232,0.4)';
-      panel.querySelector('div').style.boxShadow = '0 0 40px ' + ec.glow + ', 0 8px 32px rgba(0,0,0,0.6)';
-
-      // Header
-      if (nameEl) nameEl.textContent = (className + ' — ' + (sub.name || key || subclassName || ''));
-      if (metaEl) { metaEl.textContent = ec.label + ' · ' + className; metaEl.style.color = ec.color; }
-
-      // Icon
-      if (iconEl) {
-        if (sub.icon && sub.icon.indexOf('bungie.net') !== -1) {
-          iconEl.innerHTML = '<img src="' + sub.icon + '" width="52" height="52" style="border-radius:8px;object-fit:cover;" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML=\'' + svg.replace(/'/g,"&#39;") + '\'">';
-        } else {
-          iconEl.innerHTML = svg;
-        }
-        iconEl.style.borderColor = ec.color;
-        iconEl.style.boxShadow = '0 0 16px ' + ec.glow;
-      }
-
-      // Label kleur updaten
-      document.querySelectorAll('#subclassPanel [data-label]').forEach(function(el){
-        el.style.color = ec.color;
-      });
-
-      // Super
-      if (superEl && sub.super) {
-        superEl.innerHTML = renderSubclassItem(sub.super, 'super');
-      }
-
-      // Abilities
-      if (abEl && sub.abilities) {
-        abEl.innerHTML = sub.abilities.map(function(a){ return renderSubclassItem(a, 'ability'); }).join('');
-      }
-
-      // Aspects
-      if (aspEl && sub.aspects) {
-        aspEl.innerHTML = sub.aspects.map(function(a){ return renderSubclassItem(a, 'aspect'); }).join('');
-      }
-
-      // Fragments
-      if (fragEl && sub.fragments) {
-        fragEl.innerHTML = sub.fragments.map(function(f){ return renderSubclassItem(f, 'fragment'); }).join('');
-      }
-
-      panel.style.display = 'block';
-      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    // ── Override selectLiveChar om subclass panel te tonen ──
-    var _origSelectLiveChar = window.selectLiveChar;
-    window.selectLiveChar = function(idx) {
-      _activeCharIdx = idx;
-      document.querySelectorAll('.char-card').forEach(function(c,i){ c.classList.toggle('active-char', i === idx); });
-      var char = _liveChars[idx];
-      if (char) {
-        renderCharGear(char);
-        // Bepaal subclass info
-        var elem = (char.subclass && char.subclass.element) || 'void';
-        var subName = (char.subclass && char.subclass.name) || '';
-        // Detecteer subclass-naam: prismatic/arc/solar/void etc
-        var elemKey = subName.toLowerCase();
-        if (elemKey.indexOf('prismatic') >= 0) elemKey = 'prismatic';
-        else if (elemKey.indexOf('arc') >= 0) elemKey = 'arc';
-        else if (elemKey.indexOf('solar') >= 0 || elemKey.indexOf('dawn') >= 0 || elemKey.indexOf('sunbreak') >= 0) elemKey = 'solar';
-        else if (elemKey.indexOf('void') >= 0 || elemKey.indexOf('shadow') >= 0 || elemKey.indexOf('sentinel') >= 0) elemKey = 'void';
-        else if (elemKey.indexOf('stasis') >= 0 || elemKey.indexOf('revenant') >= 0 || elemKey.indexOf('behemoth') >= 0 || elemKey.indexOf('shadebinder') >= 0) elemKey = 'stasis';
-        else if (elemKey.indexOf('strand') >= 0 || elemKey.indexOf('threadrunner') >= 0 || elemKey.indexOf('broodweaver') >= 0 || elemKey.indexOf('berserker') >= 0) elemKey = 'strand';
-        else elemKey = elem;
-        showSubclassPanel(char.className, elemKey, elem);
-      }
-    };
-
-    // ── Override selectStaticChar om subclass panel te tonen ──
-    var _origSelectStaticChar = window.selectStaticChar;
-    window.selectStaticChar = function(el, name) {
-      document.querySelectorAll('.char-card').forEach(function(c){ c.classList.remove('active-char'); });
-      el.classList.add('active-char');
-      var t1 = document.getElementById('invTitle1');
-      var t2 = document.getElementById('invTitle2');
-      if (t1) t1.innerHTML = '&#128299; Wapens &mdash; <span style="color:var(--gold2)">' + name + '</span>';
-      if (t2) t2.innerHTML = '&#128737;&#65039; Armor &mdash; <span style="color:var(--gold2)">' + name + '</span>';
-      // Default subclass tonen per karakter
-      var defaults = { Hunter: 'prismatic', Warlock: 'prismatic', Titan: 'prismatic' };
-      showSubclassPanel(name, defaults[name] || 'prismatic', defaults[name] || 'prismatic');
-      showToast(name + ' geselecteerd');
-    };
 
   </script>-e 
 
