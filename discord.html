@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Guardian HQ</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 
 body{
     font-family:'Inter',sans-serif;
-    background:#0a0a0a;
-    color:white;
+    background:#0f1115;
+    color:#fff;
 }
 
 /* NAV */
@@ -21,73 +21,101 @@ body{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    padding:20px 40px;
+    padding:18px 30px;
+    background:#0f1115;
+    border-bottom:1px solid #1c1f26;
 }
 
 .logo{
     font-weight:600;
-    font-size:14px;
-    letter-spacing:1px;
+    color:#fff;
 }
 
 .links a{
     margin-left:20px;
+    color:#b5bac1;
     text-decoration:none;
-    color:#aaa;
     font-size:14px;
 }
 
 .links a:hover{
-    color:white;
+    color:#fff;
 }
 
 /* HERO */
 .hero{
     height:90vh;
     display:flex;
-    flex-direction:column;
     justify-content:center;
     align-items:center;
     text-align:center;
     padding:20px;
 }
 
-.hero h1{
-    font-size:48px;
-    font-weight:600;
-    margin-bottom:20px;
+.box{
+    max-width:500px;
+    width:100%;
 }
 
-.hero p{
-    max-width:500px;
-    color:#aaa;
+/* TITLE */
+h1{
+    font-size:40px;
+    font-weight:600;
+    margin-bottom:15px;
+}
+
+p{
+    color:#b5bac1;
     line-height:1.6;
 }
 
 /* BUTTON */
 .btn{
-    margin-top:30px;
+    display:inline-block;
+    margin-top:25px;
     padding:14px 28px;
-    border-radius:30px;
-    background:white;
-    color:black;
+    background:#5865F2;
+    color:#fff;
+    border-radius:8px;
     text-decoration:none;
-    font-weight:500;
+    font-weight:600;
     transition:0.2s;
 }
 
 .btn:hover{
-    transform:scale(1.05);
+    background:#4752c4;
+    transform:translateY(-2px);
+}
+
+/* SUBTLE GLOW */
+.glow{
+    position:absolute;
+    width:400px;
+    height:400px;
+    background:radial-gradient(circle, rgba(88,101,242,0.15), transparent);
+    top:30%;
+    left:50%;
+    transform:translateX(-50%);
+    filter:blur(40px);
 }
 
 /* MOBILE */
 @media(max-width:768px){
-    .hero h1{font-size:32px;}
+
+    .links{
+        display:none;
+    }
+
+    h1{
+        font-size:28px;
+    }
 }
 </style>
 </head>
 
 <body>
+
+<div class="glow"></div>
 
 <nav class="nav">
     <div class="logo">Guardian HQ</div>
@@ -95,22 +123,26 @@ body{
     <div class="links">
         <a href="landing.html">Welkom</a>
         <a href="home.html">Home</a>
-        <a href="destiny.html">Destiny</a>
+        <a href="destiny.html">Destiny2</a>
         <a href="contact.html">Contact</a>
         <a href="profile.html">Profiel</a>
     </div>
 </nav>
 
 <section class="hero">
-    <h1>Join the Tower</h1>
+    <div class="box">
 
-    <p>
-    A place where Destiny players connect, build Fireteams and play endgame content together.
-    </p>
+        <h1>Join the Tower</h1>
 
-    <a class="btn" href="https://discord.gg/3jXMneeY" target="_blank">
-        Join Discord
-    </a>
+        <p>
+        Build Fireteams, run raids, and play Destiny together.
+        </p>
+
+        <a class="btn" href="https://discord.gg/3jXMneeY" target="_blank">
+            Join Discord
+        </a>
+
+    </div>
 </section>
 
 </body>
