@@ -42,7 +42,9 @@ function clearBungieTokens() {
 function bungieLogin() {
   var state = Math.random().toString(36).slice(2);
   localStorage.setItem('bungie_oauth_state', state);
-  window.location.href = OAUTH_URL + '?client_id=' + BUNGIE_CLIENT_ID + '&response_type=code&state=' + state;
+  // redirect_uri MOET overeenkomen met wat in Bungie Developer Portal staat
+  var redirectUri = encodeURIComponent('https://guardianhq.vercel.app/profile.html');
+  window.location.href = OAUTH_URL + '?client_id=' + BUNGIE_CLIENT_ID + '&response_type=code&state=' + state + '&redirect_uri=' + redirectUri;
 }
 
 async function handleBungieCallback() {
