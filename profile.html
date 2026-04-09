@@ -500,7 +500,14 @@
           const linked = await handleBungieCallback();
           if (linked) {
             showToast('✓ Bungie account gekoppeld!');
-            await new Promise(r => setTimeout(r, 500));
+            await new Promise(r => setTimeout(r, 800));
+            // Als de OAuth vanuit destiny pagina werd gestart → stuur terug
+            const returnTo = localStorage.getItem('bungie_oauth_return');
+            if (returnTo === 'destiny') {
+              localStorage.removeItem('bungie_oauth_return');
+              window.location.href = 'destiny.html';
+              return;
+            }
             loadBungieProfileData();
           } else {
             document.getElementById('hoursPlayed').textContent = '—';
