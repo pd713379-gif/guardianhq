@@ -1,1 +1,53 @@
 
+// ============================================================
+// GUARDIANHQ — api/image-proxy.js
+// Vercel Serverless Function — Bungie afbeelding proxy
+// ============================================================
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  const { url } = req.query;
+  if (!url) return res.status(400).send('Missing url parameter');
+
+  let decoded;
+  try { decoded = decodeURIComponent(url); }
+  catch { return res.status(400).send('Invalid url parameter'); }
+
+  // Sta alle bungie.net afbeeldingen toe (/img/ en /common/)
+  if (!decoded.startsWith('https://www.bungie.net/')) {
+    return res.status(403).send('Only bungie.net URLs allowed');
+  }
+
+  // Alleen afbeeldingen — geen API calls via deze proxy
+  if (!decoded.match(/\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i) &&
+      !decoded.includes('/img/') &&
+      !decoded.includes('/common/')) {
+    return res.status(403).send('Only image URLs allowed');
+  }
+
+  try {
+    const response = await fetch(decoded, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://www.bungie.net/',
+        'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
+      }
+    });
+
+    if (!response.ok) {
+      return res.status(response.status).send('Upstream error: ' + response.status);
+    }
+
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    const buffer = await response.arrayBuffer();
+
+    res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=3600');
+    res.setHeader('Content-Type', contentType);
+    return res.status(200).send(Buffer.from(buffer));
+
+  } catch (err) {
+    console.error('[image-proxy] Fout:', err.message);
+    return res.status(500).send('Proxy error: ' + err.message);
+  }
+}
