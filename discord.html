@@ -484,7 +484,139 @@
         grid-template-columns: 1fr;
       }
     }
-  </style>
+  
+/* ===== Guardian HQ Patch v1 (ADDED ONLY) ===== */
+.reset-float{
+    position: fixed;
+    right: 24px;
+    bottom: 110px;
+    z-index: 40;
+    padding: 12px 18px;
+    border-radius: 14px;
+    background: rgba(88,101,242,0.16);
+    border: 1px solid rgba(255,255,255,0.14);
+    backdrop-filter: blur(14px);
+    color: #ffffff;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 0 24px rgba(88,101,242,0.28);
+    animation: resetFloat 3.2s ease-in-out infinite;
+}
+.reset-float:hover{
+    transform: translateY(-3px);
+    background: rgba(88,101,242,0.24);
+}
+@keyframes resetFloat{
+    0%,100%{ transform: translateY(0px); }
+    50%{ transform: translateY(-12px); }
+}
+
+.guardian-command{
+    max-width: 1100px;
+    margin: 24px auto 0 auto;
+    padding: 0 20px 40px;
+}
+.guardian-command-card{
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(18px);
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 0 40px rgba(0,0,0,0.28), inset 0 0 18px rgba(255,255,255,0.02);
+}
+.guardian-command h2{
+    font-size: 28px;
+    margin-bottom: 8px;
+    color: #fff;
+}
+.guardian-command .command-sub{
+    color: #d6dbff;
+    line-height: 1.6;
+    margin-bottom: 18px;
+}
+.command-grid{
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: 14px;
+}
+.command-stat{
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 16px;
+}
+.command-label{
+    color: #b8c0ff;
+    font-size: 13px;
+    margin-bottom: 8px;
+    letter-spacing: 0.4px;
+}
+.command-value{
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.4;
+    word-break: break-word;
+}
+.command-live{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(34,197,94,0.12);
+    border: 1px solid rgba(34,197,94,0.24);
+    color: #dcffe8;
+    font-size: 13px;
+    font-weight: 700;
+}
+.command-dot{
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 12px rgba(74,222,128,0.8);
+}
+.command-news{
+    margin-top: 16px;
+    display: grid;
+    gap: 10px;
+}
+.command-news-item{
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+.command-news-item a{
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+}
+.command-news-item a:hover{
+    color: #b8c0ff;
+}
+.command-muted{
+    color: #bfc5d6;
+    font-size: 13px;
+    margin-top: 4px;
+}
+@media (max-width: 900px){
+    .command-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (max-width: 600px){
+    .command-grid{ grid-template-columns: 1fr; }
+    .reset-float{
+        right: 16px;
+        bottom: 90px;
+        font-size: 14px;
+        padding: 10px 14px;
+    }
+}
+/* ===== End Patch v1 ===== */
+
+</style>
 </head>
 
 <body>
@@ -639,5 +771,151 @@
       glow.style.top = e.clientY + "px";
     });
   </script>
+
+<!-- ===== Guardian HQ Patch v1 (ADDED ONLY) ===== -->
+<a href="#guardian-command" class="reset-float">Weekly Reset</a>
+
+<section class="guardian-command" id="guardian-command">
+  <div class="guardian-command-card">
+    <div class="command-live"><span class="command-dot"></span> LIVE GUARDIAN COMMAND</div>
+    <h2>Guardian Command</h2>
+    <p class="command-sub">
+      Real-time Destiny 2 status and reset info powered by your existing Bungie/Vercel setup.
+    </p>
+
+    <div class="command-grid">
+      <div class="command-stat">
+        <div class="command-label">Server Status</div>
+        <div class="command-value" id="gc-server-status">Loading...</div>
+      </div>
+
+      <div class="command-stat">
+        <div class="command-label">Steam Players</div>
+        <div class="command-value" id="gc-steam-players">Loading...</div>
+      </div>
+
+      <div class="command-stat">
+        <div class="command-label">Weekly Reset</div>
+        <div class="command-value" id="gc-weekly-reset">Loading...</div>
+      </div>
+
+      <div class="command-stat">
+        <div class="command-label">Daily Reset</div>
+        <div class="command-value" id="gc-daily-reset">Loading...</div>
+      </div>
+    </div>
+
+    <div class="command-news" id="gc-news">
+      <div class="command-news-item">
+        <div class="command-value" style="font-size:16px;">Loading Bungie News...</div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ===== End Patch v1 ===== -->
+
+<script>
+// ===== Guardian HQ Patch v1 (ADDED ONLY) =====
+(function(){
+  const setText = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+
+  async function loadGuardianCommand(){
+    try{
+      const res = await fetch('/api/bungie-stats');
+      const data = await res.json();
+
+      const status =
+        data?.serverStatus ||
+        data?.status ||
+        data?.server ||
+        (data?.online ? 'Online' : 'Unknown');
+
+      const steam =
+        data?.steamPlayers ||
+        data?.steam_players ||
+        data?.players ||
+        data?.population ||
+        'Unavailable';
+
+      const weekly =
+        data?.weeklyReset ||
+        data?.weekly_reset ||
+        data?.weeklyResetTimer ||
+        'Tuesday • 18:00 CET';
+
+      const daily =
+        data?.dailyReset ||
+        data?.daily_reset ||
+        data?.dailyResetTimer ||
+        'Daily • 18:00 CET';
+
+      setText('gc-server-status', String(status));
+      setText('gc-steam-players', String(steam));
+      setText('gc-weekly-reset', String(weekly));
+      setText('gc-daily-reset', String(daily));
+    }catch(err){
+      setText('gc-server-status', 'Unavailable');
+      setText('gc-steam-players', 'Unavailable');
+      setText('gc-weekly-reset', 'Tuesday • 18:00 CET');
+      setText('gc-daily-reset', 'Daily • 18:00 CET');
+    }
+  }
+
+  async function loadBungieNews(){
+    const newsWrap = document.getElementById('gc-news');
+    if(!newsWrap) return;
+
+    try{
+      const res = await fetch('/api/bungie-news');
+      const data = await res.json();
+
+      const items =
+        data?.articles ||
+        data?.news ||
+        data?.items ||
+        data?.results ||
+        [];
+
+      if(!Array.isArray(items) || !items.length){
+        newsWrap.innerHTML = `
+          <div class="command-news-item">
+            <div class="command-value" style="font-size:16px;">No Bungie news available right now.</div>
+          </div>
+        `;
+        return;
+      }
+
+      const top = items.slice(0, 3);
+
+      newsWrap.innerHTML = top.map(item => {
+        const title = item.title || item.name || 'Bungie Update';
+        const url = item.url || item.link || '#';
+        const date = item.date || item.pubDate || item.published || '';
+        return `
+          <div class="command-news-item">
+            <a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a>
+            <div class="command-muted">${date || 'Live feed'}</div>
+          </div>
+        `;
+      }).join('');
+    }catch(err){
+      newsWrap.innerHTML = `
+        <div class="command-news-item">
+          <div class="command-value" style="font-size:16px;">Bungie news unavailable right now.</div>
+        </div>
+      `;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadGuardianCommand();
+    loadBungieNews();
+  });
+})();
+// ===== End Patch v1 =====
+</script>
 </body>
 </html>
