@@ -320,6 +320,7 @@
   <div class="toast" id="ghq-toast"></div>
 
   <script src="js/auth.js"></script>
+  <script src="js/bungie.js"></script>
   <script src="js/main.js"></script>
   <script>
     window.addEventListener('DOMContentLoaded', () => {
@@ -918,66 +919,24 @@
     let _liveChars = [];       // opgeslagen live karakter data
     let _activeCharIdx = 0;    // actief geselecteerde karakter
 
-    // ── Haal Bungie access token op uit localStorage (gezet door OAuth flow) ──
+    // ── Haal Bungie access token op — via bungie.js getValidToken() ──
     function getBungieToken() {
       try {
         const t = localStorage.getItem('bungie_access_token');
         const exp = parseInt(localStorage.getItem('bungie_token_expires') || '0');
-        if (t && Date.now() < exp) return t;
+        if (t && Date.now() < exp - 60000) return t;
       } catch {}
       return null;
     }
 
-    // ── Bungie API aanroepen via de server proxy ──
-    async function bungieApi(endpoint, accessToken) {
-      const res = await fetch('/api/bungie-auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'api', endpoint, access_token: accessToken }),
-      });
-      if (!res.ok) throw new Error('Bungie API fout: ' + res.status);
-      return res.json();
-    }
+    // ── Bungie API aanroepen — hergebruik bungieGet() uit bungie.js ──
+    // bungieGet() doet auto token-refresh en error handling
 
-    // ── Start Bungie OAuth ──
+    // ── Start Bungie OAuth — redirect naar bungie, comeback via profile.html ──
     function startBungieOAuth() {
-      const clientId = '49474'; // Bungie client_id uit vercel.json of hard-coded
-      const redirectUri = encodeURIComponent(window.location.origin + '/destiny.html?bungie_callback=1');
-      const state = Math.random().toString(36).slice(2);
-      localStorage.setItem('bungie_oauth_state', state);
-      const url = `https://www.bungie.net/en/OAuth/Authorize?client_id=${clientId}&response_type=code&state=${state}&redirect_uri=${redirectUri}`;
-      window.location.href = url;
-    }
-
-    // ── Verwerk OAuth callback (code in URL) ──
-    async function handleOAuthCallback() {
-      const params = new URLSearchParams(window.location.search);
-      const code  = params.get('code');
-      const state = params.get('state');
-      if (!code) return false;
-
-      // Verwijder code uit URL
-      window.history.replaceState({}, '', '/destiny.html');
-
-      try {
-        const res = await fetch('/api/bungie-auth', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code }),
-        });
-        const data = await res.json();
-        if (data.access_token) {
-          localStorage.setItem('bungie_access_token',  data.access_token);
-          localStorage.setItem('bungie_refresh_token', data.refresh_token || '');
-          localStorage.setItem('bungie_membership_id', data.membership_id || '');
-          localStorage.setItem('bungie_token_expires', String(Date.now() + (data.expires_in || 3600) * 1000));
-          showToast('✅ Bungie account verbonden!');
-          return true;
-        }
-      } catch(e) {
-        console.warn('OAuth callback fout:', e.message);
-      }
-      return false;
+      localStorage.setItem('bungie_oauth_return', 'destiny');
+      // bungieLogin() zit in bungie.js en gebruikt de juiste client_id 51944
+      bungieLogin();
     }
 
     // ── Laad live karakterdata van Bungie ──
@@ -985,38 +944,39 @@
       const charCards = document.getElementById('charCards');
       const banner    = document.getElementById('bungieConnectBanner');
 
-      const token = getBungieToken();
-      if (!token) {
-        // Toon connect banner, val terug op statische data
+      if (!isBungieLinked()) {
         if (banner) banner.style.display = 'block';
         renderStaticChars();
         return;
       }
       if (banner) banner.style.display = 'none';
 
-      // Toon loading
       charCards.innerHTML = `<div style="flex:1;padding:20px;text-align:center;color:var(--text3);font-size:0.85rem;">⏳ Live data ophalen van Bungie...</div>`;
 
       try {
-        // Stap 1: haal membership info op
-        const membershipId = localStorage.getItem('bungie_membership_id');
-        const meRes = await bungieApi(`/User/GetMembershipsById/${membershipId}/254/`, token);
-        const destinyMemberships = meRes?.Response?.destinyMemberships ?? [];
-        const primary = destinyMemberships[0];
-        if (!primary) throw new Error('Geen Destiny membership gevonden');
+        // Haal membership info op — bungieGet() uit bungie.js doet auto token refresh
+        const user = await bungieGet('/User/GetMembershipsForCurrentUser/');
+        const memberships = user?.destinyMemberships ?? [];
+        let primary = memberships[0];
+        for (const m of memberships) {
+          if (m.crossSaveOverride === m.membershipType) { primary = m; break; }
+        }
+        if (!primary) throw new Error('Geen Destiny membership');
 
         const mType = primary.membershipType;
         const mId   = primary.membershipId;
 
-        // Stap 2: haal profiel op met karakters + uitrusting (components 200=chars, 205=equipment, 300=itemComponents)
-        const profileData = await bungieApi(
-          `/Destiny2/${mType}/Profile/${mId}/?components=200,205,300`,
-          token
+        // Sla op voor later gebruik
+        localStorage.setItem('bungie_platform',   mType.toString());
+        localStorage.setItem('bungie_destiny_id', mId);
+
+        // Haal karakters + uitrusting op (components 200=chars, 205=equipment)
+        const profileData = await bungieGet(
+          `/Destiny2/${mType}/Profile/${mId}/?components=200,205`
         );
 
-        const chars     = profileData?.Response?.characters?.data     ?? {};
-        const equipment = profileData?.Response?.characterEquipment?.data ?? {};
-        const itemComps = profileData?.Response?.itemComponents ?? {};
+        const chars     = profileData?.characters?.data     ?? {};
+        const equipment = profileData?.characterEquipment?.data ?? {};
 
         _liveChars = [];
         const classNames = { 0:'Titan', 1:'Hunter', 2:'Warlock' };
@@ -1024,26 +984,20 @@
         for (const [charId, char] of Object.entries(chars)) {
           const className  = classNames[char.classType] ?? 'Unknown';
           const light      = char.light ?? 0;
-          const emblemPath = char.emblemPath ? 'https://www.bungie.net' + char.emblemPath : null;
           const emblemBg   = char.emblemBackgroundPath ? 'https://www.bungie.net' + char.emblemBackgroundPath : null;
 
-          // Subclass uit uitrusting
-          const charEquip  = equipment[charId]?.items ?? [];
+          // Subclass uit uitrusting (bucket 3284755031 = subclass)
+          const charEquip    = equipment[charId]?.items ?? [];
           const subclassItem = charEquip.find(i => i.bucketHash === 3284755031);
           const subclassHash = subclassItem?.itemHash;
-          const subclassInfo = SUBCLASS_MAP[subclassHash] ?? { name:'Onbekend', color:'#aaa', element:'void' };
+          const subclassInfo = SUBCLASS_MAP[subclassHash] ?? { name:'Unknown Subclass', color:'#aaa', element:'void' };
           const elementInfo  = ELEMENT_ICONS[subclassInfo.element] ?? ELEMENT_ICONS.void;
 
-          // Wapens (bucket hashes voor kinetic/energy/heavy)
+          // Wapens en armor scheiden op bucket hash
           const weaponItems = charEquip.filter(i => WEAPON_SLOTS[i.bucketHash]);
           const armorItems  = charEquip.filter(i => ARMOR_SLOTS[i.bucketHash]);
 
-          _liveChars.push({
-            charId, className, light, emblemPath, emblemBg,
-            subclassInfo, elementInfo,
-            weaponItems, armorItems,
-            rawEquip: charEquip,
-          });
+          _liveChars.push({ charId, className, light, emblemBg, subclassInfo, elementInfo, weaponItems, armorItems });
         }
 
         // Sorteer: Hunter, Warlock, Titan
@@ -1052,19 +1006,13 @@
 
         renderLiveChars();
 
-        // Laad direct de eerste karakter
-        if (_liveChars.length > 0) {
-          await loadCharEquipment(_liveChars[0], mType, mId, token);
-        }
+        // Laad item details (namen + icons) voor eerste karakter
+        if (_liveChars.length > 0) loadItemDefinitions(_liveChars[0], mType, mId);
 
       } catch(err) {
         console.warn('Live karakters laden mislukt:', err.message);
         renderStaticChars();
-        if (err.message.includes('401') || err.message.includes('token')) {
-          // Token verlopen — verwijder en toon connect banner
-          localStorage.removeItem('bungie_access_token');
-          if (banner) banner.style.display = 'block';
-        }
+        if (banner) banner.style.display = 'block';
       }
     }
 
@@ -1103,23 +1051,13 @@
       document.querySelectorAll('.char-card').forEach((c,i) => {
         c.classList.toggle('active-char', i === idx);
       });
-
       const char = _liveChars[idx];
       if (!char) return;
-
-      const t1 = document.getElementById('invTitle1');
-      const t2 = document.getElementById('invTitle2');
-      if (t1) t1.innerHTML = `🔫 Wapens — <span style="color:var(--gold2)">${char.className}</span>`;
-      if (t2) t2.innerHTML = `🛡️ Armor — <span style="color:var(--gold2)">${char.className}</span>`;
-
-      // Laad uitgerust gear
-      const wGrid = document.getElementById('weaponsGrid');
-      const aGrid = document.getElementById('armorGrid');
-      if (wGrid) wGrid.innerHTML = `<div style="color:var(--text3);font-size:0.8rem;padding:12px">⏳ Laden...</div>`;
-      if (aGrid) aGrid.innerHTML = '';
-
-      // Render direct vanuit cache
       renderCharGear(char);
+      // Laad item details als nog niet gedaan
+      const mType = localStorage.getItem('bungie_platform');
+      const mId   = localStorage.getItem('bungie_destiny_id');
+      if (mType && mId && !char._itemsLoaded) loadItemDefinitions(char, mType, mId);
     }
 
     // ── Render wapens en armor voor een karakter ──
@@ -1190,58 +1128,48 @@
       }).join('');
     }
 
-    // ── Haal gedetailleerde item data op (voor icon, naam, tier) ──
-    async function loadCharEquipment(char, mType, mId, token) {
+    // ── Haal item definities op (namen + icons + tier) via Bungie manifest ──
+    async function loadItemDefinitions(char, mType, mId) {
+      if (char._itemsLoaded) return;
       try {
-        // Haal manifest item definities op voor de uitgerusite items
-        const allItemHashes = [
+        const allHashes = [
           ...char.weaponItems.map(i => i.itemHash),
           ...char.armorItems.map(i => i.itemHash),
         ].filter(Boolean);
 
-        if (!allItemHashes.length) return;
+        if (!allHashes.length) return;
 
-        // Via de proxy elk item defintion ophalen (Destiny2/Manifest endpoint)
-        // We gebruiken GetItem endpoint per hash via bulk approach
-        const defRes = await fetch('/api/bungie-auth', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'api',
-            endpoint: `/Destiny2/Manifest/DestinyInventoryItemDefinition/${allItemHashes.join(',')}/`,
-            access_token: token,
-          }),
-        });
+        // Haal alle item definities op in één call
+        const defs = await bungieGet(
+          `/Destiny2/Manifest/DestinyInventoryItemDefinition/${allHashes.join(',')}/`
+        );
 
-        if (defRes.ok) {
-          const defData = await defRes.json();
-          const defs = defData?.Response ?? {};
-
-          // Verrijk weapon items
+        if (defs) {
           char.weaponItems = char.weaponItems.map(item => ({
             ...item,
-            name:          defs[item.itemHash]?.displayProperties?.name ?? null,
-            itemIcon:      defs[item.itemHash]?.displayProperties?.icon ?? null,
-            itemTierType:  defs[item.itemHash]?.inventory?.tierType ?? 5,
+            name:         defs[item.itemHash]?.displayProperties?.name ?? null,
+            itemIcon:     defs[item.itemHash]?.displayProperties?.icon ?? null,
+            itemTierType: defs[item.itemHash]?.inventory?.tierType ?? 5,
           }));
-
-          // Verrijk armor items
           char.armorItems = char.armorItems.map(item => ({
             ...item,
-            name:          defs[item.itemHash]?.displayProperties?.name ?? null,
-            itemIcon:      defs[item.itemHash]?.displayProperties?.icon ?? null,
-            itemTierType:  defs[item.itemHash]?.inventory?.tierType ?? 5,
+            name:         defs[item.itemHash]?.displayProperties?.name ?? null,
+            itemIcon:     defs[item.itemHash]?.displayProperties?.icon ?? null,
+            itemTierType: defs[item.itemHash]?.inventory?.tierType ?? 5,
           }));
+          char._itemsLoaded = true;
 
-          // Re-render
+          // Re-render als dit karakter actief is
           if (_liveChars[_activeCharIdx]?.charId === char.charId) {
             renderCharGear(char);
           }
         }
       } catch(e) {
         console.warn('Item definities laden mislukt:', e.message);
-        // Render zonder naam/icon — valt terug op bucket naam
-        renderCharGear(char);
+        char._itemsLoaded = true; // Niet opnieuw proberen
+        if (_liveChars[_activeCharIdx]?.charId === char.charId) {
+          renderCharGear(char);
+        }
       }
     }
 
@@ -1291,14 +1219,6 @@
     function initDimTab() {
       loadLiveCharacters();
     }
-
-    // ── Verwerk OAuth callback als die er is ──
-    (async () => {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('code') || params.get('bungie_callback')) {
-        await handleOAuthCallback();
-      }
-    })();
 
   </script>
 
