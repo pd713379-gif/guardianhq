@@ -1,222 +1,643 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Guardian HQ</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guardian HQ</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-body{
-    font-family:'Inter',sans-serif;
-    background: radial-gradient(circle at top, #11131a, #05060a);
-    color:white;
-    min-height:100vh;
-    overflow:hidden;
-}
+    :root {
+      --bg-1: #05060a;
+      --bg-2: #0a0d14;
+      --bg-3: #121826;
+      --text: #ffffff;
+      --muted: #aab2c5;
+      --line: rgba(255,255,255,0.08);
+      --glass: rgba(255,255,255,0.06);
+      --glass-strong: rgba(255,255,255,0.08);
+      --primary: #7c5cff;
+      --primary-2: #5865f2;
+      --cyan: #00d4ff;
+      --shadow: 0 20px 80px rgba(0,0,0,0.45);
+    }
 
-/* 🌌 STAR LAYERS */
-.stars{position:fixed;width:100%;height:100%;top:0;left:0;z-index:-1;}
+    body {
+      font-family: 'Inter', sans-serif;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(124, 92, 255, 0.18), transparent 25%),
+        radial-gradient(circle at 85% 15%, rgba(0, 212, 255, 0.12), transparent 22%),
+        radial-gradient(circle at 50% 100%, rgba(88, 101, 242, 0.10), transparent 35%),
+        linear-gradient(180deg, var(--bg-3), var(--bg-1));
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
 
-.star{
-    position:absolute;
-    border-radius:50%;
-    background:white;
-    animation:twinkle ease-in-out infinite;
-}
+    /* BACKGROUND STARS */
+    .stars {
+      position: fixed;
+      inset: 0;
+      z-index: -3;
+    }
 
-.small{width:1px;height:1px;opacity:0.3;}
-.medium{width:2px;height:2px;opacity:0.6;}
-.big{width:3px;height:3px;opacity:0.9;}
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: white;
+      animation: twinkle ease-in-out infinite;
+    }
 
-@keyframes twinkle{
-    0%,100%{opacity:0.2;transform:scale(1);}
-    50%{opacity:1;transform:scale(1.5);}
-}
+    .small { width: 1px; height: 1px; opacity: 0.25; }
+    .medium { width: 2px; height: 2px; opacity: 0.5; }
+    .big { width: 3px; height: 3px; opacity: 0.85; }
 
-/* 💫 SHOOTING STAR */
-.shoot{
-    position:absolute;
-    width:120px;
-    height:2px;
-    background:linear-gradient(90deg, white, transparent);
-    opacity:0;
-}
+    @keyframes twinkle {
+      0%,100% { opacity: 0.2; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.5); }
+    }
 
-@keyframes shoot{
-    0%{transform:translateX(0) translateY(0); opacity:1;}
-    100%{transform:translateX(-600px) translateY(300px); opacity:0;}
-}
+    /* SHOOTING STAR */
+    .shoot {
+      position: absolute;
+      width: 140px;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,1), rgba(255,255,255,0));
+      opacity: 0;
+      transform: rotate(-25deg);
+      filter: drop-shadow(0 0 8px rgba(255,255,255,0.7));
+      z-index: -2;
+    }
 
-/* 🖱️ MOUSE GLOW */
-.glow{
-    position:fixed;
-    width:300px;
-    height:300px;
-    background:radial-gradient(circle, rgba(88,101,242,0.15), transparent);
-    pointer-events:none;
-    transform:translate(-50%,-50%);
-    z-index:-1;
-}
+    @keyframes shoot {
+      0% {
+        transform: translateX(0) translateY(0) rotate(-25deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateX(-700px) translateY(320px) rotate(-25deg);
+        opacity: 0;
+      }
+    }
 
-/* NAV */
-.nav{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:18px 30px;
+    /* MOUSE GLOW */
+    .glow {
+      position: fixed;
+      width: 380px;
+      height: 380px;
+      background: radial-gradient(circle, rgba(124,92,255,0.14), transparent 65%);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      z-index: -1;
+      mix-blend-mode: screen;
+    }
 
-    background:rgba(255,255,255,0.05);
-    backdrop-filter:blur(12px);
-    border-bottom:1px solid rgba(255,255,255,0.08);
-}
+    /* EXTRA BACKGROUND GRID */
+    .grid-overlay {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+      z-index: -2;
+      mask-image: radial-gradient(circle at center, black 50%, transparent 100%);
+      -webkit-mask-image: radial-gradient(circle at center, black 50%, transparent 100%);
+    }
 
-.links a{
-    margin-left:20px;
-    color:#b5bac1;
-    text-decoration:none;
-    font-size:14px;
-}
-.links a:hover{color:white;}
+    /* NAV */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 32px;
+      background: rgba(7, 10, 18, 0.55);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--line);
+    }
 
-/* HERO */
-.hero{
-    height:90vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    padding:20px;
-}
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: 0.4px;
+    }
 
-/* GLASS CARD */
-.card{
-    max-width:520px;
-    width:100%;
-    padding:35px;
+    .brand-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      background:
+        linear-gradient(135deg, rgba(124,92,255,0.9), rgba(0,212,255,0.7));
+      display: grid;
+      place-items: center;
+      box-shadow:
+        0 0 30px rgba(124,92,255,0.35),
+        inset 0 0 12px rgba(255,255,255,0.15);
+      font-size: 14px;
+      font-weight: 800;
+    }
 
-    background:rgba(255,255,255,0.06);
-    backdrop-filter:blur(18px);
+    .links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-    border-radius:16px;
-    border:1px solid rgba(255,255,255,0.12);
+    .links a {
+      color: #c2c9d8;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 10px 14px;
+      border-radius: 12px;
+      transition: 0.25s ease;
+    }
 
-    box-shadow:
-        0 0 40px rgba(0,0,0,0.4),
-        inset 0 0 20px rgba(255,255,255,0.03);
-}
+    .links a:hover {
+      color: white;
+      background: rgba(255,255,255,0.06);
+    }
 
-/* TEXT */
-h1{font-size:36px;margin-bottom:10px;}
-p{color:#b5bac1;line-height:1.6;}
+    .nav-cta {
+      margin-left: 10px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      background: rgba(124,92,255,0.14);
+      border: 1px solid rgba(124,92,255,0.25);
+      color: white !important;
+    }
 
-/* BUTTON */
-.btn{
-    display:inline-block;
-    margin-top:25px;
-    padding:14px 26px;
+    .nav-cta:hover {
+      background: rgba(124,92,255,0.22);
+    }
 
-    background:#5865F2;
-    border-radius:8px;
-    text-decoration:none;
-    color:white;
-    font-weight:600;
+    /* HERO */
+    .hero {
+      min-height: calc(100vh - 78px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+      position: relative;
+    }
 
-    box-shadow:0 0 20px rgba(88,101,242,0.4);
-    transition:0.2s;
-}
+    .hero-wrap {
+      width: 100%;
+      max-width: 1180px;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 28px;
+      align-items: center;
+    }
 
-.btn:hover{
-    transform:translateY(-2px);
-    background:#4752c4;
-}
+    /* LEFT CONTENT */
+    .hero-content {
+      position: relative;
+    }
 
-/* MOBILE */
-@media(max-width:768px){
-    .links{display:none;}
-    h1{font-size:26px;}
-    .card{padding:25px;}
-}
-</style>
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--line);
+      color: #d3daf0;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .eyebrow-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 10px rgba(74, 222, 128, 0.8);
+    }
+
+    .hero h1 {
+      font-size: clamp(42px, 7vw, 78px);
+      line-height: 0.98;
+      font-weight: 800;
+      letter-spacing: -2px;
+      margin-bottom: 18px;
+      max-width: 680px;
+    }
+
+    .hero h1 .gradient {
+      background: linear-gradient(90deg, #ffffff, #cfc7ff, #9be8ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 18px;
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 580px;
+      margin-bottom: 28px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 30px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 15px 22px;
+      border-radius: 14px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 15px;
+      transition: 0.25s ease;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: white;
+      box-shadow:
+        0 12px 35px rgba(88,101,242,0.35),
+        0 0 30px rgba(124,92,255,0.18);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow:
+        0 18px 45px rgba(88,101,242,0.42),
+        0 0 40px rgba(124,92,255,0.24);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.04);
+      color: white;
+      border-color: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.08);
+      transform: translateY(-2px);
+    }
+
+    .hero-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .stat {
+      min-width: 130px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      backdrop-filter: blur(14px);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* RIGHT PANEL */
+    .panel {
+      position: relative;
+      padding: 24px;
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(22px);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: 28px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(124,92,255,0.4), rgba(0,212,255,0.2), transparent);
+      -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .panel-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #d7def2;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 10px rgba(74, 222, 128, 0.8);
+    }
+
+    .panel-card {
+      padding: 20px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 14px;
+    }
+
+    .panel-card h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .panel-card p {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .mini-box {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .mini-box strong {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    .mini-box span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* MOBILE */
+    @media (max-width: 980px) {
+      .hero-wrap {
+        grid-template-columns: 1fr;
+      }
+
+      .panel {
+        order: -1;
+      }
+
+      .hero {
+        padding-top: 30px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .links {
+        display: none;
+      }
+
+      .nav {
+        padding: 16px 18px;
+      }
+
+      .hero {
+        padding: 26px 16px 40px;
+      }
+
+      .hero h1 {
+        font-size: 40px;
+        letter-spacing: -1.4px;
+      }
+
+      .hero p {
+        font-size: 16px;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .mini-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 
 <body>
+  <div class="stars" id="stars"></div>
+  <div class="grid-overlay"></div>
+  <div class="glow" id="glow"></div>
 
-<div class="stars" id="stars"></div>
-<div class="glow" id="glow"></div>
-
-<nav class="nav">
-    <div>Guardian HQ</div>
+  <nav class="nav">
+    <div class="brand">
+      <div class="brand-badge">GHQ</div>
+      <span>Guardian HQ</span>
+    </div>
 
     <div class="links">
-        <a href="landing.html">Welkom</a>
-        <a href="home.html">Home</a>
-        <a href="destiny.html">Destiny2</a>
-        <a href="contact.html">Contact</a>
-        <a href="profile.html">Profiel</a>
+      <a href="landing.html">Welkom</a>
+      <a href="home.html">Home</a>
+      <a href="destiny.html">Destiny 2</a>
+      <a href="contact.html">Contact</a>
+      <a href="profile.html">Profiel</a>
+      <a href="https://discord.gg/3jXMneeY" target="_blank" class="nav-cta">Discord</a>
     </div>
-</nav>
+  </nav>
 
-<section class="hero">
-    <div class="card">
+  <section class="hero">
+    <div class="hero-wrap">
+      
+      <div class="hero-content">
+        <div class="eyebrow">
+          <span class="eyebrow-dot"></span>
+          Community live • Fireteams actief
+        </div>
 
-        <h1>Join the Tower</h1>
+        <h1>
+          Join the <span class="gradient">Tower</span><br>
+          Build your fireteam.
+        </h1>
 
         <p>
-        Build Fireteams, run raids and play together with other Guardians.
+          Vind Guardians, run raids, speel strikes en bouw jouw Destiny 2 community
+          op één plek. Guardian HQ is jouw hub voor teamwork, clan vibes en endgame runs.
         </p>
 
-        <a class="btn" href="https://discord.gg/3jXMneeY" target="_blank">
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://discord.gg/3jXMneeY" target="_blank">
             Join Discord
-        </a>
+          </a>
+          <a class="btn btn-secondary" href="destiny.html">
+            Explore Destiny 2
+          </a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat">
+            <strong>24/7</strong>
+            <span>Community actief</span>
+          </div>
+          <div class="stat">
+            <strong>Raids</strong>
+            <span>Fireteams & events</span>
+          </div>
+          <div class="stat">
+            <strong>Guardians</strong>
+            <span>Speel samen</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Guardian Network</div>
+          <div class="status">
+            <span class="status-dot"></span>
+            Online
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <h3>Assemble Your Squad</h3>
+          <p>
+            Vind spelers voor raids, dungeons, PvP en weekly resets. Eén plek voor alles
+            rondom jouw Destiny 2 community.
+          </p>
+        </div>
+
+        <div class="panel-card">
+          <h3>Why Guardian HQ?</h3>
+          <p>
+            Clean hub. Snelle toegang. Premium sci-fi style. Gemaakt voor Guardians die
+            samen willen grinden, chillen en conqueren.
+          </p>
+        </div>
+
+        <div class="mini-grid">
+          <div class="mini-box">
+            <strong>Raids</strong>
+            <span>Endgame teams</span>
+          </div>
+          <div class="mini-box">
+            <strong>Dungeons</strong>
+            <span>Fast LFG</span>
+          </div>
+          <div class="mini-box">
+            <strong>PvP</strong>
+            <span>Trials & comp</span>
+          </div>
+          <div class="mini-box">
+            <strong>Clan</strong>
+            <span>Community growth</span>
+          </div>
+        </div>
+      </div>
 
     </div>
-</section>
+  </section>
 
-<script>
-// 🌌 STARS
-const container = document.getElementById("stars");
+  <script>
+    // 🌌 STARS
+    const container = document.getElementById("stars");
 
-for(let i=0;i<140;i++){
-    const star=document.createElement("div");
+    for (let i = 0; i < 160; i++) {
+      const star = document.createElement("div");
+      const sizeClass = ["small", "medium", "big"][Math.floor(Math.random() * 3)];
 
-    let sizeClass = ["small","medium","big"][Math.floor(Math.random()*3)];
-    star.className = "star " + sizeClass;
+      star.className = "star " + sizeClass;
+      star.style.top = Math.random() * 100 + "%";
+      star.style.left = Math.random() * 100 + "%";
+      star.style.animationDuration = (2 + Math.random() * 4) + "s";
+      star.style.animationDelay = Math.random() * 4 + "s";
 
-    star.style.top=Math.random()*100+"%";
-    star.style.left=Math.random()*100+"%";
+      container.appendChild(star);
+    }
 
-    star.style.animationDuration=(2+Math.random()*3)+"s";
-    star.style.animationDelay=Math.random()*3+"s";
+    // 💫 SHOOTING STAR
+    setInterval(() => {
+      const s = document.createElement("div");
+      s.className = "shoot";
 
-    container.appendChild(star);
-}
+      s.style.top = Math.random() * 40 + "%";
+      s.style.left = (55 + Math.random() * 35) + "%";
+      s.style.animation = "shoot 1.2s linear";
 
-// 💫 SHOOTING STAR
-setInterval(()=>{
-    const s=document.createElement("div");
-    s.className="shoot";
+      document.body.appendChild(s);
 
-    s.style.top=Math.random()*50+"%";
-    s.style.left=(50+Math.random()*50)+"%";
+      setTimeout(() => s.remove(), 1200);
+    }, 3500);
 
-    s.style.animation="shoot 1s linear";
+    // 🖱️ MOUSE GLOW
+    const glow = document.getElementById("glow");
 
-    document.body.appendChild(s);
-
-    setTimeout(()=>s.remove(),1000);
-},4000);
-
-// 🖱️ MOUSE GLOW
-const glow=document.getElementById("glow");
-
-document.addEventListener("mousemove",(e)=>{
-    glow.style.left=e.clientX+"px";
-    glow.style.top=e.clientY+"px";
-});
-</script>
-
+    document.addEventListener("mousemove", (e) => {
+      glow.style.left = e.clientX + "px";
+      glow.style.top = e.clientY + "px";
+    });
+  </script>
 </body>
 </html>
