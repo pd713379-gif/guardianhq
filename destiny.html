@@ -182,18 +182,22 @@
               <div class="bungie-avatar-inner" style="padding:0;overflow:hidden;background:transparent;">
                 <img id="bungieProfileAvatar"
                      src=""
-                     alt="RemaisNL avatar"
+                     alt="Bungie avatar"
                      style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:none;"
                      onerror="this.style.display='none';document.getElementById('bungieAvatarFallback').style.display='flex'">
                 <div id="bungieAvatarFallback" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem;">⬡</div>
               </div>
             </div>
-            <div class="bungie-name">RemaisNL</div>
-            <div class="bungie-id" id="bungieIdDisplay">Bungie ID: RemaisNL#5842</div>
-            <div class="bungie-desc">Stuur een vriendschapsverzoek om samen te raiden, strikes te doen of te chillen in de Tower!</div>
+            <div class="bungie-name" id="bungieDisplayName">—</div>
+            <div class="bungie-id" id="bungieIdDisplay">Koppel je Bungie account</div>
+            <div class="bungie-desc" id="bungieConnectDesc">Koppel je Bungie account om je stats, wapens en armor live te zien.</div>
 
-            <!-- Stap 1: kopieer ID -->
-            <button class="bungie-btn" id="copyBungieId" onclick="copyBungieIdFn()" style="background:linear-gradient(135deg,rgba(155,114,207,0.25),rgba(79,143,255,0.15));border:1px solid rgba(155,114,207,0.4);">
+            <!-- Koppel / Ontkoppel knop -->
+            <button class="bungie-btn" id="bungieActionBtn" onclick="bungieActionFn()" style="background:linear-gradient(135deg,rgba(88,101,242,0.25),rgba(79,143,255,0.15));border:1px solid rgba(88,101,242,0.4);">
+              🔗 Koppel Bungie Account
+            </button>
+            <!-- Kopieer ID (alleen zichtbaar als gekoppeld) -->
+            <button class="bungie-btn" id="copyBungieId" onclick="copyBungieIdFn()" style="display:none;background:linear-gradient(135deg,rgba(155,114,207,0.25),rgba(79,143,255,0.15));border:1px solid rgba(155,114,207,0.4);">
               📋 Kopieer Bungie ID
             </button>
 
@@ -651,75 +655,118 @@
     // Stats elke 2 minuten verversen
     setInterval(loadLiveStats, 120000);
 
-    // ── BUNGIE ID KOPIËREN ──
-    function copyBungieIdFn() {
-      const id = 'RemaisNL#5842';
-      navigator.clipboard.writeText(id).then(() => {
-        const btn = document.getElementById('copyBungieId');
-        const orig = btn.textContent;
-        btn.textContent = '✅ Gekopieerd!';
-        setTimeout(() => { btn.textContent = orig; }, 2000);
-      }).catch(() => {
-        showToast('Bungie ID: RemaisNL#5842 — kopieer dit handmatig');
-      });
-    }
-
-    // ── BUNGIE PROFIEL AVATAR LADEN VIA SERVER PROXY ──
-    // Directe Bungie calls vanuit browser worden geblokkeerd (CORS/500).
-    // Alles loopt via /api/bungie-proxy op de Vercel server.
-    async function loadBungieAvatar() {
+    // ── BUNGIE PROFIEL CARD — volledig dynamisch per ingelogde gebruiker ──
+    async function loadBungieCard() {
       const avatarImg      = document.getElementById('bungieProfileAvatar');
       const avatarFallback = document.getElementById('bungieAvatarFallback');
-      if (!avatarImg) return;
+      const nameEl         = document.getElementById('bungieDisplayName');
+      const idEl           = document.getElementById('bungieIdDisplay');
+      const descEl         = document.getElementById('bungieConnectDesc');
+      const actionBtn      = document.getElementById('bungieActionBtn');
+      const copyBtn        = document.getElementById('copyBungieId');
 
-      // ── Stap 1: gebruik de eigen avatar van de profielpagina (localStorage) ──
+      // Eigen GuardianHQ avatar (foto of emoji)
       const avatarType  = localStorage.getItem('ghq_avatar_type') || 'icon';
       const avatarEmoji = localStorage.getItem('ghq_avatar') || '';
       const avatarPhoto = localStorage.getItem('ghq_avatar_photo') || '';
 
-      if (avatarType === 'photo' && avatarPhoto) {
-        // Eigen foto geüpload op profielpagina → toon die in de gele cirkel
-        avatarImg.src           = avatarPhoto;
-        avatarImg.style.display = 'block';
-        avatarImg.style.width   = '100%';
-        avatarImg.style.height  = '100%';
-        avatarImg.style.objectFit = 'cover';
+      if (avatarType === 'photo' && avatarPhoto && avatarImg) {
+        avatarImg.src = avatarPhoto;
+        avatarImg.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;';
         if (avatarFallback) avatarFallback.style.display = 'none';
-        return;
+      } else if (avatarType === 'icon' && avatarEmoji && avatarEmoji !== '⬡' && avatarFallback) {
+        if (avatarImg) avatarImg.style.display = 'none';
+        avatarFallback.style.display = 'flex';
+        avatarFallback.textContent = avatarEmoji;
+        avatarFallback.style.fontSize = '2.2rem';
       }
 
-      if (avatarType === 'icon' && avatarEmoji && avatarEmoji !== '⬡') {
-        // Eigen icoon/emoji gekozen → toon die als tekst in de fallback div
-        avatarImg.style.display = 'none';
-        if (avatarFallback) {
-          avatarFallback.style.display = 'flex';
-          avatarFallback.textContent   = avatarEmoji;
-          avatarFallback.style.fontSize = '2.2rem';
+      // Kijken of Bungie gekoppeld is
+      if (!isBungieLinked()) {
+        // Niet gekoppeld — toon koppel knop
+        if (nameEl) nameEl.textContent = '—';
+        if (idEl)   idEl.textContent   = 'Bungie account niet gekoppeld';
+        if (descEl) descEl.textContent = 'Koppel je Bungie account om live power level, subclass, wapens en armor te zien.';
+        if (actionBtn) {
+          actionBtn.textContent = '🔗 Koppel Bungie Account';
+          actionBtn.style.background = 'linear-gradient(135deg,rgba(88,101,242,0.25),rgba(79,143,255,0.15))';
+          actionBtn.style.borderColor = 'rgba(88,101,242,0.4)';
+          actionBtn.onclick = startBungieOAuth;
         }
+        if (copyBtn) copyBtn.style.display = 'none';
         return;
       }
 
-      // ── Stap 2: geen eigen avatar → probeer Bungie API ──
+      // Gekoppeld — haal live Bungie profiel op via OAuth token
       try {
-        const res  = await fetch('/api/bungie-proxy?action=avatar');
-        const data = await res.json();
-        if (data.avatarUrl) {
-          avatarImg.src           = data.avatarUrl;
-          avatarImg.style.display = 'block';
-          if (avatarFallback) avatarFallback.style.display = 'none';
-          if (data.displayName) {
-            const nameEl = document.getElementById('bungieIdDisplay');
-            if (nameEl) nameEl.textContent = 'Bungie ID: ' + data.displayName;
-          }
-        } else {
-          if (avatarFallback) avatarFallback.style.display = 'flex';
+        const bungieData = await bungieGet('/User/GetMembershipsForCurrentUser/');
+        const bungieUser = bungieData?.bungieNetUser;
+        const displayName = bungieUser
+          ? (bungieUser.cachedBungieGlobalDisplayName || bungieUser.uniqueName || bungieUser.displayName)
+          : null;
+        const nameCode = bungieUser?.cachedBungieGlobalDisplayNameCode
+          ? '#' + String(bungieUser.cachedBungieGlobalDisplayNameCode).padStart(4, '0')
+          : '';
+        const fullId = displayName ? displayName + nameCode : null;
+
+        // Sla op voor kopieer functie
+        if (fullId) localStorage.setItem('bungie_display_name', fullId);
+
+        // Update UI
+        if (nameEl) nameEl.textContent = displayName ?? 'Guardian';
+        if (idEl)   idEl.textContent   = fullId ? 'Bungie ID: ' + fullId : 'Bungie gekoppeld';
+        if (descEl) descEl.textContent = 'Je Bungie account is gekoppeld. Stuur een vriendschapsverzoek om samen te spelen!';
+
+        // Bungie avatar via profile embleem
+        const mems = bungieData?.destinyMemberships ?? [];
+        let primary = mems[0];
+        for (const m of mems) { if (m.crossSaveOverride === m.membershipType) { primary = m; break; } }
+        // Haal Bungie avatar op via proxy (met token)
+        if (avatarImg && !avatarPhoto) {
+          try {
+            const tok = await getValidToken();
+            const avRes = await fetch('/api/bungie-proxy?action=avatar', { headers: { 'Authorization': 'Bearer ' + tok } });
+            const avData = await avRes.json();
+            if (avData.avatarUrl) {
+              avatarImg.src = avData.avatarUrl;
+              avatarImg.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;';
+              if (avatarFallback) avatarFallback.style.display = 'none';
+            }
+          } catch {}
         }
+
+        // Koppel knop → wordt Ontkoppel
+        if (actionBtn) {
+          actionBtn.textContent = '✓ Bungie Gekoppeld — Ontkoppelen';
+          actionBtn.style.background = 'rgba(76,175,130,0.1)';
+          actionBtn.style.borderColor = 'rgba(76,175,130,0.35)';
+          actionBtn.style.color = '#4caf82';
+          actionBtn.onclick = function() {
+            if (confirm('Wil je je Bungie account ontkoppelen?')) {
+              clearBungieTokens();
+              location.reload();
+            }
+          };
+        }
+        if (copyBtn) copyBtn.style.display = 'block';
+
       } catch(err) {
-        console.warn('Avatar laden mislukt:', err.message);
-        if (avatarFallback) avatarFallback.style.display = 'flex';
+        console.warn('Bungie card laden mislukt:', err.message);
+        if (nameEl) nameEl.textContent = 'Gekoppeld';
+        if (idEl)   idEl.textContent   = 'Bungie ID laden mislukt';
       }
     }
-    loadBungieAvatar();
+
+    // ── BUNGIE ID KOPIËREN (dynamisch) ──
+    function copyBungieIdFn() {
+      const id = localStorage.getItem('bungie_display_name') || 'Koppel eerst je Bungie account';
+      navigator.clipboard.writeText(id).then(() => {
+        const btn = document.getElementById('copyBungieId');
+        if (btn) { const orig = btn.textContent; btn.textContent = '✅ Gekopieerd!'; setTimeout(() => btn.textContent = orig, 2000); }
+      }).catch(() => showToast('Bungie ID: ' + id));
+    }
+
+    loadBungieCard();
 
     // ── WISHLIST MET ECHTE BUNGIE ICONEN (directe CDN URLs, geen API key nodig) ──
     // Hash → icon mapping van de Bungie manifest voor deze wapens
