@@ -240,44 +240,6 @@
           </div>
         </div>
 
-        <!-- ══ SUBCLASS PANEL ══ -->
-        <div id="subclassPanel" style="display:none;margin-bottom:16px;">
-          <div style="background:linear-gradient(135deg,rgba(10,12,22,0.97),rgba(18,22,42,0.97));border:1px solid var(--subclass-color,rgba(155,114,207,0.4));border-radius:16px;overflow:hidden;box-shadow:0 0 40px var(--subclass-glow,rgba(155,114,207,0.1)),0 8px 32px rgba(0,0,0,0.6);">
-            <!-- Header -->
-            <div id="subclassPanelHeader" style="padding:16px 20px 14px;display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(255,255,255,0.07);">
-              <div id="subclassPanelIcon" style="width:52px;height:52px;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);flex-shrink:0;border:2px solid var(--subclass-color,rgba(155,114,207,0.5));box-shadow:0 0 16px var(--subclass-glow,rgba(155,114,207,0.2));"></div>
-              <div style="flex:1">
-                <div id="subclassPanelName" style="font-size:1.1rem;font-weight:800;letter-spacing:0.02em;color:#fff;"></div>
-                <div id="subclassPanelMeta" style="font-size:0.75rem;font-weight:600;margin-top:2px;opacity:0.8;"></div>
-              </div>
-              <button onclick="document.getElementById('subclassPanel').style.display='none'" style="background:rgba(255,255,255,0.07);border:none;color:rgba(255,255,255,0.5);width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;">✕</button>
-            </div>
-            <!-- Body: 4 kolommen -->
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0;">
-              <!-- Super -->
-              <div style="padding:16px 18px;border-right:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05);">
-                <div data-label="super" style="font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--subclass-color,#9b72cf);margin-bottom:10px;">⚡ Super</div>
-                <div id="subclassSuper"></div>
-              </div>
-              <!-- Abilities -->
-              <div style="padding:16px 18px;border-right:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05);">
-                <div data-label="abilities" style="font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--subclass-color,#9b72cf);margin-bottom:10px;">🔮 Abilities</div>
-                <div id="subclassAbilities"></div>
-              </div>
-              <!-- Aspects -->
-              <div style="padding:16px 18px;border-right:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05);">
-                <div data-label="aspects" style="font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--subclass-color,#9b72cf);margin-bottom:10px;">💎 Aspects</div>
-                <div id="subclassAspects"></div>
-              </div>
-              <!-- Fragments -->
-              <div style="padding:16px 18px;border-bottom:1px solid rgba(255,255,255,0.05);">
-                <div data-label="fragments" style="font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--subclass-color,#9b72cf);margin-bottom:10px;">🔷 Fragments</div>
-                <div id="subclassFragments"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- Bungie OAuth connect banner (zichtbaar als geen token) -->
         <div id="bungieConnectBanner" style="display:none;margin-bottom:16px;">
           <div style="background:rgba(88,101,242,0.08);border:1px solid rgba(88,101,242,0.25);border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
@@ -558,27 +520,27 @@
             if (a.pgcrImage) {
               // Activiteits-screenshot als achtergrond met type-icoon overlay
               const overlay = a.typeIconUrl
-                ? `<img src="${proxySrc(a.typeIconUrl)}"
+                ? `<img src="${escHtml(a.typeIconUrl)}" referrerpolicy="no-referrer"
                      style="position:absolute;bottom:3px;right:3px;width:18px;height:18px;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.8)) brightness(1.2);"
                      onerror="this.style.display='none'">`
                 : '';
               iconHtml = `<div style="position:relative;width:100%;height:100%;">
-                <img src="${proxySrc(a.pgcrImage)}"
+                <img src="${escHtml(a.pgcrImage)}" referrerpolicy="no-referrer"
                      style="width:100%;height:100%;object-fit:cover;border-radius:8px;"
-                     onerror="actIconFallback(this,'${a.type}')">
+                     onerror="this.style.display='none'">
                 ${overlay}
               </div>`;
             } else if (a.typeIconUrl) {
-              iconHtml = `<img src="${proxySrc(a.typeIconUrl)}"
+              iconHtml = `<img src="${escHtml(a.typeIconUrl)}" referrerpolicy="no-referrer"
                 style="width:30px;height:30px;object-fit:contain;filter:brightness(1.2) drop-shadow(0 0 4px rgba(212,168,67,0.4));"
-                onerror="actIconFallback(this,'${a.type}')">`;
+                onerror="this.style.display='none';this.parentElement.innerHTML='${iconDef.svg.replace(/'/g,"&#39;")}'">`;
             } else {
               iconHtml = iconDef.svg;
             }
 
             return `
             <div class="activity-item" style="">
-              <div class="act-icon-box" style="background:${a.pgcrImage ? 'transparent' : iconDef.bg};
+              <div style="background:${a.pgcrImage ? 'transparent' : iconDef.bg};
                 display:flex;align-items:center;justify-content:center;
                 min-width:44px;width:44px;height:44px;border-radius:10px;flex-shrink:0;
                 border:1px solid rgba(255,255,255,0.1);overflow:hidden;
@@ -606,28 +568,6 @@
     function escHtml(str) {
       if (!str) return '';
       return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
-    // Stuur Bungie afbeeldingen via onze server proxy om CORS te omzeilen
-    function proxySrc(url) {
-      if (!url) return '';
-      if (url.indexOf('bungie.net') === -1) return url;
-      return '/api/image-proxy?url=' + encodeURIComponent(url);
-    }
-
-    // Fallback: als pgcrImage faalt → toon SVG icoon + juiste achtergrond
-    function actIconFallback(imgEl, type) {
-      var def = ACT_ICONS[type] || { bg: 'rgba(255,255,255,0.06)', svg: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>' };
-      var box = imgEl.closest('.act-icon-box');
-      if (box) box.style.background = def.bg;
-      imgEl.parentElement.innerHTML = def.svg;
-    }
-
-    // Fallback voor subclass/item iconen — vervang img door element icon SVG
-    function imgFallbackSvg(imgEl, svgId) {
-      var el = document.getElementById(svgId);
-      if (el) imgEl.replaceWith(el.cloneNode(true));
-      else imgEl.style.display = 'none';
     }
 
 
@@ -927,8 +867,9 @@
                display:flex;align-items:center;justify-content:center;flex-shrink:0;
                border:2px solid ${tierBorder[w.tier] ?? 'rgba(255,255,255,0.1)'};
                box-shadow:0 0 12px ${w.tier === 'exotic' ? 'rgba(212,168,67,0.2)' : 'rgba(155,114,207,0.15)'};">
-            <img src="${proxySrc(w.icon)}" alt="${escHtml(w.name)}"
+            <img src="${escHtml(w.icon)}" alt="${escHtml(w.name)}"
                  style="width:52px;height:52px;object-fit:cover;"
+                 referrerpolicy="no-referrer"
                  onerror="this.style.display='none';this.parentElement.innerHTML='🔫'">
           </div>
           <div style="flex:1;min-width:0;">
@@ -1032,7 +973,7 @@
         var ei = ELEMENT_ICONS[c.subclass && c.subclass.element] || ELEMENT_ICONS.void;
         var isActive = idx === _activeCharIdx;
         var subHtml = (c.subclass && c.subclass.icon)
-          ? '<img src="' + proxySrc(c.subclass.icon) + '" width="26" height="26" style="border-radius:4px;object-fit:contain;" onerror="this.style.display=\'none\'">'
+          ? '<img src="' + c.subclass.icon + '" width="26" height="26" style="border-radius:4px;object-fit:contain;" referrerpolicy="no-referrer" onerror="this.replaceWith(document.createRange().createContextualFragment(\'' + ei.svg.replace(/'/g, "\\'") + '\'))">'
           : ei.svg;
         var bgStyle = c.emblemBg ? 'background-image:url(' + c.emblemBg + ');background-size:cover;background-position:center left;' : '';
         var overlay = c.emblemBg ? '<div style="position:absolute;inset:0;background:rgba(3,5,10,0.7);border-radius:inherit;"></div>' : '';
@@ -1076,7 +1017,7 @@
         var power  = item.power || '';
         var safeN  = (item.name || item.slotName || '').replace(/'/g, '');
         var iconHtml = item.icon
-          ? '<img src="' + proxySrc(item.icon) + '" style="width:56px;height:56px;object-fit:cover;display:block;" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">'
+          ? '<img src="' + item.icon + '" style="width:56px;height:56px;object-fit:cover;display:block;" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">'
             + '<div style="display:none;width:56px;height:56px;align-items:center;justify-content:center;font-size:1.6rem;">&#128299;</div>'
           : '<div style="width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;">&#128299;</div>';
         return '<div class="inv-item" style="border:1.5px solid ' + tier.border + ';background:' + tier.bg + ';flex-direction:column;height:auto;padding:6px;gap:3px;min-width:74px;max-width:90px;" title="' + safeN + (power ? ' \u26a1' + power : '') + '" onclick="showToast(\'' + safeN + '\')">'
@@ -1126,594 +1067,6 @@
     function initDimTab() {
       loadLiveCharacters();
     }
-
-    // ══════════════════════════════════════════════════════════
-    // ── SUBCLASS DATABASE (Hunter, Warlock, Titan × Prismatic)
-    // Bungie CDN icons — gecontroleerde URLs
-    // ══════════════════════════════════════════════════════════
-
-    const SUBCLASS_DB = {
-      Hunter: {
-        Prismatic: {
-          element: 'prismatic',
-          color: '#c8a2e8',
-          glow: 'rgba(200,162,232,0.15)',
-          icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinySubclassDefinition_6497026aca2c4afe2cef5aadbbff7148.jpg',
-          super: {
-            name: 'Silence and Squall',
-            desc: 'Worp twee Stasis-ballen. De eerste bevriest vijanden; de tweede creëert een tornado.',
-            icon: 'https://www.bungie.net/common/destiny2_content/icons/3c57d1a359e4faf764f9fb84dbfac6df.jpg'
-          },
-          abilities: [
-            { name: 'Marksman\'s Dodge', type: 'Class', icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinyActivityDefinition_af15b84f2cf22cce41baad21af95f2a0.jpg', desc: 'Rol weg en herlaad automatisch je wapen.' },
-            { name: 'Snare Bomb', type: 'Melee', icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinyActivityDefinition_af15b84f2cf22cce41baad21af95f2a0.jpg', desc: 'Gooi een kleef-bom die vijanden vertraagt.' },
-            { name: 'Pulse Grenade', type: 'Grenade', icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinyActivityDefinition_af15b84f2cf22cce41baad21af95f2a0.jpg', desc: 'Explodeert meerdere keren. Verwoestend in kleine ruimtes.' },
-          ],
-          aspects: [
-            { name: 'Stylish Executioner', desc: 'Na het elimineren van een Void/Stasis/Weaken doel: volgende melee is een Stylish Execution.', icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinyCollectibleDefinition_3a0c99e6e71d79a64e502ec32e0eb65e.jpg', fragments: 2 },
-            { name: 'Winter\'s Shroud', desc: 'Dodge vertraagt nabijgelegen vijanden met Stasis.', icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinyCollectibleDefinition_7f8e9dee9b5e2e4c06c6c2df5c0ed74c.jpg', fragments: 2 },
-          ],
-          fragments: [
-            { name: 'Facet of Dawn', desc: 'Mêlee-treffers verlenen Radiant voor jezelf en nabije bondgenoten.', icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinyCollectibleDefinition_prismatic_fragment_dawn.jpg', stat: '+10 Strength' },
-            { name: 'Facet of Balance', desc: 'Killing targets with Light damage gives Melee energy; Dark damage gives Grenade energy.', icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinyCollectibleDefinition_prismatic_fragment_balance.jpg', stat: '' },
-            { name: 'Facet of Purpose', desc: 'Ophalen van Orbs of Power verleent Overshield, Restoration, Amplified, Frost Armor of Woven Mail.', icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinyCollectibleDefinition_prismatic_fragment_purpose.jpg', stat: '+10 Recovery' },
-            { name: 'Facet of Courage', desc: 'Light damage-vermogens doen extra schade aan Suspended, Frozen of Suppressed vijanden.', icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinyCollectibleDefinition_prismatic_fragment_courage.jpg', stat: '' },
-            { name: 'Facet of Sacrifice', desc: 'Terwijl je een darkness-vermogen hebt opladen met kills, laad je ook Transcendence op.', icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinyCollectibleDefinition_prismatic_fragment_sacrifice.jpg', stat: '+10 Discipline' },
-          ]
-        },
-        Arc: {
-          element: 'arc',
-          color: '#79c8f0',
-          glow: 'rgba(121,200,240,0.15)',
-          icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinySubclassDefinition_1cdf4a280f802a7e42e5de8f55a6c9a3.jpg',
-          super: {
-            name: 'Arc Staff',
-            desc: 'Creëer een staf van Arc-energie. Whirlwind Guard blokkeert aanvallen terwijl je draait.',
-            icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinyActivityDefinition_arc_staff.jpg'
-          },
-          abilities: [
-            { name: 'Gambler\'s Dodge', type: 'Class', icon: '', desc: 'Rol naast vijanden om je melee-vermogen direct te herstellen.' },
-            { name: 'Combination Blow', type: 'Melee', icon: '', desc: 'Melee kill: tijdelijke snelheids- en schade-buff. Stackt tot 3×.' },
-            { name: 'Skip Grenade', type: 'Grenade', icon: '', desc: 'Granade die splitst in meerdere Arc-projectielen.' },
-          ],
-          aspects: [
-            { name: 'Flow State', desc: 'Amplified bij Jolt-kills; verhoogde snelheid en reload.', icon: '', fragments: 3 },
-            { name: 'Lethal Current', desc: 'Na Dodge: volgende melee Jolts vijanden en laat een After Shock achter.', icon: '', fragments: 2 },
-          ],
-          fragments: [
-            { name: 'Spark of Beacons', desc: 'Arc kills terwijl je Amplified bent creëren blinde explosies.', icon: '', stat: '' },
-            { name: 'Spark of Frequency', desc: 'Melee-treffers verhogen je Handling & Reload aanzienlijk.', icon: '', stat: '+10 Strength' },
-            { name: 'Spark of Shock', desc: 'Arc grenades Jolt vijanden.', icon: '', stat: '-10 Discipline' },
-          ]
-        },
-        Solar: {
-          element: 'solar',
-          color: '#f0a830',
-          glow: 'rgba(240,168,48,0.15)',
-          icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinySubclassDefinition_a40eefc12f3bcf2b3c6d5c7cc87c50b7.jpg',
-          super: {
-            name: 'Blade Barrage',
-            desc: 'Springt en werpt een storm van Solar knivenbladden die vijanden verbranden.',
-            icon: ''
-          },
-          abilities: [
-            { name: 'Marksman\'s Dodge', type: 'Class', icon: '', desc: 'Rol weg en herlaad automatisch je wapen.' },
-            { name: 'Knife Trick', type: 'Melee', icon: '', desc: 'Gooi een waaier van brandende messen die vijanden in de brand steken.' },
-            { name: 'Tripmine Grenade', type: 'Grenade', icon: '', desc: 'Plaatst een Solar laserstruikeldraad-granaat.' },
-          ],
-          aspects: [
-            { name: 'Gunpowder Gamble', desc: 'Solar kills laad een explosieve granaat op die als melee gegooid kan worden.', icon: '', fragments: 3 },
-            { name: 'Knock \'em Down', desc: 'Supers zijn sterker en herlaadbaar door Radiant/Solar meleekills.', icon: '', fragments: 2 },
-          ],
-          fragments: [
-            { name: 'Ember of Torches', desc: 'Powered melee kills: jij en nabije bondgenoten krijgen Radiant.', icon: '', stat: '+10 Strength' },
-            { name: 'Ember of Char', desc: 'Solar ignitions verspreiden Scorch naar nabijgelegen vijanden.', icon: '', stat: '' },
-            { name: 'Ember of Empyrean', desc: 'Solar kills verlengen Restoration of Radiant.', icon: '', stat: '-10 Resilience' },
-          ]
-        },
-        Void: {
-          element: 'void',
-          color: '#b574de',
-          glow: 'rgba(181,116,222,0.15)',
-          icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinySubclassDefinition_4453c6ae1f4d4b01a3c67e41ecce6a07.jpg',
-          super: {
-            name: 'Shadowshot: Deadfall',
-            desc: 'Schiet een Void-anker dat vijanden gevangen houdt en Void debuffs verspreidt.',
-            icon: ''
-          },
-          abilities: [
-            { name: 'Vanishing Step', type: 'Class', icon: '', desc: 'Dodge maakt je onzichtbaar.' },
-            { name: 'Snare Bomb', type: 'Melee', icon: '', desc: 'Kleef-bom die vijanden vertraagt en Suppressed maakt.' },
-            { name: 'Vortex Grenade', type: 'Grenade', icon: '', desc: 'Creëert een werveling die vijanden naar het midden trekt.' },
-          ],
-          aspects: [
-            { name: 'Trapper\'s Ambush', desc: 'Shared Invis met bondgenoten via Quickfall-dodge.', icon: '', fragments: 2 },
-            { name: 'Vanishing Execution', desc: 'Smoke Bomb kills en melee Stylish Executions geven Invis + Truesight.', icon: '', fragments: 3 },
-          ],
-          fragments: [
-            { name: 'Echo of Domineering', desc: 'Suppressed vijanden verslaan: je herlaadt je actieve wapen.', icon: '', stat: '+10 Discipline' },
-            { name: 'Echo of Persistence', desc: 'Void buffs op jou zijn langer actief.', icon: '', stat: '-10 Recovery' },
-            { name: 'Echo of Starvation', desc: 'Ophalen van Void Breaches of Orbs: Devour-buff actief.', icon: '', stat: '' },
-          ]
-        },
-        Stasis: {
-          element: 'stasis',
-          color: '#4ec3e0',
-          glow: 'rgba(78,195,224,0.15)',
-          icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinySubclassDefinition_stasis_hunter.jpg',
-          super: { name: 'Silence and Squall', desc: 'Twee Stasis-tornadoes die vijanden bevriezen en verpletten.', icon: '' },
-          abilities: [
-            { name: 'Gambler\'s Dodge', type: 'Class', icon: '', desc: 'Dodge naast vijanden om melee energie te herstellen.' },
-            { name: 'Withering Blade', type: 'Melee', icon: '', desc: 'Gooi een Stasis-shurikens die vijanden vertraagt en bevriest.' },
-            { name: 'Glacier Grenade', type: 'Grenade', icon: '', desc: 'Creëert Stasis-kristallen die vijanden kunnen bevriezen.' },
-          ],
-          aspects: [
-            { name: 'Shatterdive', desc: 'Duik vanuit de lucht omlaag om Stasis-kristallen en bevroren vijanden te verpulveren.', icon: '', fragments: 1 },
-            { name: 'Touch of Winter', desc: 'Stasis grenades hebben verbeterde effecten: meer kristallen, betere bevriezing.', icon: '', fragments: 2 },
-          ],
-          fragments: [
-            { name: 'Whisper of Shards', desc: 'Stasis-kristallen verpletteren: snellere Grenade-recharge.', icon: '', stat: '' },
-            { name: 'Whisper of Durance', desc: 'Slow van vermogens duurt langer.', icon: '', stat: '+10 Strength' },
-            { name: 'Whisper of Hunger', desc: 'Vergroot het ophaalgebied van Stasis Shards.', icon: '', stat: '-10 Mobility, -10 Discipline' },
-          ]
-        },
-        Strand: {
-          element: 'strand',
-          color: '#31c48d',
-          glow: 'rgba(49,196,141,0.15)',
-          icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinySubclassDefinition_strand_hunter.jpg',
-          super: { name: 'Silkstrike', desc: 'Zwaai een Strand-touw als een zweep, bindt vijanden en smijt ze weg.', icon: '' },
-          abilities: [
-            { name: 'Marksman\'s Dodge', type: 'Class', icon: '', desc: 'Rol weg en herlaad je wapen.' },
-            { name: 'Threaded Spike', type: 'Melee', icon: '', desc: 'Gooi een Strand-spiets die bounced en Strand-energie teruggeeft.' },
-            { name: 'Threadling Grenade', type: 'Grenade', icon: '', desc: 'Creëert Threadlings die vijanden aanvallen.' },
-          ],
-          aspects: [
-            { name: 'Ensnaring Slam', desc: 'Lucht-Sprint + Melee Slam: Suspend alle nabijgelegen vijanden.', icon: '', fragments: 2 },
-            { name: 'Widow\'s Silk', desc: 'Een extra Tripwire Grenade charge. Tripwires Suspend vijanden die erdoorheen lopen.', icon: '', fragments: 3 },
-          ],
-          fragments: [
-            { name: 'Thread of Ascent', desc: 'Grenade kills activeren Airborne Effectiveness en Weapon Handling buffs.', icon: '', stat: '+10 Mobility' },
-            { name: 'Thread of Fury', desc: 'Tangled vijanden vermoorden: Melee-energie opladen.', icon: '', stat: '' },
-            { name: 'Thread of Binding', desc: 'Super kills Suspend nabijgelegen vijanden.', icon: '', stat: '' },
-          ]
-        }
-      },
-      Warlock: {
-        Prismatic: {
-          element: 'prismatic',
-          color: '#c8a2e8',
-          glow: 'rgba(200,162,232,0.15)',
-          icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinySubclassDefinition_prismatic_warlock.jpg',
-          super: { name: 'Song of Flame', desc: 'Activeer Solar Attunement; de omgeving ontploft in Solar-vlammen. Allies krijgen buffs.', icon: '' },
-          abilities: [
-            { name: 'Phoenix Dive', type: 'Class', icon: '', desc: 'Duik omlaag en herstel HP. Verleent Restoration bij Solar actief.' },
-            { name: 'Arcane Needle', type: 'Melee', icon: '', desc: 'Drie Strand-naalden die Tangle maken bij kills.' },
-            { name: 'Coldsnap Grenade', type: 'Grenade', icon: '', desc: 'Stasis-keten bevriest nabijgelegen vijanden.' },
-          ],
-          aspects: [
-            { name: 'Bleak Watcher', desc: 'Verander je Stasis grenades in Stasis Turrets die vijanden bevriezen.', icon: '', fragments: 2 },
-            { name: 'Helion', desc: 'Rift spawnt een Solar-torret die vijanden aanvalt.', icon: '', fragments: 2 },
-          ],
-          fragments: [
-            { name: 'Facet of Grace', desc: 'Vijanden doden met Light vermogens: Orbs of Power. Dark vermogens: SuperEnergy.', icon: '', stat: '+10 Recovery' },
-            { name: 'Facet of Hope', desc: 'Terwijl je een elemental buff hebt, laad je Super sneller op.', icon: '', stat: '' },
-            { name: 'Facet of Ruin', desc: 'Vergroot de straal van Stasis-explosies en Solar-ignitions.', icon: '', stat: '' },
-            { name: 'Facet of Dominance', desc: 'Void grenades Weaken; Stasis grenades Slow vijanden extra.', icon: '', stat: '-10 Discipline' },
-          ]
-        },
-        Solar: {
-          element: 'solar',
-          color: '#f0a830',
-          glow: 'rgba(240,168,48,0.15)',
-          icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinySubclassDefinition_solar_warlock.jpg',
-          super: { name: 'Well of Radiance', desc: 'Plant een zwaard in de grond: creëert een Solar Well dat bonds healt en Radiant verleent.', icon: '' },
-          abilities: [
-            { name: 'Healing Rift', type: 'Class', icon: '', desc: 'Kanaal een rift die jou en bondgenoten geneest.' },
-            { name: 'Incinerator Snap', type: 'Melee', icon: '', desc: 'Een Solar-vuurbal bij vingerknip die vijanden Scorch geeft.' },
-            { name: 'Healing Grenade', type: 'Grenade', icon: '', desc: 'Raakt vrienden om te healen en Restoration te geven.' },
-          ],
-          aspects: [
-            { name: 'Heat Rises', desc: 'Grenade-kills geven Airborne Effectiveness. Terwijl je in de lucht schiet, verlengt dit de buff.', icon: '', fragments: 3 },
-            { name: 'Touch of Flame', desc: 'Solar grenades hebben verbeterde effecten (meer Scorch stacks, groter gebied).', icon: '', fragments: 2 },
-          ],
-          fragments: [
-            { name: 'Ember of Benevolence', desc: 'Healing of Radiant verlenen aan bondgenoten: snellere Grenade/Melee/Rift-recharge.', icon: '', stat: '-10 Discipline' },
-            { name: 'Ember of Resolve', desc: 'Solar Grenade kills: heal jezelf.', icon: '', stat: '' },
-            { name: 'Ember of Singeing', desc: 'Scorch op vijanden: Rift-recharge sneller.', icon: '', stat: '' },
-          ]
-        },
-        Void: {
-          element: 'void',
-          color: '#b574de',
-          glow: 'rgba(181,116,222,0.15)',
-          icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinySubclassDefinition_void_warlock.jpg',
-          super: { name: 'Nova Bomb: Cataclysm', desc: 'Een langzame maar krachtige Void-explosie die vijanden Weaken geeft.', icon: '' },
-          abilities: [
-            { name: 'Healing Rift', type: 'Class', icon: '', desc: 'Geneest jou en bondgenoten in de rift.' },
-            { name: 'Pocket Singularity', type: 'Melee', icon: '', desc: 'Void-bom die vijanden wegduwt en Volatile geeft.' },
-            { name: 'Vortex Grenade', type: 'Grenade', icon: '', desc: 'Zuigt vijanden naar het midden.' },
-          ],
-          aspects: [
-            { name: 'Child of the Old Gods', desc: 'Rift spawnt een Soul die vijanden Weakent bij aanval.', icon: '', fragments: 2 },
-            { name: 'Feed the Void', desc: 'Void-vermogen kills geven Devour.', icon: '', fragments: 2 },
-          ],
-          fragments: [
-            { name: 'Echo of Persistence', desc: 'Void buffs duren langer.', icon: '', stat: '-10 Recovery' },
-            { name: 'Echo of Undermining', desc: 'Void grenades Weaken vijanden.', icon: '', stat: '-20 Discipline' },
-            { name: 'Echo of Harvest', desc: 'Weaken vijanden vermoorden: Orb of Power aanmaken.', icon: '', stat: '' },
-          ]
-        },
-        Arc: {
-          element: 'arc',
-          color: '#79c8f0',
-          glow: 'rgba(121,200,240,0.15)',
-          icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinySubclassDefinition_arc_warlock.jpg',
-          super: { name: 'Chaos Reach', desc: 'Kanaal een langgerekte Arc-laserstraal met enorme DPS. Deactiveer vroeg voor Super-refund.', icon: '' },
-          abilities: [
-            { name: 'Healing Rift', type: 'Class', icon: '', desc: 'Healt jou terwijl je in de rift staat.' },
-            { name: 'Ball Lightning', type: 'Melee', icon: '', desc: 'Schiet een Arc-bol die omhoog zweeft en bliksem afschiet.' },
-            { name: 'Arc Soul', type: 'Grenade', icon: '', desc: 'Rift verleent aan jou en bondgenoten een Arc Soul dat vijanden aanvalt.' },
-          ],
-          aspects: [
-            { name: 'Galvanic Armor', desc: 'Verleent Damage Resist terwijl je Amplified bent.', icon: '', fragments: 2 },
-            { name: 'Ionic Sentry', desc: 'Rift plaatsen: sentry die vijanden Jolts en Chain Lightning stuurt.', icon: '', fragments: 3 },
-          ],
-          fragments: [
-            { name: 'Spark of Resistance', desc: 'Terwijl je omringd bent door vijanden: damage resist.', icon: '', stat: '+10 Strength' },
-            { name: 'Spark of Amplitude', desc: 'Snel verslaan van vijanden terwijl Amplified: Orbs of Power.', icon: '', stat: '' },
-            { name: 'Spark of Ions', desc: 'Jolt-kills: maken een Ionic Trace aan.', icon: '', stat: '' },
-          ]
-        },
-        Stasis: {
-          element: 'stasis',
-          color: '#4ec3e0',
-          glow: 'rgba(78,195,224,0.15)',
-          icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinySubclassDefinition_stasis_warlock.jpg',
-          super: { name: 'Winters Wrath', desc: 'Roep een Stasis-staff. Gooi Stasis-kristallen en activeer een explosieve shatter-burst.', icon: '' },
-          abilities: [
-            { name: 'Healing Rift', type: 'Class', icon: '', desc: 'Geneest jou terwijl je staat.' },
-            { name: 'Penumbral Blast', type: 'Melee', icon: '', desc: 'Schiet een Stasis-projectiel dat bevriest.' },
-            { name: 'Glacier Grenade', type: 'Grenade', icon: '', desc: 'Creëert Stasis-kristallen als barrière.' },
-          ],
-          aspects: [
-            { name: 'Glacial Harvest', desc: 'Vijanden bevriezen: Stasis Shards aanmaken die jou bufften.', icon: '', fragments: 2 },
-            { name: 'Frostpulse', desc: 'Rift activeren: Slow-pulse rondom jou.', icon: '', fragments: 2 },
-          ],
-          fragments: [
-            { name: 'Whisper of Bonds', desc: 'Bevroren vijanden vermoorden: Super-energie.', icon: '', stat: '-10 Intellect, -10 Discipline' },
-            { name: 'Whisper of Hedrons', desc: 'Bevries een vijand: +30 Aim Assist, +30 Stability, +20 Airborne Effectiveness.', icon: '', stat: '' },
-            { name: 'Whisper of Rime', desc: 'Stasis Shards ophalen: Overshield.', icon: '', stat: '' },
-          ]
-        },
-        Strand: {
-          element: 'strand',
-          color: '#31c48d',
-          glow: 'rgba(49,196,141,0.15)',
-          icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinySubclassDefinition_strand_warlock.jpg',
-          super: { name: 'Needlestorm', desc: 'Gooi een storm van Strand-naalden die explodaat in Threadlings bij kills.', icon: '' },
-          abilities: [
-            { name: 'Rift', type: 'Class', icon: '', desc: 'Standaard Healing of Empowering Rift.' },
-            { name: 'Arcane Needle', type: 'Melee', icon: '', desc: 'Drie Strand-naalden die Tangle aanmaken bij kills.' },
-            { name: 'Threadling Grenade', type: 'Grenade', icon: '', desc: 'Creëert Threadlings die vijanden aanvallen.' },
-          ],
-          aspects: [
-            { name: 'Weaver\'s Call', desc: 'Rift activeren: Threadlings uitbroeden uit Woven Mail.', icon: '', fragments: 2 },
-            { name: 'Mindspun Invocation', desc: 'Verbeterde Threadling-grenades, Grapple Melee en Arcane Needle.', icon: '', fragments: 3 },
-          ],
-          fragments: [
-            { name: 'Thread of Evolution', desc: 'Threadlings bewegen sneller en doen meer schade.', icon: '', stat: '' },
-            { name: 'Thread of Mind', desc: 'Suspend vijanden vermoorden: Class Ability-energie.', icon: '', stat: '-10 Discipline' },
-            { name: 'Thread of Warding', desc: 'Orbs of Power ophalen: Woven Mail.', icon: '', stat: '-10 Resilience' },
-          ]
-        }
-      },
-      Titan: {
-        Prismatic: {
-          element: 'prismatic',
-          color: '#c8a2e8',
-          glow: 'rgba(200,162,232,0.15)',
-          icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinySubclassDefinition_prismatic_titan.jpg',
-          super: { name: 'Twilight Arsenal', desc: 'Smijt drie Solar-bijlen door de arena. Vijanden die raken krijgen Weakened; bijlen zijn op te pikken.', icon: '' },
-          abilities: [
-            { name: 'Thruster', type: 'Class', icon: '', desc: 'Dash zijwaarts om snel te herpositioneren.' },
-            { name: 'Frenzied Blade', type: 'Melee', icon: '', desc: 'Drie lading Strand-Slash. Maakt Tangles bij kills.' },
-            { name: 'Pulse Grenade', type: 'Grenade', icon: '', desc: 'Explodeert meerdere keren met Arc-energie.' },
-          ],
-          aspects: [
-            { name: 'Consecration', desc: 'Slide + Melee: Solar-golf die vijanden Scorch/Ignition geeft.', icon: '', fragments: 2 },
-            { name: 'Knockout', desc: 'Melee kills na Critical Break: Amplify jezelf en heel jezelf.', icon: '', fragments: 2 },
-          ],
-          fragments: [
-            { name: 'Facet of Command', desc: 'Opheffen van Freeze of Suspend via vermogens: herlaad je actieve wapen.', icon: '', stat: '' },
-            { name: 'Facet of Devotion', desc: 'Vijanden doden met Light-vermogens maakt Orbs; Dark vermogens: Super-energie.', icon: '', stat: '+10 Resilience' },
-            { name: 'Facet of Protection', desc: 'Terwijl je een darkness debuff hebt op een vijand: Damage Resistance.', icon: '', stat: '' },
-            { name: 'Facet of Mending', desc: 'Transcendence-grenade kills herstellen HP.', icon: '', stat: '+10 Recovery' },
-          ]
-        },
-        Solar: {
-          element: 'solar',
-          color: '#f0a830',
-          glow: 'rgba(240,168,48,0.15)',
-          icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinySubclassDefinition_solar_titan.jpg',
-          super: { name: 'Burning Maul', desc: 'Hanteer een enorme Solar-hamer. Slam neer voor een vuurstorm.', icon: '' },
-          abilities: [
-            { name: 'Barricade', type: 'Class', icon: '', desc: 'Plaatst een Towering Barricade als dekking.' },
-            { name: 'Hammer Strike', type: 'Melee', icon: '', desc: 'Laadbare melee: Scorch op vijanden bij treffer.' },
-            { name: 'Incendiary Grenade', type: 'Grenade', icon: '', desc: 'Brandbom die Scorch-stacks oplegt.' },
-          ],
-          aspects: [
-            { name: 'Roaring Flames', desc: 'Ignition kills versterken Solar-vermogen schade. Stackt 3×.', icon: '', fragments: 3 },
-            { name: 'Sol Invictus', desc: 'Solar kills plaatsen een Sunspot. In Sunspots: Restoration en verhoogde schade.', icon: '', fragments: 2 },
-          ],
-          fragments: [
-            { name: 'Ember of Torches', desc: 'Powered melee kills: Radiant voor jou en bondgenoten.', icon: '', stat: '+10 Strength' },
-            { name: 'Ember of Eruption', desc: 'Ignitions hebben een grotere straal.', icon: '', stat: '+10 Strength' },
-            { name: 'Ember of Searing', desc: 'Scorch kills: snellere Melee-recharge + Minor Spec drop.', icon: '', stat: '+10 Recovery' },
-          ]
-        },
-        Void: {
-          element: 'void',
-          color: '#b574de',
-          glow: 'rgba(181,116,222,0.15)',
-          icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinySubclassDefinition_void_titan.jpg',
-          super: { name: 'Ward of Dawn', desc: 'Creëer een onbreekbare Void-koepel. Bondgenoten erin krijgen Overshield en Weapons of Light.', icon: '' },
-          abilities: [
-            { name: 'Barricade', type: 'Class', icon: '', desc: 'Plaatst een Towering of Rally Barricade.' },
-            { name: 'Shield Bash', type: 'Melee', icon: '', desc: 'Sprint + melee: Suppressed Burst en Overshield.' },
-            { name: 'Magnetic Grenade', type: 'Grenade', icon: '', desc: 'Kleeft aan vijanden en explodeert dubbel.' },
-          ],
-          aspects: [
-            { name: 'Bastion', desc: 'Barricade geeft Overshield aan jou en bondgenoten erbij. Barricade heeft 2 charges.', icon: '', fragments: 2 },
-            { name: 'Offensive Bulwark', desc: 'In Overshield: Grenade heeft 2 charges, melee schade verhoogd.', icon: '', fragments: 3 },
-          ],
-          fragments: [
-            { name: 'Echo of Instability', desc: 'Grenade kills: Volatile Rounds voor je wapen.', icon: '', stat: '+10 Strength' },
-            { name: 'Echo of Vigilance', desc: 'Na het doden van een vijand met shield down: tijdelijke Void Overshield.', icon: '', stat: '-10 Recovery' },
-            { name: 'Echo of Dilation', desc: 'Terwijl je Crouched bent: vergroot radarafstand en beter radar.', icon: '', stat: '+10 Mobility, +10 Intellect' },
-          ]
-        },
-        Arc: {
-          element: 'arc',
-          color: '#79c8f0',
-          glow: 'rgba(121,200,240,0.15)',
-          icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinySubclassDefinition_arc_titan.jpg',
-          super: { name: 'Fists of Havoc', desc: 'Sprint en Slam met Arc-vuisten. Maak enorme schockgolven.', icon: '' },
-          abilities: [
-            { name: 'Barricade', type: 'Class', icon: '', desc: 'Plaatst een Barricade.' },
-            { name: 'Thunderclap', type: 'Melee', icon: '', desc: 'Opladen = sterke Arc-punch die Jolts. Instant = snelle push.' },
-            { name: 'Flashbang Grenade', type: 'Grenade', icon: '', desc: 'Desorienteert vijanden en geeft blinde flash.' },
-          ],
-          aspects: [
-            { name: 'Touch of Thunder', desc: 'Flashbang, Pulse, Lightning en Storm grenades verbeterd met Jolt/Blinding effects.', icon: '', fragments: 3 },
-            { name: 'Juggernaut', desc: 'Sprint met volle shields: Frontal Shield; stoot vijanden weg.', icon: '', fragments: 2 },
-          ],
-          fragments: [
-            { name: 'Spark of Magnitude', desc: 'Lightning grenades duren langer; Storm grenades extra blikseminslag.', icon: '', stat: '' },
-            { name: 'Spark of Momentum', desc: 'Sliding ontploft grenades of pickups voor Solar schade.', icon: '', stat: '-10 Recovery' },
-            { name: 'Spark of Ions', desc: 'Jolt kills: Ionic Trace aanmaken.', icon: '', stat: '' },
-          ]
-        },
-        Stasis: {
-          element: 'stasis',
-          color: '#4ec3e0',
-          glow: 'rgba(78,195,224,0.15)',
-          icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinySubclassDefinition_stasis_titan.jpg',
-          super: { name: 'Glacial Quake', desc: 'Stasis-handschoenen: Slam neer voor explosies en werp Stasis-kristallen.', icon: '' },
-          abilities: [
-            { name: 'Barricade', type: 'Class', icon: '', desc: 'Towering of Rally Barricade.' },
-            { name: 'Shiver Strike', type: 'Melee', icon: '', desc: 'Dak omhoog en sloeg neer als een Stasis-hamer.' },
-            { name: 'Coldsnap Grenade', type: 'Grenade', icon: '', desc: 'Stasis keten bevriest alles in de buurt.' },
-          ],
-          aspects: [
-            { name: 'Tectonic Harvest', desc: 'Stasis-kristallen verpletteren: Stasis Shards die je bufften.', icon: '', fragments: 2 },
-            { name: 'Howl of the Storm', desc: 'Shiver Strike laadt op en veroorzaakt een ijsgolf.', icon: '', fragments: 2 },
-          ],
-          fragments: [
-            { name: 'Whisper of Shards', desc: 'Stasis-kristallen verpletteren: snellere Grenade-recharge.', icon: '', stat: '' },
-            { name: 'Whisper of Fractures', desc: 'Stasis-vermogens: snellere Melee-recharge.', icon: '', stat: '-10 Discipline' },
-            { name: 'Whisper of Chains', desc: 'Bevroren vijanden in buurt: damage resist.', icon: '', stat: '' },
-          ]
-        },
-        Strand: {
-          element: 'strand',
-          color: '#31c48d',
-          glow: 'rgba(49,196,141,0.15)',
-          icon: 'https://www.bungie.net/common/destiny2_content/icons/DestinySubclassDefinition_strand_titan.jpg',
-          super: { name: 'Bladefury', desc: 'Strand-armen: vlieg door de lucht, Suspend vijanden met naalden, en land als een Titan.', icon: '' },
-          abilities: [
-            { name: 'Barricade', type: 'Class', icon: '', desc: 'Towering Barricade.' },
-            { name: 'Frenzied Blade', type: 'Melee', icon: '', desc: 'Drie laadstaten; elke kill Tangles aanmaken.' },
-            { name: 'Grapple', type: 'Grenade', icon: '', desc: 'Sling jezelf voorwaarts. Grapple Melee verplettert vijanden.' },
-          ],
-          aspects: [
-            { name: 'Into the Fray', desc: 'Tangles vernietigen: Woven Mail voor jou en bondgenoten.', icon: '', fragments: 3 },
-            { name: 'Drengr\'s Lash', desc: 'Barricade plaatsen: Strand-golf die vijanden Suspends.', icon: '', fragments: 2 },
-          ],
-          fragments: [
-            { name: 'Thread of Propagation', desc: 'Powered melee kills: Unraveling Rounds voor je wapen.', icon: '', stat: '' },
-            { name: 'Thread of Transmutation', desc: 'Terwijl je Woven Mail hebt: Strand-kills maken Tangles aan.', icon: '', stat: '+10 Strength' },
-            { name: 'Thread of Continuity', desc: 'Suspend, Unravel en Sever duren langer.', icon: '', stat: '' },
-          ]
-        }
-      }
-    };
-
-    // Subclass element → kleur mapping
-    const ELEM_COLORS = {
-      prismatic: { color: '#c8a2e8', glow: 'rgba(200,162,232,0.18)', label: 'Prismatic' },
-      arc:       { color: '#79c8f0', glow: 'rgba(121,200,240,0.18)', label: 'Arc' },
-      solar:     { color: '#f0a830', glow: 'rgba(240,168,48,0.18)',  label: 'Solar' },
-      void:      { color: '#b574de', glow: 'rgba(181,116,222,0.18)', label: 'Void' },
-      stasis:    { color: '#4ec3e0', glow: 'rgba(78,195,224,0.18)',  label: 'Stasis' },
-      strand:    { color: '#31c48d', glow: 'rgba(49,196,141,0.18)',  label: 'Strand' },
-    };
-
-    // Subclass element SVG iconen (inline, geen API nodig)
-    const ELEM_SVGS = {
-      prismatic: `<svg viewBox="0 0 32 32" width="32" height="32"><polygon points="16,2 30,10 30,22 16,30 2,22 2,10" fill="none" stroke="#c8a2e8" stroke-width="1.8"/><polygon points="16,8 24,13 24,19 16,24 8,19 8,13" fill="rgba(200,162,232,0.25)" stroke="#c8a2e8" stroke-width="1"/><circle cx="16" cy="16" r="3.5" fill="#c8a2e8"/></svg>`,
-      arc:       `<svg viewBox="0 0 32 32" width="32" height="32"><path d="M18 4L7 18h9L13 28 25 12h-9z" fill="#79c8f0" filter="drop-shadow(0 0 6px #79c8f0)"/></svg>`,
-      solar:     `<svg viewBox="0 0 32 32" width="32" height="32"><circle cx="16" cy="16" r="7" fill="#f0a830"/><g stroke="#f0a830" stroke-width="2.2" stroke-linecap="round"><line x1="16" y1="3" x2="16" y2="7"/><line x1="16" y1="25" x2="16" y2="29"/><line x1="3" y1="16" x2="7" y2="16"/><line x1="25" y1="16" x2="29" y2="16"/><line x1="6.4" y1="6.4" x2="9.3" y2="9.3"/><line x1="22.7" y1="22.7" x2="25.6" y2="25.6"/><line x1="25.6" y1="6.4" x2="22.7" y2="9.3"/><line x1="9.3" y1="22.7" x2="6.4" y2="25.6"/></g></svg>`,
-      void:      `<svg viewBox="0 0 32 32" width="32" height="32"><circle cx="16" cy="16" r="12" fill="none" stroke="#b574de" stroke-width="2"/><circle cx="16" cy="16" r="7" fill="rgba(181,116,222,0.3)" stroke="#b574de" stroke-width="1.5"/><circle cx="16" cy="16" r="3" fill="#b574de"/></svg>`,
-      stasis:    `<svg viewBox="0 0 32 32" width="32" height="32"><polygon points="16,3 19,12 28,12 21,18 24,27 16,21 8,27 11,18 4,12 13,12" fill="none" stroke="#4ec3e0" stroke-width="1.8" stroke-linejoin="round"/><circle cx="16" cy="16" r="3.5" fill="#4ec3e0"/></svg>`,
-      strand:    `<svg viewBox="0 0 32 32" width="32" height="32"><path d="M5 16 Q9 7 16 12 Q23 17 27 8" stroke="#31c48d" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M5 20 Q9 11 16 16 Q23 21 27 12" stroke="#31c48d" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.6"/><path d="M5 24 Q9 15 16 20 Q23 25 27 16" stroke="#31c48d" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.35"/></svg>`,
-    };
-
-    // Render een ability/aspect/fragment item
-    function renderSubclassItem(item, type) {
-      var hasIcon = item.icon && item.icon.indexOf('bungie.net') !== -1;
-      var iconHtml;
-      if (hasIcon) {
-        iconHtml = '<img src="' + proxySrc(item.icon) + '" width="38" height="38" style="border-radius:7px;object-fit:cover;" onerror="this.style.display=\'none\'">';
-      } else {
-        // Fallback gekleurde placeholder per type
-        var symbols = { super: '⚡', ability: '🔮', aspect: '💎', fragment: '🔷' };
-        iconHtml = '<div style="width:38px;height:38px;border-radius:7px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:1.3rem;">' + (symbols[type]||'●') + '</div>';
-      }
-
-      var extra = '';
-      if (type === 'ability' && item.type) {
-        extra = '<span style="font-size:0.6rem;background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;color:rgba(255,255,255,0.5);margin-left:4px;">' + item.type + '</span>';
-      }
-      if (type === 'aspect' && item.fragments) {
-        extra = '<span style="font-size:0.6rem;background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;color:rgba(255,255,255,0.45);margin-left:4px;">⟡ ' + item.fragments + ' slots</span>';
-      }
-      if (type === 'fragment' && item.stat) {
-        var isPos = item.stat.indexOf('+') === 0;
-        extra = '<span style="font-size:0.6rem;padding:2px 6px;border-radius:4px;margin-left:4px;color:' + (isPos?'#4caf82':'#e8622a') + ';background:' + (isPos?'rgba(76,175,130,0.12)':'rgba(232,98,42,0.12)') + ';">' + item.stat + '</span>';
-      }
-
-      return '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">'
-        + '<div style="flex-shrink:0;">' + iconHtml + '</div>'
-        + '<div style="flex:1;min-width:0;">'
-        + '<div style="font-size:0.78rem;font-weight:700;color:#fff;line-height:1.2;margin-bottom:2px;">' + (item.name||'') + extra + '</div>'
-        + '<div style="font-size:0.68rem;color:rgba(255,255,255,0.5);line-height:1.4;">' + (item.desc||'') + '</div>'
-        + '</div></div>';
-    }
-
-    // Hoofdfunctie: toon het subclass panel voor een karakter
-    function showSubclassPanel(className, subclassName, element) {
-      var panel   = document.getElementById('subclassPanel');
-      var nameEl  = document.getElementById('subclassPanelName');
-      var metaEl  = document.getElementById('subclassPanelMeta');
-      var iconEl  = document.getElementById('subclassPanelIcon');
-      var superEl = document.getElementById('subclassSuper');
-      var abEl    = document.getElementById('subclassAbilities');
-      var aspEl   = document.getElementById('subclassAspects');
-      var fragEl  = document.getElementById('subclassFragments');
-      if (!panel) return;
-
-      // Haal data op
-      var classData = SUBCLASS_DB[className];
-      if (!classData) { panel.style.display = 'none'; return; }
-
-      // Zoek matching subclass op naam of element
-      var sub = null;
-      // Probeer directe naam-match (Prismatic, Arc, Solar etc)
-      var key = Object.keys(classData).find(function(k) {
-        return k.toLowerCase() === (subclassName||'').toLowerCase()
-          || k.toLowerCase() === (element||'').toLowerCase();
-      });
-      if (!key && element) {
-        // match op element
-        key = Object.keys(classData).find(function(k) {
-          return classData[k].element === element.toLowerCase();
-        });
-      }
-      sub = key ? classData[key] : classData[Object.keys(classData)[0]];
-      if (!sub) { panel.style.display = 'none'; return; }
-
-      var ec = ELEM_COLORS[sub.element] || ELEM_COLORS.void;
-      var svg = ELEM_SVGS[sub.element] || ELEM_SVGS.void;
-
-      // CSS variabelen voor glow
-      panel.querySelector('div').style.setProperty('--subclass-color', ec.color);
-      panel.querySelector('div').style.setProperty('--subclass-glow', ec.glow);
-      panel.querySelector('div').style.borderColor = ec.color.replace('1)', '0.4)') || 'rgba(200,162,232,0.4)';
-      panel.querySelector('div').style.boxShadow = '0 0 40px ' + ec.glow + ', 0 8px 32px rgba(0,0,0,0.6)';
-
-      // Header
-      if (nameEl) nameEl.textContent = (className + ' — ' + (sub.name || key || subclassName || ''));
-      if (metaEl) { metaEl.textContent = ec.label + ' · ' + className; metaEl.style.color = ec.color; }
-
-      // Icon
-      if (iconEl) {
-        if (sub.icon && sub.icon.indexOf('bungie.net') !== -1) {
-          iconEl.innerHTML = '<img src="' + proxySrc(sub.icon) + '" width="52" height="52" style="border-radius:8px;object-fit:cover;" onerror="this.style.display=\'none\'">';
-        } else {
-          iconEl.innerHTML = svg;
-        }
-        iconEl.style.borderColor = ec.color;
-        iconEl.style.boxShadow = '0 0 16px ' + ec.glow;
-      }
-
-      // Label kleur updaten
-      document.querySelectorAll('#subclassPanel [data-label]').forEach(function(el){
-        el.style.color = ec.color;
-      });
-
-      // Super
-      if (superEl && sub.super) {
-        superEl.innerHTML = renderSubclassItem(sub.super, 'super');
-      }
-
-      // Abilities
-      if (abEl && sub.abilities) {
-        abEl.innerHTML = sub.abilities.map(function(a){ return renderSubclassItem(a, 'ability'); }).join('');
-      }
-
-      // Aspects
-      if (aspEl && sub.aspects) {
-        aspEl.innerHTML = sub.aspects.map(function(a){ return renderSubclassItem(a, 'aspect'); }).join('');
-      }
-
-      // Fragments
-      if (fragEl && sub.fragments) {
-        fragEl.innerHTML = sub.fragments.map(function(f){ return renderSubclassItem(f, 'fragment'); }).join('');
-      }
-
-      panel.style.display = 'block';
-      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    // ── Override selectLiveChar om subclass panel te tonen ──
-    var _origSelectLiveChar = window.selectLiveChar;
-    window.selectLiveChar = function(idx) {
-      _activeCharIdx = idx;
-      document.querySelectorAll('.char-card').forEach(function(c,i){ c.classList.toggle('active-char', i === idx); });
-      var char = _liveChars[idx];
-      if (char) {
-        renderCharGear(char);
-        // Bepaal subclass info
-        var elem = (char.subclass && char.subclass.element) || 'void';
-        var subName = (char.subclass && char.subclass.name) || '';
-        // Detecteer subclass-naam: prismatic/arc/solar/void etc
-        var elemKey = subName.toLowerCase();
-        if (elemKey.indexOf('prismatic') >= 0) elemKey = 'prismatic';
-        else if (elemKey.indexOf('arc') >= 0) elemKey = 'arc';
-        else if (elemKey.indexOf('solar') >= 0 || elemKey.indexOf('dawn') >= 0 || elemKey.indexOf('sunbreak') >= 0) elemKey = 'solar';
-        else if (elemKey.indexOf('void') >= 0 || elemKey.indexOf('shadow') >= 0 || elemKey.indexOf('sentinel') >= 0) elemKey = 'void';
-        else if (elemKey.indexOf('stasis') >= 0 || elemKey.indexOf('revenant') >= 0 || elemKey.indexOf('behemoth') >= 0 || elemKey.indexOf('shadebinder') >= 0) elemKey = 'stasis';
-        else if (elemKey.indexOf('strand') >= 0 || elemKey.indexOf('threadrunner') >= 0 || elemKey.indexOf('broodweaver') >= 0 || elemKey.indexOf('berserker') >= 0) elemKey = 'strand';
-        else elemKey = elem;
-        showSubclassPanel(char.className, elemKey, elem);
-      }
-    };
-
-    // ── Override selectStaticChar om subclass panel te tonen ──
-    var _origSelectStaticChar = window.selectStaticChar;
-    window.selectStaticChar = function(el, name) {
-      document.querySelectorAll('.char-card').forEach(function(c){ c.classList.remove('active-char'); });
-      el.classList.add('active-char');
-      var t1 = document.getElementById('invTitle1');
-      var t2 = document.getElementById('invTitle2');
-      if (t1) t1.innerHTML = '&#128299; Wapens &mdash; <span style="color:var(--gold2)">' + name + '</span>';
-      if (t2) t2.innerHTML = '&#128737;&#65039; Armor &mdash; <span style="color:var(--gold2)">' + name + '</span>';
-      // Default subclass tonen per karakter
-      var defaults = { Hunter: 'prismatic', Warlock: 'prismatic', Titan: 'prismatic' };
-      showSubclassPanel(name, defaults[name] || 'prismatic', defaults[name] || 'prismatic');
-      showToast(name + ' geselecteerd');
-    };
 
   </script>-e 
 
