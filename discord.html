@@ -18,29 +18,48 @@ body{
     overflow:hidden;
 }
 
-/* 🌌 TWINKLE STARS */
-.stars {
-    position:fixed;
-    width:100%;
-    height:100%;
-    top:0;
-    left:0;
-    z-index:-1;
-}
+/* 🌌 STAR LAYERS */
+.stars{position:fixed;width:100%;height:100%;top:0;left:0;z-index:-1;}
 
-.star {
+.star{
     position:absolute;
-    width:2px;
-    height:2px;
-    background:white;
     border-radius:50%;
-    opacity:0.3;
-    animation:twinkle 2s infinite ease-in-out;
+    background:white;
+    animation:twinkle ease-in-out infinite;
 }
 
-@keyframes twinkle {
-    0%,100% {opacity:0.2; transform:scale(1);}
-    50% {opacity:1; transform:scale(1.6);}
+.small{width:1px;height:1px;opacity:0.3;}
+.medium{width:2px;height:2px;opacity:0.6;}
+.big{width:3px;height:3px;opacity:0.9;}
+
+@keyframes twinkle{
+    0%,100%{opacity:0.2;transform:scale(1);}
+    50%{opacity:1;transform:scale(1.5);}
+}
+
+/* 💫 SHOOTING STAR */
+.shoot{
+    position:absolute;
+    width:120px;
+    height:2px;
+    background:linear-gradient(90deg, white, transparent);
+    opacity:0;
+}
+
+@keyframes shoot{
+    0%{transform:translateX(0) translateY(0); opacity:1;}
+    100%{transform:translateX(-600px) translateY(300px); opacity:0;}
+}
+
+/* 🖱️ MOUSE GLOW */
+.glow{
+    position:fixed;
+    width:300px;
+    height:300px;
+    background:radial-gradient(circle, rgba(88,101,242,0.15), transparent);
+    pointer-events:none;
+    transform:translate(-50%,-50%);
+    z-index:-1;
 }
 
 /* NAV */
@@ -52,12 +71,7 @@ body{
 
     background:rgba(255,255,255,0.05);
     backdrop-filter:blur(12px);
-
     border-bottom:1px solid rgba(255,255,255,0.08);
-}
-
-.logo{
-    font-weight:600;
 }
 
 .links a{
@@ -66,10 +80,7 @@ body{
     text-decoration:none;
     font-size:14px;
 }
-
-.links a:hover{
-    color:white;
-}
+.links a:hover{color:white;}
 
 /* HERO */
 .hero{
@@ -90,21 +101,16 @@ body{
     backdrop-filter:blur(18px);
 
     border-radius:16px;
-    border:1px solid rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.12);
 
-    box-shadow:0 0 40px rgba(0,0,0,0.4);
+    box-shadow:
+        0 0 40px rgba(0,0,0,0.4),
+        inset 0 0 20px rgba(255,255,255,0.03);
 }
 
 /* TEXT */
-h1{
-    font-size:36px;
-    margin-bottom:10px;
-}
-
-p{
-    color:#b5bac1;
-    line-height:1.6;
-}
+h1{font-size:36px;margin-bottom:10px;}
+p{color:#b5bac1;line-height:1.6;}
 
 /* BUTTON */
 .btn{
@@ -139,9 +145,10 @@ p{
 <body>
 
 <div class="stars" id="stars"></div>
+<div class="glow" id="glow"></div>
 
 <nav class="nav">
-    <div class="logo">Guardian HQ</div>
+    <div>Guardian HQ</div>
 
     <div class="links">
         <a href="landing.html">Welkom</a>
@@ -169,20 +176,46 @@ p{
 </section>
 
 <script>
-const starsContainer = document.getElementById("stars");
+// 🌌 STARS
+const container = document.getElementById("stars");
 
-for (let i = 0; i < 120; i++) {
-    const star = document.createElement("div");
-    star.classList.add("star");
+for(let i=0;i<140;i++){
+    const star=document.createElement("div");
 
-    star.style.top = Math.random() * 100 + "%";
-    star.style.left = Math.random() * 100 + "%";
+    let sizeClass = ["small","medium","big"][Math.floor(Math.random()*3)];
+    star.className = "star " + sizeClass;
 
-    star.style.animationDelay = Math.random() * 3 + "s";
-    star.style.animationDuration = (1.5 + Math.random() * 2) + "s";
+    star.style.top=Math.random()*100+"%";
+    star.style.left=Math.random()*100+"%";
 
-    starsContainer.appendChild(star);
+    star.style.animationDuration=(2+Math.random()*3)+"s";
+    star.style.animationDelay=Math.random()*3+"s";
+
+    container.appendChild(star);
 }
+
+// 💫 SHOOTING STAR
+setInterval(()=>{
+    const s=document.createElement("div");
+    s.className="shoot";
+
+    s.style.top=Math.random()*50+"%";
+    s.style.left=(50+Math.random()*50)+"%";
+
+    s.style.animation="shoot 1s linear";
+
+    document.body.appendChild(s);
+
+    setTimeout(()=>s.remove(),1000);
+},4000);
+
+// 🖱️ MOUSE GLOW
+const glow=document.getElementById("glow");
+
+document.addEventListener("mousemove",(e)=>{
+    glow.style.left=e.clientX+"px";
+    glow.style.top=e.clientY+"px";
+});
 </script>
 
 </body>
