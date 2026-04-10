@@ -105,29 +105,42 @@ export default async function handler(req, res) {
       const mType = primary.membershipType;
       const mId   = primary.membershipId;
 
-      // 2. Profile: chars (200) + equipment (205) + instances (300)
-      const profile = await bFetch(`/Destiny2/${mType}/Profile/${mId}/?components=200,205,300`, token);
+      // 2. Profile: chars (200) + equipment (205) + instances (300) + plugs (309)
+      const profile = await bFetch(`/Destiny2/${mType}/Profile/${mId}/?components=200,205,300,309`, token);
 
       const charsData    = profile?.characters?.data ?? {};
       const equipData    = profile?.characterEquipment?.data ?? {};
       const instanceData = profile?.itemComponents?.instances?.data ?? {};
+      const plugsData    = profile?.itemComponents?.reusablePlugs?.data ?? {};
 
-      // 3. Verzamel alleen relevante hashes (subclass + wapens + armor, max ~20)
+      // 3. Verzamel relevante hashes
       const RELEVANT_BUCKETS = new Set([
-        3284755031,              // subclass
-        1498876634, 2465295065, 953998645,   // weapons
-        3448274439, 3551918588, 14239492, 20886954, 1585787867, // armor
+        3284755031,                                                      // subclass
+        1498876634, 2465295065, 953998645,                               // weapons
+        3448274439, 3551918588, 14239492, 20886954, 1585787867,          // armor
       ]);
       const allHashes = new Set();
+      const allPlugHashes = new Set();
+
       for (const charEquip of Object.values(equipData)) {
         for (const item of (charEquip.items ?? [])) {
-          if (RELEVANT_BUCKETS.has(item.bucketHash)) allHashes.add(item.itemHash);
+          if (RELEVANT_BUCKETS.has(item.bucketHash)) {
+            allHashes.add(item.itemHash);
+            // Verzamel plug hashes voor mods
+            const plugs = plugsData[item.itemInstanceId]?.plugs ?? {};
+            for (const plugArr of Object.values(plugs)) {
+              for (const plug of plugArr) {
+                if (plug.plugItemHash) allPlugHashes.add(plug.plugItemHash);
+              }
+            }
+          }
         }
       }
 
-      // 4. Manifest parallel ophalen — alle ~18 items tegelijk (elk 4s timeout)
+      // 4. Manifest ophalen — alle items + plugs tegelijk
       const defs = {};
-      await Promise.allSettled([...allHashes].map(async hash => {
+      const allToFetch = [...new Set([...allHashes, ...allPlugHashes])];
+      await Promise.allSettled(allToFetch.map(async hash => {
         try {
           const ctrl = new AbortController();
           const tid  = setTimeout(() => ctrl.abort(), 5000);
@@ -152,20 +165,78 @@ export default async function handler(req, res) {
         3855807587:'prismatic',1216399026:'prismatic',3452049687:'prismatic',
       };
       const SUBCLASS_NAMES = {
-        2328211300:'Arc Strider',  3006627468:'Stormcaller', 1751782730:'Striker',     2958378809:'Arc Striker',
-        2240888816:'Gunslinger',   3941205951:'Dawnblade',   2550323932:'Sunbreaker',
-        2453351420:'Nightstalker', 3887892656:'Voidwalker',  2842471112:'Sentinel',
-        873720784:'Revenant',      3291545503:'Shadebinder', 2842471113:'Behemoth',
-        2932390016:'Threadrunner', 613647897:'Broodweaver',  242419885:'Berserker',
-        3855807587:'Prismatic Hunter',1216399026:'Prismatic Warlock',3452049687:'Prismatic Titan',
+        2328211300:'Arc Strider',  3006627468:'Stormcaller',       1751782730:'Striker',      2958378809:'Arc Striker',
+        2240888816:'Gunslinger',   3941205951:'Dawnblade',          2550323932:'Sunbreaker',
+        2453351420:'Nightstalker', 3887892656:'Voidwalker',         2842471112:'Sentinel',
+        873720784:'Revenant',      3291645503:'Shadebinder',        2842471113:'Behemoth',
+        2932390016:'Threadrunner', 613647897:'Broodweaver',         242419885:'Berserker',
+        3855807587:'Prismatic',    1216399026:'Prismatic',          3452049687:'Prismatic',
       };
-      const WEAPON_BUCKETS = new Set([1498876634, 2465295065, 953998645]);
-      const ARMOR_BUCKETS  = new Set([3448274439, 3551918588, 14239492, 20886954, 1585787867]);
+      const WEAPON_BUCKETS  = new Set([1498876634, 2465295065, 953998645]);
+      const ARMOR_BUCKETS   = new Set([3448274439, 3551918588, 14239492, 20886954, 1585787867]);
       const SUBCLASS_BUCKET = 3284755031;
       const SLOT_NAMES = {
         1498876634:'Kinetisch', 2465295065:'Energie', 953998645:'Zwaar',
         3448274439:'Helm', 3551918588:'Gauntlets', 14239492:'Borst', 20886954:'Benen', 1585787867:'Class Item',
       };
+
+      // Mod slot bucket hashes die we willen tonen (armor mods, niet intrinsics/perks)
+      const MOD_SLOT_CATEGORIES = new Set([
+        59,    // Armor mods
+        4104513227, // Combat Style mods
+        2685412949, // General mods
+      ]);
+
+      // Helper: haal mod-iconen op uit plugsData voor een item
+      function getArmorMods(itemInstanceId) {
+        const plugs = plugsData[itemInstanceId]?.plugs ?? {};
+        const mods = [];
+        for (const [slotHash, plugArr] of Object.entries(plugs)) {
+          for (const plug of (plugArr ?? [])) {
+            const plugDef = defs[plug.plugItemHash];
+            if (!plugDef) continue;
+            const name = plugDef.displayProperties?.name ?? '';
+            const icon = plugDef.displayProperties?.icon;
+            // Filter leege/basis sockets eruit
+            if (!name || name === 'Empty Mod Socket' || name === 'Default Shader' ||
+                name === 'Armor Perks' || name.startsWith('Empty ') || !icon) continue;
+            const isMod = (plugDef.itemCategoryHashes ?? []).some(h => MOD_SLOT_CATEGORIES.has(h));
+            if (isMod) {
+              mods.push({
+                name: name,
+                icon: 'https://www.bungie.net' + icon,
+                hash: plug.plugItemHash,
+              });
+              if (mods.length >= 3) break;
+            }
+          }
+          if (mods.length >= 3) break;
+        }
+        return mods;
+      }
+
+      // Helper: haal weapon perks op
+      function getWeaponPerks(itemInstanceId, itemHash) {
+        const plugs = plugsData[itemInstanceId]?.plugs ?? {};
+        const perks = [];
+        for (const [, plugArr] of Object.entries(plugs)) {
+          for (const plug of (plugArr ?? [])) {
+            const plugDef = defs[plug.plugItemHash];
+            if (!plugDef) continue;
+            const name = plugDef.displayProperties?.name ?? '';
+            const icon = plugDef.displayProperties?.icon;
+            if (!name || !icon || name.includes('Default') || name.includes('Empty') || name.includes('Intrinsic')) continue;
+            const cats = plugDef.itemCategoryHashes ?? [];
+            // Alleen echte weapon perks (cat 2237006975 = weapon perk)
+            if (cats.includes(2237006975) || cats.includes(610365472)) {
+              perks.push({ name, icon: 'https://www.bungie.net' + icon });
+              if (perks.length >= 4) break;
+            }
+          }
+          if (perks.length >= 4) break;
+        }
+        return perks;
+      }
 
       // 6. Bouw karakters op
       const characters = [];
@@ -176,25 +247,30 @@ export default async function handler(req, res) {
         const scRaw  = items.find(i => i.bucketHash === SUBCLASS_BUCKET);
         const scHash = scRaw?.itemHash;
         const scDef  = defs[scHash];
+        const element = ELEMENT_MAP[scHash] ?? 'void';
         const subclass = {
           hash:    scHash,
           name:    SUBCLASS_NAMES[scHash] ?? scDef?.displayProperties?.name ?? 'Subclass',
-          element: ELEMENT_MAP[scHash] ?? 'void',
+          element: element,
           icon:    scDef?.displayProperties?.icon ? 'https://www.bungie.net' + scDef.displayProperties.icon : null,
+          screenshot: scDef?.screenshot ? 'https://www.bungie.net' + scDef.screenshot : null,
         };
 
         // Wapens
         const weapons = items.filter(i => WEAPON_BUCKETS.has(i.bucketHash)).map(i => {
           const def = defs[i.itemHash] ?? {};
           const ins = instanceData[i.itemInstanceId] ?? {};
+          const perks = getWeaponPerks(i.itemInstanceId, i.itemHash);
           return {
             bucketHash: i.bucketHash,
             slotName:   SLOT_NAMES[i.bucketHash] ?? 'Wapen',
             name:       def.displayProperties?.name ?? SLOT_NAMES[i.bucketHash] ?? 'Wapen',
             icon:       def.displayProperties?.icon ? 'https://www.bungie.net' + def.displayProperties.icon : null,
+            typeName:   def.itemTypeDisplayName ?? '',
             tierType:   def.inventory?.tierType ?? 5,
             isExotic:   (def.inventory?.tierType ?? 5) === 6,
             power:      ins.primaryStat?.value ?? 0,
+            perks,
           };
         });
 
@@ -202,6 +278,7 @@ export default async function handler(req, res) {
         const armor = items.filter(i => ARMOR_BUCKETS.has(i.bucketHash)).map(i => {
           const def = defs[i.itemHash] ?? {};
           const ins = instanceData[i.itemInstanceId] ?? {};
+          const mods = getArmorMods(i.itemInstanceId);
           return {
             bucketHash: i.bucketHash,
             slotName:   SLOT_NAMES[i.bucketHash] ?? 'Armor',
@@ -210,6 +287,7 @@ export default async function handler(req, res) {
             tierType:   def.inventory?.tierType ?? 5,
             isExotic:   (def.inventory?.tierType ?? 5) === 6,
             power:      ins.primaryStat?.value ?? 0,
+            mods,
           };
         });
 
@@ -219,6 +297,7 @@ export default async function handler(req, res) {
           classType: char.classType,
           light:     char.light ?? 0,
           emblemBg:  char.emblemBackgroundPath ? 'https://www.bungie.net' + char.emblemBackgroundPath : null,
+          emblemIcon: char.emblemPath ? 'https://www.bungie.net' + char.emblemPath : null,
           subclass, weapons, armor,
         });
       }
