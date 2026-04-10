@@ -105,11 +105,12 @@ export default async function handler(req, res) {
       const mType = primary.membershipType;
       const mId   = primary.membershipId;
 
-      // 2. Profile: chars (200) + equipment (205) + instances (300) + sockets (302) + char stats (304) + plugs (309)
-      const profile = await bFetch(`/Destiny2/${mType}/Profile/${mId}/?components=200,205,300,302,304,309`, token);
+      // 2. Profile: chars (200) + renders (204) + equipment (205) + instances (300) + sockets (302) + char stats (304) + plugs (309)
+      const profile = await bFetch(`/Destiny2/${mType}/Profile/${mId}/?components=200,204,205,300,302,304,309`, token);
 
-      const charsData    = profile?.characters?.data ?? {};
-      const equipData    = profile?.characterEquipment?.data ?? {};
+      const charsData      = profile?.characters?.data ?? {};
+      const renderData     = profile?.characterRenderData?.data ?? {};
+      const equipData      = profile?.characterEquipment?.data ?? {};
       const instanceData = profile?.itemComponents?.instances?.data ?? {};
       const plugsData    = profile?.itemComponents?.reusablePlugs?.data ?? {};
       const socketsData  = profile?.itemComponents?.sockets?.data ?? {};
@@ -353,10 +354,15 @@ export default async function handler(req, res) {
           stats[key] = rawStats[hash]?.value ?? 0;
         }
 
-        // Character render URL — gebruikt door DIM/Braytech etc voor het poppetje
-          const characterRenderUrl = `https://www.bungie.net/common/destiny2_content/icons/${char.emblemHash || ''}.jpg`;
+        // Character render URL
+        // Bungie's echte karakter render is ALLEEN beschikbaar via hun eigen website renderer
+        // De enige publiek toegankelijke afbeelding IS de emblemBackgroundPath
+        // maar die is 474x96 panorama.
+        // De subclass screenshot (groot, ~1920px breed) is de beste bron voor het portret.
+        const charRenderData = renderData[charId];
+        const portraitUrl = null; // Bungie portrait widget werkt niet zonder cookies/session
 
-          characters.push({
+        characters.push({
           charId,
           mType,
           mId,
@@ -367,6 +373,7 @@ export default async function handler(req, res) {
           emblemIcon: char.emblemPath ? 'https://www.bungie.net' + char.emblemPath : null,
           emblemHash: char.emblemHash ?? null,
           renderPath: char.emblemBackgroundPath ?? null,
+          portraitUrl,
           subclass, weapons, armor, stats,
         });
       }
