@@ -251,83 +251,56 @@
         <!-- ══ COMPLETE BUILD PANEL ══ -->
         <div id="buildPanel" style="display:none;">
 
-          <!-- BUILD HEADER: class + power + subclass naam -->
-          <div id="buildHeader" style="position:relative;overflow:hidden;border-radius:20px;padding:24px 28px;margin-bottom:16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
-            <div id="buildHeaderBg" style="position:absolute;inset:0;opacity:0.18;background-size:cover;background-position:center;border-radius:20px;"></div>
-            <div style="position:absolute;inset:0;border-radius:20px;" id="buildHeaderOverlay"></div>
-            <div id="buildEmblem" style="position:relative;z-index:1;width:64px;height:64px;border-radius:12px;overflow:hidden;flex-shrink:0;"></div>
-            <div style="position:relative;z-index:1;flex:1;">
-              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                <div id="buildClassName" style="font-family:'Space Grotesk',sans-serif;font-size:1.6rem;font-weight:900;letter-spacing:0.04em;"></div>
-                <div id="buildPower" style="font-size:1.3rem;font-weight:800;display:flex;align-items:center;gap:4px;"></div>
-              </div>
-              <div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap;">
-                <div id="buildSubclassIcon" style="width:28px;height:28px;border-radius:6px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.1);"></div>
-                <div id="buildSubclassName" style="font-size:0.9rem;font-weight:700;opacity:0.9;"></div>
-              </div>
-            </div>
-          </div>
+          <!-- DESTINY 2 CHARACTER SCREEN -->
+          <div id="d2CharScreen" style="position:relative;border-radius:20px;overflow:hidden;background:#0a0c14;border:1px solid rgba(255,255,255,0.1);min-height:520px;">
 
-          <!-- ROW 1: SUBCLASS -->
-          <div id="buildSubclassSection" style="background:rgba(8,10,20,0.95);border:1px solid rgba(255,255,255,0.08);border-radius:18px;margin-bottom:12px;overflow:hidden;">
+            <!-- ACHTERGROND emblem/screenshot -->
+            <div id="charScreenBg" style="position:absolute;inset:0;background-size:cover;background-position:center;opacity:0.22;"></div>
+            <div id="charScreenGrad" style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(5,7,15,0.92) 0%,rgba(5,7,15,0.6) 50%,rgba(5,7,15,0.92) 100%);"></div>
 
-            <!-- Subclass label bar -->
-            <div id="buildSubclassBar" style="padding:12px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,0.06);">
-              <div id="buildSubclassBarIcon" style="width:32px;height:32px;border-radius:7px;overflow:hidden;display:flex;align-items:center;justify-content:center;"></div>
-              <div style="font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;" id="buildSubclassBarLabel">Subclass</div>
-            </div>
+            <!-- CONTENT -->
+            <div style="position:relative;z-index:2;display:grid;grid-template-columns:1fr auto 1fr;gap:0;min-height:520px;">
 
-            <!-- 4 kolommen: Super / Abilities / Aspects / Fragments -->
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));">
-
-              <!-- SUPER -->
-              <div style="padding:16px 18px;border-right:1px solid rgba(255,255,255,0.05);">
-                <div class="build-section-label" id="lbl-super" style="font-size:0.6rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:12px;opacity:0.7;">⚡ Super</div>
-                <div id="bld-super"></div>
+              <!-- LINKS: WAPENS -->
+              <div style="padding:20px 16px 20px 20px;display:flex;flex-direction:column;gap:6px;">
+                <div style="font-family:'Space Grotesk',sans-serif;font-size:0.6rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:8px;">WAPENS</div>
+                <div id="d2-weapons" style="display:flex;flex-direction:column;gap:8px;"></div>
+                <!-- SUBCLASS ABILITIES onderaan links -->
+                <div style="margin-top:auto;padding-top:16px;">
+                  <div style="font-family:'Space Grotesk',sans-serif;font-size:0.6rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:8px;">SUBCLASS</div>
+                  <div id="d2-abilities" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+                </div>
               </div>
 
-              <!-- ABILITIES -->
-              <div style="padding:16px 18px;border-right:1px solid rgba(255,255,255,0.05);">
-                <div class="build-section-label" id="lbl-abilities" style="font-size:0.6rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:12px;opacity:0.7;">🎯 Abilities</div>
-                <div id="bld-abilities"></div>
+              <!-- MIDDEN: KARAKTER INFO -->
+              <div style="display:flex;flex-direction:column;align-items:center;padding:24px 20px;min-width:220px;max-width:280px;">
+                <!-- CLASS + POWER -->
+                <div id="d2-className" style="font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:4px;"></div>
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:16px;">
+                  <span style="color:#f0c040;font-size:1rem;">◆</span>
+                  <span id="d2-power" style="font-family:'Space Grotesk',sans-serif;font-size:2.4rem;font-weight:900;color:#f0c040;line-height:1;"></span>
+                </div>
+
+                <!-- EMBLEM ICON groot -->
+                <div id="d2-emblem" style="width:90px;height:90px;border-radius:14px;overflow:hidden;margin-bottom:16px;border:2px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:2.5rem;flex-shrink:0;"></div>
+
+                <!-- SUBCLASS -->
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
+                  <div id="d2-subIcon" style="width:32px;height:32px;border-radius:7px;overflow:hidden;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;"></div>
+                  <div id="d2-subName" style="font-size:0.8rem;font-weight:700;"></div>
+                </div>
+
+                <!-- STATS -->
+                <div id="d2-stats" style="width:100%;display:flex;flex-direction:column;gap:5px;"></div>
               </div>
 
-              <!-- ASPECTS -->
-              <div style="padding:16px 18px;border-right:1px solid rgba(255,255,255,0.05);">
-                <div class="build-section-label" id="lbl-aspects" style="font-size:0.6rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:12px;opacity:0.7;">💠 Aspects</div>
-                <div id="bld-aspects"></div>
-              </div>
-
-              <!-- FRAGMENTS -->
-              <div style="padding:16px 18px;">
-                <div class="build-section-label" id="lbl-fragments" style="font-size:0.6rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:12px;opacity:0.7;">🔷 Fragments</div>
-                <div id="bld-fragments" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+              <!-- RECHTS: ARMOR -->
+              <div style="padding:20px 20px 20px 16px;display:flex;flex-direction:column;gap:6px;">
+                <div style="font-family:'Space Grotesk',sans-serif;font-size:0.6rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:8px;">ARMOR</div>
+                <div id="d2-armor" style="display:flex;flex-direction:column;gap:8px;"></div>
               </div>
 
             </div>
-          </div>
-
-          <!-- ROW 2: WAPENS + ARMOR naast elkaar -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:0;">
-
-            <!-- WAPENS -->
-            <div style="background:rgba(8,10,20,0.95);border:1px solid rgba(255,255,255,0.08);border-radius:18px;overflow:hidden;">
-              <div style="padding:12px 18px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:8px;">
-                <span style="font-size:1rem;">🔫</span>
-                <span style="font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.55);">Wapens</span>
-              </div>
-              <div id="bld-weapons" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;"></div>
-            </div>
-
-            <!-- ARMOR -->
-            <div style="background:rgba(8,10,20,0.95);border:1px solid rgba(255,255,255,0.08);border-radius:18px;overflow:hidden;">
-              <div style="padding:12px 18px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:8px;">
-                <span style="font-size:1rem;">🛡️</span>
-                <span style="font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.55);">Armor</span>
-              </div>
-              <div id="bld-armor" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;"></div>
-            </div>
-
           </div>
 
         </div><!-- /buildPanel -->
@@ -1208,160 +1181,185 @@
         + (item && item.power ? '<div style="font-size:0.85rem;font-weight:800;color:var(--gold2);white-space:nowrap;">⚡' + item.power + '</div>' : '')
         + '</div>';
     }
-    // HOOFD: render de complete build in het panel
+    // HOOFD: render de complete build — Destiny 2 character screen stijl
     function renderBuildPanel(char) {
       var panel = document.getElementById('buildPanel');
       if (!panel) return;
+      panel.style.display = 'block';
 
-      var className  = char.className || 'Hunter';
-      var theme      = CLASS_THEMES[className] || CLASS_THEMES.Hunter;
-      var subEl      = char.subclass   || {};
-      var element    = (subEl.element  || 'void').toLowerCase();
-      var ec         = ELEM_COLORS[element]    || ELEM_COLORS.void;
-      var subSVG     = ELEM_SVGS[element]      || ELEM_SVGS.void;
-      var subName    = subEl.name || element.charAt(0).toUpperCase() + element.slice(1);
+      var className = char.className || 'Hunter';
+      var theme     = CLASS_THEMES[className] || CLASS_THEMES.Hunter;
+      var subEl     = char.subclass || {};
+      var element   = (subEl.element || 'void').toLowerCase();
+      var ec        = ELEM_COLORS[element] || ELEM_COLORS.void;
+      var subSVG    = ELEM_SVGS[element]   || ELEM_SVGS.void;
 
-      // ── HEADER ──
-      var hdr = document.getElementById('buildHeader');
-      var hdrBg = document.getElementById('buildHeaderBg');
-      var hdrOv = document.getElementById('buildHeaderOverlay');
-      if (hdr) { hdr.style.background = theme.grad; hdr.style.border = '1px solid ' + theme.border; hdr.style.boxShadow = '0 0 40px ' + theme.glow; }
-      if (hdrBg && char.emblemBg) { hdrBg.style.backgroundImage = 'url(' + char.emblemBg + ')'; }
-      if (hdrOv) hdrOv.style.background = 'linear-gradient(135deg,rgba(3,5,10,0.7),rgba(3,5,10,0.3))';
+      // ── ACHTERGROND: emblem background ──
+      var bg = document.getElementById('charScreenBg');
+      var grad = document.getElementById('charScreenGrad');
+      if (bg) {
+        bg.style.backgroundImage = char.emblemBg ? 'url(' + char.emblemBg + ')' : '';
+        bg.style.opacity = char.emblemBg ? '0.25' : '0.05';
+      }
+      if (grad) grad.style.background = 'linear-gradient(135deg,' + theme.grad.replace('linear-gradient(135deg,','').replace(')','') + ',rgba(5,7,15,0.85))';
 
-      // Emblem
-      var emblemEl = document.getElementById('buildEmblem');
-      if (emblemEl) {
+      // ── KLASSE NAAM ──
+      var cnEl = document.getElementById('d2-className');
+      if (cnEl) { cnEl.textContent = className; cnEl.style.color = theme.color; }
+
+      // ── POWER ──
+      var pwEl = document.getElementById('d2-power');
+      if (pwEl) pwEl.textContent = char.light || '—';
+
+      // ── EMBLEM ──
+      var emEl = document.getElementById('d2-emblem');
+      if (emEl) {
+        var classEmojis = { Hunter:'🏹', Warlock:'🔮', Titan:'🛡️' };
         if (char.emblemIcon) {
-          emblemEl.innerHTML = '<img src="' + char.emblemIcon + '" style="width:64px;height:64px;object-fit:cover;border-radius:10px;" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">';
+          emEl.innerHTML = '<img src="' + char.emblemIcon + '" style="width:100%;height:100%;object-fit:cover;" referrerpolicy="no-referrer">';
         } else {
-          var classEmojis = { Hunter:'🏹', Warlock:'🔮', Titan:'🛡️' };
-          emblemEl.innerHTML = '<div style="width:64px;height:64px;border-radius:10px;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:2rem;">' + (classEmojis[className]||'⬡') + '</div>';
+          emEl.innerHTML = classEmojis[className] || '⬡';
         }
+        emEl.style.borderColor = theme.color + '60';
       }
 
-      var classEl = document.getElementById('buildClassName');
-      if (classEl) { classEl.textContent = className; classEl.style.color = theme.color; }
-
-      var pwrEl = document.getElementById('buildPower');
-      if (pwrEl) pwrEl.innerHTML = '<span style="color:var(--gold2)">⚡</span><span style="color:var(--gold2)">' + (char.light||'—') + '</span>';
-
-      var subIconEl = document.getElementById('buildSubclassIcon');
+      // ── SUBCLASS ──
+      var subIconEl = document.getElementById('d2-subIcon');
       if (subIconEl) {
-        if (subEl.icon && subEl.icon.indexOf('bungie.net')!==-1) {
-          subIconEl.innerHTML = '<img src="' + subEl.icon + '" width="28" height="28" style="border-radius:5px;object-fit:cover;display:block;width:100%;height:100%;" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML=\'' + subSVG.replace(/'/g,"&#39;").replace(/\\/g,"\\\\") + '\'">';
-        } else { subIconEl.innerHTML = subSVG; }
-      }
-      var subNameEl = document.getElementById('buildSubclassName');
-      if (subNameEl) { subNameEl.textContent = subName; subNameEl.style.color = ec.color; }
-
-      // ── SUBCLASS SECTION ──
-      var subSection = document.getElementById('buildSubclassSection');
-      if (subSection) { subSection.style.borderColor = ec.color + '30'; }
-
-      var subBar = document.getElementById('buildSubclassBar');
-      if (subBar) { subBar.style.background = ec.glow; }
-
-      var subBarIcon = document.getElementById('buildSubclassBarIcon');
-      if (subBarIcon) {
-        subBarIcon.style.background = ec.glow;
-        if (subEl.icon && subEl.icon.indexOf('bungie.net')!==-1) {
-          subBarIcon.innerHTML = '<img src="' + subEl.icon + '" width="32" height="32" style="border-radius:6px;object-fit:cover;display:block;width:100%;height:100%;" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML=\'' + subSVG.replace(/'/g,"&#39;").replace(/\\/g,"\\\\") + '\'">';
-        } else { subBarIcon.innerHTML = subSVG; }
-      }
-
-      var subBarLabel = document.getElementById('buildSubclassBarLabel');
-      if (subBarLabel) { subBarLabel.textContent = subName; subBarLabel.style.color = ec.color; }
-
-      // Kleur labels
-      ['lbl-super','lbl-abilities','lbl-aspects','lbl-fragments'].forEach(function(id){
-        var el = document.getElementById(id);
-        if (el) el.style.color = ec.color;
-      });
-
-      // ── Haal subclass data op uit de DB ──
-      var classDB = (typeof SUBCLASS_DB !== 'undefined') ? SUBCLASS_DB[className] : null;
-      var elemKey = element;
-      // Map subclass naam → element key
-      var n = subName.toLowerCase();
-      if (n.indexOf('prismatic')>=0) elemKey='prismatic';
-      else if (n.indexOf('arc')>=0||n.indexOf('striker')>=0||n.indexOf('arcstrider')>=0) elemKey='arc';
-      else if (n.indexOf('solar')>=0||n.indexOf('dawn')>=0||n.indexOf('sunbreak')>=0||n.indexOf('burning')>=0) elemKey='solar';
-      else if (n.indexOf('void')>=0||n.indexOf('shadow')>=0||n.indexOf('sentinel')>=0||n.indexOf('voidwalker')>=0) elemKey='void';
-      else if (n.indexOf('stasis')>=0||n.indexOf('revenant')>=0||n.indexOf('behemoth')>=0||n.indexOf('shadebinder')>=0) elemKey='stasis';
-      else if (n.indexOf('strand')>=0||n.indexOf('threadrunner')>=0||n.indexOf('broodweaver')>=0||n.indexOf('berserker')>=0) elemKey='strand';
-
-      var subDB = classDB ? (classDB[elemKey.charAt(0).toUpperCase()+elemKey.slice(1)] || Object.values(classDB)[0]) : null;
-
-      // SUPER
-      var superEl = document.getElementById('bld-super');
-      if (superEl) {
-        if (subDB && subDB.super) {
-          var sup = Object.assign({},subDB.super,{_type:'super'});
-          // Probeer live super icon van de Bungie data
-          if (subEl.superIcon) sup.icon = subEl.superIcon;
-          superEl.innerHTML = renderBuildItem(sup, ec.color);
+        subIconEl.style.background = ec.glow;
+        if (subEl.icon && subEl.icon.indexOf('bungie.net') !== -1) {
+          subIconEl.innerHTML = '<img src="' + subEl.icon + '" width="32" height="32" style="width:32px;height:32px;object-fit:cover;display:block;" referrerpolicy="no-referrer">';
         } else {
-          superEl.innerHTML = '<div style="color:rgba(255,255,255,0.25);font-size:0.75rem;">Geen data</div>';
+          subIconEl.innerHTML = subSVG;
         }
       }
+      var subNameEl = document.getElementById('d2-subName');
+      if (subNameEl) { subNameEl.textContent = subEl.name || element.charAt(0).toUpperCase() + element.slice(1); subNameEl.style.color = ec.color; }
 
-      // ABILITIES
-      var abEl = document.getElementById('bld-abilities');
+      // ── STATS ──
+      var statsEl = document.getElementById('d2-stats');
+      if (statsEl) {
+        var STAT_DEFS = [
+          { key: 'mobility',    label: 'Mobility',    icon: '👟', color: '#7ecef4' },
+          { key: 'resilience',  label: 'Resilience',  icon: '🛡️', color: '#4fc3f7' },
+          { key: 'recovery',    label: 'Recovery',    icon: '💚', color: '#66bb6a' },
+          { key: 'discipline',  label: 'Discipline',  icon: '🎯', color: '#ab47bc' },
+          { key: 'intellect',   label: 'Intellect',   icon: '⚡', color: '#ffa726' },
+          { key: 'strength',    label: 'Strength',    icon: '🔴', color: '#ef5350' },
+        ];
+        var s = char.stats || {};
+        statsEl.innerHTML = STAT_DEFS.map(function(d) {
+          var val = s[d.key] || 0;
+          var pct = Math.min(100, Math.round(val / 100 * 100));
+          var tierNum = Math.floor(val / 10);
+          return '<div style="display:flex;align-items:center;gap:8px;">'
+            + '<div style="font-size:0.7rem;width:70px;color:rgba(255,255,255,0.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + d.label + '</div>'
+            + '<div style="flex:1;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;">'
+            + '<div style="height:100%;width:' + pct + '%;background:' + d.color + ';border-radius:2px;transition:width 0.4s;"></div>'
+            + '</div>'
+            + '<div style="font-size:0.78rem;font-weight:800;color:#fff;width:28px;text-align:right;">' + (val || '—') + '</div>'
+            + '</div>';
+        }).join('');
+      }
+
+      // ── ABILITIES (subclass icons onderaan links) ──
+      var abEl = document.getElementById('d2-abilities');
       if (abEl) {
-        var abilities = subDB ? subDB.abilities : [];
-        // Inject live ability icons if available
-        if (subEl.classAbilityIcon || subEl.meleeIcon || subEl.grenadeIcon) {
-          abilities = abilities.map(function(a,i){
-            var icons = [subEl.classAbilityIcon, subEl.meleeIcon, subEl.grenadeIcon];
-            return Object.assign({},a,{icon: icons[i]||a.icon, _type:'ability'});
-          });
-        } else {
-          abilities = abilities.map(function(a){ return Object.assign({},a,{_type:'ability'}); });
-        }
-        abEl.innerHTML = abilities.length ? abilities.map(function(a){ return renderBuildItem(a,ec.color); }).join('') : '<div style="color:rgba(255,255,255,0.25);font-size:0.75rem;">Geen data</div>';
-      }
-
-      // ASPECTS
-      var aspEl = document.getElementById('bld-aspects');
-      if (aspEl) {
-        var aspects = subDB ? subDB.aspects : [];
-        aspects = aspects.map(function(a){ return Object.assign({},a,{_type:'aspect'}); });
-        aspEl.innerHTML = aspects.length ? aspects.map(function(a){ return renderBuildItem(a,ec.color); }).join('') : '<div style="color:rgba(255,255,255,0.25);font-size:0.75rem;">Geen data</div>';
-      }
-
-      // FRAGMENTS
-      var fragEl = document.getElementById('bld-fragments');
-      if (fragEl) {
-        var frags = subDB ? subDB.fragments : [];
-        frags = frags.map(function(f){ return Object.assign({},f,{_type:'fragment'}); });
-        fragEl.innerHTML = frags.length ? frags.map(function(f){ return renderFragmentChip(f,ec.color); }).join('') : '<div style="color:rgba(255,255,255,0.25);font-size:0.75rem;">Geen data</div>';
+        var icons = [];
+        if (subEl.icon && subEl.icon.indexOf('bungie.net') !== -1) icons.push({ icon: subEl.icon, name: subEl.name || 'Subclass' });
+        if (subEl.classAbilityIcon) icons.push({ icon: subEl.classAbilityIcon, name: 'Class Ability' });
+        if (subEl.meleeIcon)        icons.push({ icon: subEl.meleeIcon, name: 'Melee' });
+        if (subEl.grenadeIcon)      icons.push({ icon: subEl.grenadeIcon, name: 'Grenade' });
+        if (subEl.superIcon)        icons.push({ icon: subEl.superIcon, name: 'Super' });
+        abEl.innerHTML = icons.length ? icons.map(function(a) {
+          return '<div title="' + a.name + '" style="width:38px;height:38px;border-radius:8px;overflow:hidden;background:' + ec.glow + ';border:1px solid ' + ec.color + '40;flex-shrink:0;">'
+            + '<img src="' + a.icon + '" width="38" height="38" style="width:38px;height:38px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
+            + '</div>';
+        }).join('') : '<div style="color:rgba(255,255,255,0.2);font-size:0.72rem;">Geen data</div>';
       }
 
       // ── WAPENS ──
-      var wpnEl = document.getElementById('bld-weapons');
+      var wpnEl = document.getElementById('d2-weapons');
       if (wpnEl) {
         var weapons = char.weapons || [];
-        wpnEl.innerHTML = weapons.length
-          ? weapons.map(function(w){ return renderWeaponRow(w, theme.color); }).join('')
-          : '<div style="color:rgba(255,255,255,0.25);font-size:0.78rem;padding:8px;">Geen wapens gevonden</div>';
+        if (weapons.length) {
+          wpnEl.innerHTML = weapons.map(function(w) { return renderD2WeaponSlot(w); }).join('');
+        } else {
+          wpnEl.innerHTML = '<div style="color:rgba(255,255,255,0.2);font-size:0.75rem;padding:8px;">Geen wapens</div>';
+        }
       }
 
       // ── ARMOR ──
-      var armEl = document.getElementById('bld-armor');
+      var armEl = document.getElementById('d2-armor');
       if (armEl) {
         var armorItems = char.armor || [];
+        var ARMOR_SLOTS_L = ['Helm','Gauntlets','Chest','Legs','Class Item'];
         var rows = '';
         for (var i = 0; i < 5; i++) {
-          var piece = armorItems[i] || null;
-          rows += renderArmorRow(piece, i, theme.color);
+          rows += renderD2ArmorSlot(armorItems[i] || null, i);
         }
         armEl.innerHTML = rows;
       }
-
-      panel.style.display = 'block';
     }
 
+    // Destiny 2 wapen slot — grote icoon met naam + power
+    function renderD2WeaponSlot(item) {
+      var tier = TIER_COLORS[item.tierType] || TIER_COLORS[5];
+      var isExotic = item.isExotic;
+      var iconBg = isExotic ? 'rgba(245,200,66,0.18)' : 'rgba(255,255,255,0.06)';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,0.35);border:1px solid ' + tier.border + ';backdrop-filter:blur(4px);">'
+        + '<div style="flex-shrink:0;width:54px;height:54px;border-radius:8px;overflow:hidden;background:' + iconBg + ';border:2px solid ' + tier.border + ';display:flex;align-items:center;justify-content:center;">'
+        + (item.icon ? '<img src="' + item.icon + '" width="54" height="54" style="width:54px;height:54px;object-fit:cover;display:block;" referrerpolicy="no-referrer">' : '<span style="font-size:1.4rem;">🔫</span>')
+        + '</div>'
+        + '<div style="flex:1;min-width:0;">'
+        + '<div style="font-size:0.78rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (item.name || '—') + '</div>'
+        + '<div style="font-size:0.63rem;margin-top:2px;display:flex;gap:6px;align-items:center;">'
+        + (isExotic ? '<span style="color:#f5c842;font-weight:700;text-transform:uppercase;font-size:0.58rem;">Exotic</span>' : '<span style="color:#9b72cf;font-weight:700;text-transform:uppercase;font-size:0.58rem;">Legendary</span>')
+        + (item.typeName ? '<span style="color:rgba(255,255,255,0.3);">' + item.typeName + '</span>' : '')
+        + '</div>'
+        + '</div>'
+        + (item.power ? '<div style="font-size:0.8rem;font-weight:800;color:#f0c040;white-space:nowrap;">⚡' + item.power + '</div>' : '')
+        + '</div>';
+    }
+
+    // Destiny 2 armor slot — icoon + naam + mod iconen
+    function renderD2ArmorSlot(item, slotIdx) {
+      var EMOJIS = ['⛑️','🧤','🦺','👢','📿'];
+      var emoji = EMOJIS[slotIdx] || '🛡️';
+      if (!item) {
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,0.2);border:1px dashed rgba(255,255,255,0.08);opacity:0.5;">'
+          + '<div style="width:54px;height:54px;border-radius:8px;background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;font-size:1.3rem;">' + emoji + '</div>'
+          + '<div style="font-size:0.72rem;color:rgba(255,255,255,0.2);">Leeg</div>'
+          + '</div>';
+      }
+      var tier = TIER_COLORS[item.tierType] || TIER_COLORS[5];
+      var isExotic = item.isExotic;
+      var iconBg = isExotic ? 'rgba(245,200,66,0.18)' : 'rgba(155,114,207,0.12)';
+      var mods = item.mods || [];
+      var modHtml = '<div style="display:flex;gap:3px;margin-top:4px;">';
+      for (var i = 0; i < 5; i++) {
+        var mod = mods[i];
+        if (mod && mod.icon && mod.icon.indexOf('bungie.net') !== -1) {
+          modHtml += '<div title="' + (mod.name||'Mod') + '" style="width:22px;height:22px;border-radius:4px;overflow:hidden;background:rgba(155,114,207,0.2);border:1px solid rgba(155,114,207,0.5);">'
+            + '<img src="' + mod.icon + '" width="22" height="22" style="width:22px;height:22px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
+            + '</div>';
+        } else {
+          modHtml += '<div style="width:22px;height:22px;border-radius:4px;background:rgba(255,255,255,0.04);border:1px dashed rgba(255,255,255,0.1);"></div>';
+        }
+      }
+      modHtml += '</div>';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,0.35);border:1px solid ' + tier.border + ';backdrop-filter:blur(4px);">'
+        + '<div style="flex-shrink:0;width:54px;height:54px;border-radius:8px;overflow:hidden;background:' + iconBg + ';border:2px solid ' + tier.border + ';display:flex;align-items:center;justify-content:center;">'
+        + (item.icon ? '<img src="' + item.icon + '" width="54" height="54" style="width:54px;height:54px;object-fit:contain;display:block;" referrerpolicy="no-referrer">' : '<span style="font-size:1.3rem;">' + emoji + '</span>')
+        + '</div>'
+        + '<div style="flex:1;min-width:0;">'
+        + '<div style="font-size:0.75rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (item.name || '—') + '</div>'
+        + '<div style="font-size:0.58rem;margin-top:1px;color:' + (isExotic ? '#f5c842' : '#9b72cf') + ';font-weight:700;text-transform:uppercase;">' + (isExotic ? 'Exotic' : 'Legendary') + '</div>'
+        + modHtml
+        + '</div>'
+        + (item.power ? '<div style="font-size:0.78rem;font-weight:800;color:#f0c040;white-space:nowrap;">⚡' + item.power + '</div>' : '')
+        + '</div>';
+    }
     function renderLiveChars() {
       var charCards = document.getElementById('charCards');
       if (!charCards || !_liveChars.length) return;
@@ -1371,7 +1369,7 @@
         var isActive = idx === _activeCharIdx;
         var theme = CLASS_THEMES[c.className] || CLASS_THEMES.Hunter;
         var subHtml = (c.subclass && c.subclass.icon && c.subclass.icon.indexOf('bungie.net')!==-1)
-          ? '<img src="' + c.subclass.icon + '" width="24" height="24" style="border-radius:4px;object-fit:cover;display:block;width:24px;height:24px;" referrerpolicy="no-referrer" onerror="this.replaceWith(document.createRange().createContextualFragment(\'' + ei.svg.replace(/'/g, "\\'") + '\'))">'
+          ? '<img src="' + c.subclass.icon + '" width="24" height="24" style="border-radius:4px;object-fit:cover;display:block;width:24px;height:24px;" referrerpolicy="no-referrer">'
           : ei.svg;
         var bgStyle = c.emblemBg ? 'background-image:url(' + c.emblemBg + ');background-size:cover;background-position:center left;' : '';
         var overlay = c.emblemBg ? '<div style="position:absolute;inset:0;background:rgba(3,5,10,0.72);border-radius:inherit;"></div>' : '';
