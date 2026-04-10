@@ -250,13 +250,13 @@
 
         <!-- ══ COMPLETE BUILD PANEL ══ -->
         <div id="buildPanel" style="display:none;">
-          <div id="d2CharScreen" style="position:relative;border-radius:16px;overflow:hidden;background:#090b12;min-height:580px;border:1px solid rgba(255,255,255,0.08);">
+          <div id="d2CharScreen" style="position:relative;border-radius:16px;overflow:hidden;background:#090b12;min-height:620px;border:1px solid rgba(255,255,255,0.08);">
 
             <!-- ACHTERGROND kleur accent -->
             <div id="charScreenColorOverlay" style="position:absolute;inset:0;opacity:0.06;pointer-events:none;z-index:0;transition:background 0.5s;"></div>
 
             <!-- 3-KOLOM GRID: wapens | karakter | armor -->
-            <div style="position:relative;z-index:2;display:grid;grid-template-columns:240px 1fr 240px;min-height:580px;">
+            <div style="position:relative;z-index:2;display:grid;grid-template-columns:240px 1fr 240px;min-height:620px;">
 
               <!-- ═══ LINKS: subclass + wapens ═══ -->
               <div style="padding:20px 10px 20px 18px;display:flex;flex-direction:column;gap:0;background:linear-gradient(to right,rgba(5,6,12,0.95),rgba(5,6,12,0.7));">
@@ -282,21 +282,21 @@
                 </div>
 
                 <!-- KARAKTER PORTRET -->
-                <div style="flex:1;width:100%;position:relative;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;min-height:420px;">
+                <div style="flex:1;width:100%;position:relative;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;min-height:460px;height:460px;">
 
-                  <!-- Laag 1: emblem achtergrond (kleur-sfeer) — klein, subtiel op de achtergrond -->
-                  <div id="d2-charRender" style="position:absolute;inset:0;background-repeat:no-repeat;opacity:0.18;filter:blur(2px) saturate(1.4);transition:background 0.4s;"></div>
+                  <!-- Laag 1: emblem achtergrond (kleur-sfeer) -->
+                  <div id="d2-charRender" style="position:absolute;inset:0;background-repeat:no-repeat;opacity:0.18;filter:blur(2px) saturate(1.4);transition:background 0.4s;z-index:0;"></div>
 
                   <!-- Laag 2: het echte karakter portret via <img> met object-fit -->
                   <img id="d2-charPortrait"
                        src=""
                        alt=""
                        referrerpolicy="no-referrer"
-                       style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;display:none;transition:opacity 0.4s;"
+                       style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;display:none;transition:opacity 0.4s;z-index:1;"
                        onerror="this.style.display='none';document.getElementById('d2-charFallback').style.display='flex';">
 
                   <!-- Laag 3: klasse-glow fallback (als geen portret beschikbaar) -->
-                  <div id="d2-charFallback" style="position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;overflow:hidden;">
+                  <div id="d2-charFallback" style="position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;overflow:hidden;z-index:1;">
                   </div>
 
                   <!-- Gradient overlay onderaan voor overgang naar stats -->
@@ -1253,11 +1253,16 @@
         fallbackEl.style.alignItems     = 'flex-end';
         fallbackEl.style.justifyContent = 'center';
         fallbackEl.style.overflow       = 'hidden';
-        // Inject SVG met correcte afmetingen — fill de volledige container hoogte
-        var svgStr = portrait.svg.replace(
-          '<svg ',
-          '<svg style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:auto;height:100%;max-height:460px;display:block;filter:drop-shadow(0 0 28px ' + portrait.accent + '90);" '
-        );
+        // Bereken container hoogte voor correcte SVG afmeting
+        var containerH = fallbackEl.parentElement ? fallbackEl.parentElement.offsetHeight : 420;
+        if (containerH < 200) containerH = 420; // fallback als nog niet gerenderd
+        var svgH = Math.round(containerH * 0.95);
+        // SVG viewBox is 260x480 → breedte = hoogte * (260/480)
+        var svgW = Math.round(svgH * 260 / 480);
+        var svgStyle = 'display:block;width:' + svgW + 'px;height:' + svgH + 'px;'
+          + 'filter:drop-shadow(0 0 32px ' + portrait.accent + 'aa);'
+          + 'flex-shrink:0;';
+        var svgStr = portrait.svg.replace('<svg ', '<svg style="' + svgStyle + '" ');
         fallbackEl.innerHTML = svgStr;
       } else if (fallbackEl) {
         fallbackEl.style.display = 'flex';
