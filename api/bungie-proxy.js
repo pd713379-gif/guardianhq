@@ -353,13 +353,19 @@ export default async function handler(req, res) {
           stats[key] = rawStats[hash]?.value ?? 0;
         }
 
-        characters.push({
+        // Character render URL — gebruikt door DIM/Braytech etc voor het poppetje
+          const characterRenderUrl = `https://www.bungie.net/common/destiny2_content/icons/${char.emblemHash || ''}.jpg`;
+
+          characters.push({
           charId,
+          mType,
+          mId,
           className: CLASS_NAMES[char.classType] ?? 'Guardian',
           classType: char.classType,
           light:     char.light ?? 0,
           emblemBg:  char.emblemBackgroundPath ? 'https://www.bungie.net' + char.emblemBackgroundPath : null,
           emblemIcon: char.emblemPath ? 'https://www.bungie.net' + char.emblemPath : null,
+          emblemHash: char.emblemHash ?? null,
           subclass, weapons, armor, stats,
         });
       }
