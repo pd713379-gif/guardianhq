@@ -1166,25 +1166,31 @@
       var emoji = ARMOR_EMOJIS[slotIdx] || '🛡️';
       var isExotic = item && item.isExotic;
       var tierColor = isExotic ? '#f5c842' : '#9b72cf';
+      var tierBg = isExotic ? 'rgba(245,200,66,0.18)' : 'rgba(155,114,207,0.18)';
 
-      var iconHtml = (item && item.icon)
-        ? '<img src="' + item.icon + '" style="width:52px;height:52px;object-fit:cover;border-radius:8px;display:block;" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';this.insertAdjacentHTML(\'afterend\',\'<div style=\\\"width:52px;height:52px;border-radius:8px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:1.5rem;\\\">' + emoji + '</div>\')">'
-        : '<div style="width:52px;height:52px;border-radius:8px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:1.5rem;">' + emoji + '</div>';
+      // Armor icoon: volledig gevuld met gekleurde achtergrond (net als wapen iconen)
+      var iconHtml;
+      if (item && item.icon) {
+        iconHtml = '<div style="position:relative;width:52px;height:52px;border-radius:8px;overflow:hidden;background:' + tierBg + ';display:flex;align-items:center;justify-content:center;">'
+          + '<img src="' + item.icon + '" width="52" height="52" style="width:52px;height:52px;object-fit:contain;display:block;" referrerpolicy="no-referrer">'
+          + '</div>';
+      } else {
+        iconHtml = '<div style="width:52px;height:52px;border-radius:8px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:1.5rem;">' + emoji + '</div>';
+      }
 
-      // Mods: max 5 slots (standaard armor heeft 5 mod slots)
+      // Mods: max 5 slots
       var mods = (item && item.mods) || [];
       var modHtml = '<div style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;">';
-      // Toon mods die er zijn, daarna lege slots tot max 5
       var totalModSlots = 5;
       for (var i = 0; i < totalModSlots; i++) {
         var mod = mods[i];
-        if (mod && (mod.icon || mod.name)) {
-          var modIconHtml = (mod.icon && mod.icon.indexOf('bungie.net')!==-1)
-            ? '<img src="' + mod.icon + '" width="26" height="26" style="border-radius:5px;object-fit:cover;display:block;" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'<div style=\\\"width:26px;height:26px;display:flex;align-items:center;justify-content:center;\\\">\' + modSlotSvg(i) + \'</div>\'">'
-            : '<div style="width:26px;height:26px;border-radius:5px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;">' + modSlotSvg(i) + '</div>';
-          modHtml += '<div title="' + (mod.name||'Mod') + '" style="width:26px;height:26px;border-radius:5px;overflow:hidden;background:rgba(155,114,207,0.12);border:1px solid rgba(155,114,207,0.4);">' + modIconHtml + '</div>';
+        if (mod && mod.icon && mod.icon.indexOf('bungie.net') !== -1) {
+          modHtml += '<div title="' + (mod.name||'Mod') + '" style="width:26px;height:26px;border-radius:5px;overflow:hidden;background:rgba(155,114,207,0.12);border:1px solid rgba(155,114,207,0.4);">'
+            + '<img src="' + mod.icon + '" width="26" height="26" style="width:26px;height:26px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
+            + '</div>';
+        } else if (mod && mod.name) {
+          modHtml += '<div title="' + mod.name + '" style="width:26px;height:26px;border-radius:5px;background:rgba(155,114,207,0.12);border:1px solid rgba(155,114,207,0.4);display:flex;align-items:center;justify-content:center;">' + modSlotSvg(i) + '</div>';
         } else {
-          // lege mod slot — subtiele lege hexagon
           modHtml += '<div title="Lege mod slot" style="width:26px;height:26px;border-radius:5px;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;opacity:0.6;">' + modSlotSvg(i) + '</div>';
         }
       }
@@ -1202,7 +1208,6 @@
         + (item && item.power ? '<div style="font-size:0.85rem;font-weight:800;color:var(--gold2);white-space:nowrap;">⚡' + item.power + '</div>' : '')
         + '</div>';
     }
-
     // HOOFD: render de complete build in het panel
     function renderBuildPanel(char) {
       var panel = document.getElementById('buildPanel');
