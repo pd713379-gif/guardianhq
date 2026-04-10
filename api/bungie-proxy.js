@@ -106,12 +106,13 @@ export default async function handler(req, res) {
       const mId   = primary.membershipId;
 
       // 2. Profile: chars (200) + equipment (205) + instances (300) + plugs (309)
-      const profile = await bFetch(`/Destiny2/${mType}/Profile/${mId}/?components=200,205,300,309`, token);
+      const profile = await bFetch(`/Destiny2/${mType}/Profile/${mId}/?components=200,205,300,302,309`, token);
 
       const charsData    = profile?.characters?.data ?? {};
       const equipData    = profile?.characterEquipment?.data ?? {};
       const instanceData = profile?.itemComponents?.instances?.data ?? {};
       const plugsData    = profile?.itemComponents?.reusablePlugs?.data ?? {};
+      const socketsData  = profile?.itemComponents?.sockets?.data ?? {};
 
       // 3. Verzamel relevante hashes
       const RELEVANT_BUCKETS = new Set([
@@ -126,12 +127,17 @@ export default async function handler(req, res) {
         for (const item of (charEquip.items ?? [])) {
           if (RELEVANT_BUCKETS.has(item.bucketHash)) {
             allHashes.add(item.itemHash);
-            // Verzamel plug hashes voor mods
+            // Verzamel plug hashes voor mods via reusablePlugs (309)
             const plugs = plugsData[item.itemInstanceId]?.plugs ?? {};
             for (const plugArr of Object.values(plugs)) {
               for (const plug of plugArr) {
                 if (plug.plugItemHash) allPlugHashes.add(plug.plugItemHash);
               }
+            }
+            // Verzamel socket plug hashes (302) — meer betrouwbaar voor uitgeruste mods
+            const sockets = socketsData[item.itemInstanceId]?.sockets ?? [];
+            for (const socket of sockets) {
+              if (socket.plugHash) allPlugHashes.add(socket.plugHash);
             }
           }
         }
@@ -189,28 +195,61 @@ export default async function handler(req, res) {
 
       // Helper: haal mod-iconen op uit plugsData voor een item
       function getArmorMods(itemInstanceId) {
-        const plugs = plugsData[itemInstanceId]?.plugs ?? {};
         const mods = [];
-        for (const [slotHash, plugArr] of Object.entries(plugs)) {
-          for (const plug of (plugArr ?? [])) {
-            const plugDef = defs[plug.plugItemHash];
-            if (!plugDef) continue;
-            const name = plugDef.displayProperties?.name ?? '';
-            const icon = plugDef.displayProperties?.icon;
-            // Filter leege/basis sockets eruit
-            if (!name || name === 'Empty Mod Socket' || name === 'Default Shader' ||
-                name === 'Armor Perks' || name.startsWith('Empty ') || !icon) continue;
-            const isMod = (plugDef.itemCategoryHashes ?? []).some(h => MOD_SLOT_CATEGORIES.has(h));
-            if (isMod) {
-              mods.push({
-                name: name,
-                icon: 'https://www.bungie.net' + icon,
-                hash: plug.plugItemHash,
-              });
-              if (mods.length >= 3) break;
-            }
+        const seen = new Set();
+
+        // Primaire bron: component 302 (sockets) — geeft de daadwerkelijk uitgeruste plugs
+        const sockets = socketsData[itemInstanceId]?.sockets ?? [];
+        for (const socket of sockets) {
+          const hash = socket.plugHash;
+          if (!hash || seen.has(hash)) continue;
+          const plugDef = defs[hash];
+          if (!plugDef) continue;
+          const name = plugDef.displayProperties?.name ?? '';
+          const icon = plugDef.displayProperties?.icon;
+          if (!name || !icon) continue;
+          if (name === 'Empty Mod Socket' || name === 'Default Shader' ||
+              name === 'Armor Perks' || name === 'Intrinsic' ||
+              name.startsWith('Empty ') || name.startsWith('Default ') ||
+              name.includes('Deprecated')) continue;
+          seen.add(hash);
+          const cats = plugDef.itemCategoryHashes ?? [];
+          const plugId = plugDef.plug?.plugCategoryIdentifier ?? '';
+          const isMod = cats.some(h => MOD_SLOT_CATEGORIES.has(h)) ||
+                        cats.includes(4104513227) || cats.includes(2685412949) ||
+                        cats.includes(59) || cats.includes(4173924323) ||
+                        plugId.includes('mod') || plugId.includes('armor_mod');
+          if (isMod) {
+            mods.push({ name, icon: 'https://www.bungie.net' + icon, hash });
+            if (mods.length >= 5) break;
           }
-          if (mods.length >= 3) break;
+        }
+
+        // Fallback: reusablePlugs (component 309) als sockets leeg zijn
+        if (mods.length === 0) {
+          const plugs = plugsData[itemInstanceId]?.plugs ?? {};
+          for (const plugArr of Object.values(plugs)) {
+            for (const plug of (plugArr ?? [])) {
+              const plugDef = defs[plug.plugItemHash];
+              if (!plugDef || seen.has(plug.plugItemHash)) continue;
+              const name = plugDef.displayProperties?.name ?? '';
+              const icon = plugDef.displayProperties?.icon;
+              if (!name || !icon) continue;
+              if (name === 'Empty Mod Socket' || name.startsWith('Empty ') ||
+                  name === 'Default Shader' || name.startsWith('Default ') ||
+                  name === 'Armor Perks') continue;
+              seen.add(plug.plugItemHash);
+              const cats = plugDef.itemCategoryHashes ?? [];
+              const plugId = plugDef.plug?.plugCategoryIdentifier ?? '';
+              const isMod = cats.some(h => MOD_SLOT_CATEGORIES.has(h)) ||
+                            plugId.includes('mod');
+              if (isMod) {
+                mods.push({ name, icon: 'https://www.bungie.net' + icon, hash: plug.plugItemHash });
+                if (mods.length >= 5) break;
+              }
+            }
+            if (mods.length >= 5) break;
+          }
         }
         return mods;
       }
