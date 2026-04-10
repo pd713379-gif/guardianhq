@@ -366,6 +366,7 @@ export default async function handler(req, res) {
           emblemBg:  char.emblemBackgroundPath ? 'https://www.bungie.net' + char.emblemBackgroundPath : null,
           emblemIcon: char.emblemPath ? 'https://www.bungie.net' + char.emblemPath : null,
           emblemHash: char.emblemHash ?? null,
+          renderPath: char.emblemBackgroundPath ?? null,
           subclass, weapons, armor, stats,
         });
       }
