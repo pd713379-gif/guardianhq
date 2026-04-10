@@ -1206,9 +1206,368 @@
         + (item && item.power ? '<div style="font-size:0.85rem;font-weight:800;color:var(--gold2);white-space:nowrap;">⚡' + item.power + '</div>' : '')
         + '</div>';
     }
-    // ══════════════════════════════════════════
-    // DESTINY 2 IN-GAME CHARACTER SCREEN RENDER
-    // ══════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════
+    // GUARDIAN PORTRAIT DATABASE — 18 klasse × subclass combinaties
+    // Elk portret: gedetailleerde SVG + achtergrond kleur + accent
+    // ══════════════════════════════════════════════════════════════
+    window.GHQ_PORTRAITS = (function() {
+
+      // Helper: maak een volledig portret object
+      function p(bg, accent, svgBody) {
+        return { bg: bg, accent: accent,
+          svg: '<svg viewBox="0 0 300 500" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;max-height:440px;display:block;">' + svgBody + '</svg>'
+        };
+      }
+
+      // ── GEDEELDE KLEUREN ──
+      var C = {
+        arc:       '#79c8f0', arcD: '#2a8ab8', arcGlow: 'rgba(121,200,240,',
+        solar:     '#f0a830', solarD: '#c06010', solarGlow: 'rgba(240,168,48,',
+        void:      '#b574de', voidD: '#6a2a9a', voidGlow: 'rgba(181,116,222,',
+        stasis:    '#4ec3e0', stasisD: '#1a7090', stasisGlow: 'rgba(78,195,224,',
+        strand:    '#31c48d', strandD: '#0a7050', strandGlow: 'rgba(49,196,141,',
+        prismatic: '#c8a2e8', prismaticD: '#7a4ab0', prismaticGlow: 'rgba(200,162,232,',
+        dark: '#090b12', mid: '#12141e', light: 'rgba(255,255,255,0.85)',
+      };
+
+      // ── SVG BOUWSTENEN ──
+
+      // Universele glow achtergrond cirkel
+      function glow(cx, cy, r, col, op) {
+        return '<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+r+'" ry="'+(r*0.55)+'" fill="'+col+op+')" opacity="1"/>';
+      }
+      function glowCirc(cx, cy, r, col, op) {
+        return '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+col+op+')"/>';
+      }
+
+      // ─── HUNTER PORTRETTEN ───────────────────────────────────────
+
+      // Hunter base: slanke figuur, hood, cloak, één arm vooruit
+      function hunterBase(c1, c2, cG) {
+        return [
+          // Glow achter figuur
+          glowCirc(150,260,130,cG,'0.22'),
+          glowCirc(150,380,90,cG,'0.12'),
+          // Cloak (achterste laag)
+          '<path d="M80 130 Q60 200 45 380 Q70 370 90 300 Q110 240 120 200 Z" fill="'+c2+'" opacity="0.75"/>',
+          '<path d="M220 130 Q240 200 255 380 Q230 370 210 300 Q190 240 180 200 Z" fill="'+c2+'" opacity="0.6"/>',
+          // Benen
+          '<rect x="115" y="300" width="28" height="120" rx="12" fill="'+c1+'"/>',
+          '<rect x="155" y="300" width="28" height="120" rx="12" fill="'+c1+'" opacity="0.9"/>',
+          // Laarzen
+          '<path d="M108 405 Q108 430 130 432 L143 432 L143 420 Q130 418 128 405 Z" fill="'+c2+'"/>',
+          '<path d="M155 405 Q155 430 177 432 L190 432 L190 420 Q177 418 175 405 Z" fill="'+c2+'"/>',
+          // Torso
+          '<path d="M110 155 Q100 200 100 295 L200 295 Q200 200 190 155 Z" fill="'+c1+'"/>',
+          // Borst detail
+          '<ellipse cx="150" cy="210" rx="18" ry="22" fill="'+c2+'" opacity="0.6"/>',
+          // Rechter arm (vooruit gestoken)
+          '<path d="M190 170 Q230 185 250 200 Q240 215 220 225 Q200 240 185 255 L175 235 Q190 220 200 210 Q215 200 190 190 Z" fill="'+c1+'"/>',
+          // Linker arm (zij)
+          '<path d="M112 170 Q80 185 65 210 L80 225 Q95 210 110 200 Z" fill="'+c1+'" opacity="0.9"/>',
+          // Schouder pads
+          '<ellipse cx="108" cy="168" rx="20" ry="12" fill="'+c2+'" opacity="0.8"/>',
+          '<ellipse cx="192" cy="168" rx="20" ry="12" fill="'+c2+'" opacity="0.8"/>',
+          // Nek + hood basis
+          '<rect x="138" y="95" width="24" height="30" rx="6" fill="'+c1+'"/>',
+          // Helm / hood
+          '<path d="M110 75 Q110 40 150 38 Q190 40 190 75 L188 100 Q175 118 150 118 Q125 118 112 100 Z" fill="'+c1+'"/>',
+          // Vizier / masker
+          '<path d="M120 75 Q120 60 150 58 Q180 60 180 75 L178 90 Q165 102 150 102 Q135 102 122 90 Z" fill="'+c2+'" opacity="0.85"/>',
+          // Ogen gloed
+          '<ellipse cx="137" cy="80" rx="7" ry="4" fill="'+cG+'0.9)"/>',
+          '<ellipse cx="163" cy="80" rx="7" ry="4" fill="'+cG+'0.9)"/>',
+          // Hood rand
+          '<path d="M108 72 Q108 35 150 33 Q192 35 192 72" stroke="'+c2+'" stroke-width="3" fill="none" stroke-linecap="round"/>',
+          // Belt
+          '<rect x="108" y="288" width="84" height="12" rx="5" fill="'+c2+'" opacity="0.9"/>',
+          '<ellipse cx="150" cy="294" rx="10" ry="7" fill="'+cG+'0.7)"/>',
+          // Glow op de hand (vooruitgestoken)
+          glowCirc(248,202,18,cG,'0.6'),
+          '<circle cx="248" cy="202" r="10" fill="'+cG+'0.9)"/>',
+          '<circle cx="248" cy="202" r="5" fill="#fff" opacity="0.8"/>',
+        ].join('');
+      }
+
+      // ─── WARLOCK PORTRETTEN ──────────────────────────────────────
+
+      function warlockBase(c1, c2, cG) {
+        return [
+          glowCirc(150,240,140,cG,'0.2'),
+          glowCirc(150,120,50,cG,'0.15'),
+          // Brede gewaden (achterste)
+          '<path d="M75 150 Q30 250 20 460 L130 460 Q120 320 130 240 Z" fill="'+c2+'" opacity="0.5"/>',
+          '<path d="M225 150 Q270 250 280 460 L170 460 Q180 320 170 240 Z" fill="'+c2+'" opacity="0.4"/>',
+          // Gewaden midden
+          '<path d="M100 155 Q80 280 75 460 L225 460 Q220 280 200 155 Z" fill="'+c1+'" opacity="0.9"/>',
+          // Gewaden detail / sash
+          '<path d="M115 220 Q150 235 185 220 L190 240 Q150 258 110 240 Z" fill="'+c2+'" opacity="0.8"/>',
+          '<path d="M120 290 Q150 305 180 290 L183 308 Q150 323 117 308 Z" fill="'+c2+'" opacity="0.6"/>',
+          // Benen (zichtbaar onder gewaden)
+          '<rect x="125" y="380" width="22" height="80" rx="10" fill="'+c1+'" opacity="0.8"/>',
+          '<rect x="153" y="380" width="22" height="80" rx="10" fill="'+c1+'" opacity="0.75"/>',
+          // Brede mouwen
+          '<path d="M100 160 Q55 180 30 240 L55 255 Q75 205 105 188 Z" fill="'+c1+'"/>',
+          '<path d="M200 160 Q245 180 270 240 L245 255 Q225 205 195 188 Z" fill="'+c1+'"/>',
+          // Polsen / handen
+          '<circle cx="32" cy="248" r="14" fill="'+c2+'"/>',
+          '<circle cx="268" cy="248" r="14" fill="'+c2+'"/>',
+          // Schouderplaten
+          '<ellipse cx="100" cy="162" rx="25" ry="15" fill="'+c2+'"/>',
+          '<ellipse cx="200" cy="162" rx="25" ry="15" fill="'+c2+'"/>',
+          // Torso bovenkant
+          '<rect x="120" y="118" width="60" height="50" rx="10" fill="'+c1+'"/>',
+          // Borst ornament
+          '<polygon points="150,130 162,148 150,155 138,148" fill="'+cG+'0.9)"/>',
+          '<circle cx="150" cy="143" r="8" fill="'+cG+'0.8)"/>',
+          '<circle cx="150" cy="143" r="4" fill="#fff" opacity="0.9"/>',
+          // Nek
+          '<rect x="140" y="85" width="20" height="38" rx="6" fill="'+c1+'"/>',
+          // Helm — warlock hood
+          '<path d="M112 68 Q112 32 150 30 Q188 32 188 68 L186 95 Q172 115 150 115 Q128 115 114 95 Z" fill="'+c1+'"/>',
+          '<path d="M118 70 Q118 50 150 48 Q182 50 182 70 L180 88 Q168 100 150 100 Q132 100 120 88 Z" fill="'+c2+'" opacity="0.7"/>',
+          // Gloeiende ogen
+          '<ellipse cx="138" cy="74" rx="8" ry="5" fill="'+cG+'0.9)"/>',
+          '<ellipse cx="162" cy="74" rx="8" ry="5" fill="'+cG+'0.9)"/>',
+          // Glow energie links en rechts
+          glowCirc(30,248,22,cG,'0.5'),
+          '<circle cx="30" cy="248" r="12" fill="'+cG+'0.85)"/>',
+          '<circle cx="30" cy="248" r="6" fill="#fff" opacity="0.7"/>',
+          glowCirc(270,248,22,cG,'0.5'),
+          '<circle cx="270" cy="248" r="12" fill="'+cG+'0.85)"/>',
+          '<circle cx="270" cy="248" r="6" fill="#fff" opacity="0.7"/>',
+          // Energie bogen
+          '<path d="M44 248 Q90 210 150 210 Q210 210 256 248" stroke="'+cG+'0.5)" stroke-width="2" fill="none" stroke-dasharray="6,4"/>',
+        ].join('');
+      }
+
+      // ─── TITAN PORTRETTEN ────────────────────────────────────────
+
+      function titanBase(c1, c2, cG) {
+        return [
+          glowCirc(150,270,135,cG,'0.2'),
+          // Benen zwaar gepantserd
+          '<rect x="108" y="295" width="36" height="115" rx="10" fill="'+c1+'"/>',
+          '<rect x="156" y="295" width="36" height="115" rx="10" fill="'+c1+'" opacity="0.95"/>',
+          // Kniestukken
+          '<rect x="105" y="340" width="42" height="18" rx="7" fill="'+c2+'"/>',
+          '<rect x="153" y="340" width="42" height="18" rx="7" fill="'+c2+'"/>',
+          // Laarzen
+          '<path d="M100 390 L108 410 L150 413 L152 390 Z" fill="'+c2+'"/>',
+          '<path d="M148 390 L156 410 L198 413 L200 390 Z" fill="'+c2+'"/>',
+          // Heupplaten
+          '<rect x="100" y="280" width="100" height="22" rx="8" fill="'+c2+'"/>',
+          '<rect x="108" y="268" width="84" height="16" rx="6" fill="'+c1+'" opacity="0.7"/>',
+          // Torso — breed plaatstaal
+          '<rect x="95" y="148" width="110" height="135" rx="10" fill="'+c1+'"/>',
+          // Borst plaat detail
+          '<rect x="110" y="162" width="80" height="60" rx="8" fill="'+c2+'" opacity="0.7"/>',
+          '<rect x="122" y="172" width="56" height="38" rx="5" fill="'+cG+'0.25)"/>',
+          '<ellipse cx="150" cy="195" rx="14" ry="14" fill="'+cG+'0.6)"/>',
+          '<circle cx="150" cy="195" r="7" fill="'+cG+'0.9)"/>',
+          '<circle cx="150" cy="195" r="3" fill="#fff" opacity="0.95"/>',
+          // Schouderplaten (enorm)
+          '<path d="M65 138 Q55 148 60 178 L98 172 L98 150 Z" fill="'+c2+'"/>',
+          '<path d="M235 138 Q245 148 240 178 L202 172 L202 150 Z" fill="'+c2+'"/>',
+          '<ellipse cx="78" cy="158" rx="26" ry="18" fill="'+c1+'"/>',
+          '<ellipse cx="222" cy="158" rx="26" ry="18" fill="'+c1+'"/>',
+          '<ellipse cx="78" cy="155" rx="20" ry="12" fill="'+c2+'" opacity="0.8"/>',
+          '<ellipse cx="222" cy="155" rx="20" ry="12" fill="'+c2+'" opacity="0.8"/>',
+          // Armen (dik gepantserd)
+          '<rect x="58" y="170" width="40" height="80" rx="14" fill="'+c1+'"/>',
+          '<rect x="202" y="170" width="40" height="80" rx="14" fill="'+c1+'"/>',
+          // Onderarmen
+          '<rect x="55" y="242" width="38" height="45" rx="10" fill="'+c2+'"/>',
+          '<rect x="207" y="242" width="38" height="45" rx="10" fill="'+c2+'"/>',
+          // Vuisten / handschoenen
+          '<rect x="52" y="282" width="42" height="30" rx="10" fill="'+c1+'"/>',
+          '<rect x="206" y="282" width="42" height="30" rx="10" fill="'+c1+'"/>',
+          // Vuist glow (Titan pose: vuist omhoog)
+          glowCirc(55,290,20,cG,'0.5'),
+          '<circle cx="55" cy="290" r="12" fill="'+cG+'0.8)"/>',
+          '<circle cx="55" cy="290" r="6" fill="#fff" opacity="0.9"/>',
+          // Nek
+          '<rect x="135" y="92" width="30" height="60" rx="8" fill="'+c1+'"/>',
+          // Helm — hoekig
+          '<path d="M105 55 L105 100 Q105 148 150 148 Q195 148 195 100 L195 55 Q180 40 150 38 Q120 40 105 55 Z" fill="'+c1+'"/>',
+          // Vizier
+          '<rect x="112" y="72" width="76" height="22" rx="4" fill="'+cG+'0.85)"/>',
+          '<rect x="115" y="74" width="70" height="18" rx="3" fill="'+cG+'0.3)"/>',
+          // Helm detail
+          '<rect x="118" y="48" width="64" height="8" rx="3" fill="'+c2+'" opacity="0.7"/>',
+          '<rect x="108" y="100" width="84" height="8" rx="3" fill="'+c2+'" opacity="0.6"/>',
+        ].join('');
+      }
+
+      // ── BOUW ALLE 18 COMBINATIES ──
+
+      return {
+        // ─── HUNTER ───
+        'Hunter_prismatic': p(
+          'radial-gradient(ellipse at 50% 60%, rgba(138,60,180,0.55) 0%, rgba(9,11,18,0.98) 70%)',
+          C.prismatic,
+          // Speciale prismatic effect: meerdere kleur glows
+          '<defs><radialGradient id="pg" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#c8a2e8" stop-opacity="0.3"/><stop offset="100%" stop-color="#090b12" stop-opacity="0"/></radialGradient></defs>'
+          + '<rect width="300" height="500" fill="url(#pg)"/>'
+          + glowCirc(150,300,160,'rgba(200,162,232,','0.15)')
+          + '<circle cx="80" cy="180" r="40" fill="rgba(240,168,48,0.08)"/>'
+          + '<circle cx="220" cy="200" r="40" fill="rgba(121,200,240,0.08)"/>'
+          + hunterBase('#8b5cf6','#c8a2e8',C.prismaticGlow)
+        ),
+        'Hunter_arc': p(
+          'radial-gradient(ellipse at 50% 55%, rgba(30,100,170,0.6) 0%, rgba(9,11,18,0.98) 68%)',
+          C.arc,
+          // Bliksem effecten
+          '<defs><filter id="bl"><feGaussianBlur stdDeviation="3"/></filter></defs>'
+          + glowCirc(150,280,140,C.arcGlow,'0.18)')
+          + '<path d="M90 80 L110 160 L95 160 L120 260" stroke="'+C.arc+'" stroke-width="2" fill="none" opacity="0.4" filter="url(#bl)"/>'
+          + '<path d="M200 100 L185 180 L200 180 L170 290" stroke="'+C.arc+'" stroke-width="2" fill="none" opacity="0.3" filter="url(#bl)"/>'
+          + hunterBase('#1a5c8a',C.arc,C.arcGlow)
+        ),
+        'Hunter_solar': p(
+          'radial-gradient(ellipse at 50% 55%, rgba(180,80,10,0.6) 0%, rgba(9,11,18,0.98) 68%)',
+          C.solar,
+          '<defs><radialGradient id="sg" cx="50%" cy="45%" r="55%"><stop offset="0%" stop-color="#f0a830" stop-opacity="0.25"/><stop offset="100%" stop-color="#090b12" stop-opacity="0"/></radialGradient></defs>'
+          + '<rect width="300" height="500" fill="url(#sg)"/>'
+          + glowCirc(150,260,120,C.solarGlow,'0.2)')
+          // Vonken
+          + '<circle cx="220" cy="140" r="3" fill="'+C.solar+'" opacity="0.7"/>'
+          + '<circle cx="240" cy="180" r="2" fill="'+C.solar+'" opacity="0.5"/>'
+          + '<circle cx="80" cy="200" r="2" fill="'+C.solar+'" opacity="0.6"/>'
+          + '<circle cx="60" cy="160" r="3" fill="'+C.solar+'" opacity="0.5"/>'
+          + hunterBase('#8a3a05',C.solar,C.solarGlow)
+        ),
+        'Hunter_void': p(
+          'radial-gradient(ellipse at 50% 55%, rgba(80,20,130,0.65) 0%, rgba(9,11,18,0.98) 68%)',
+          C.void,
+          glowCirc(150,270,130,C.voidGlow,'0.22)')
+          + '<circle cx="150" cy="260" r="80" fill="rgba(100,20,160,0.15)"/>'
+          + hunterBase('#5a1a8a',C.void,C.voidGlow)
+        ),
+        'Hunter_stasis': p(
+          'radial-gradient(ellipse at 50% 55%, rgba(10,70,100,0.65) 0%, rgba(9,11,18,0.98) 68%)',
+          C.stasis,
+          // IJskristallen
+          '<polygon points="60,120 70,100 80,120 70,140" fill="'+C.stasis+'" opacity="0.2"/>'
+          + '<polygon points="230,150 238,132 246,150 238,168" fill="'+C.stasis+'" opacity="0.15"/>'
+          + '<polygon points="40,300 50,280 60,300 50,320" fill="'+C.stasis+'" opacity="0.18"/>'
+          + glowCirc(150,270,130,C.stasisGlow,'0.2)')
+          + hunterBase('#0d4a60',C.stasis,C.stasisGlow)
+        ),
+        'Hunter_strand': p(
+          'radial-gradient(ellipse at 50% 55%, rgba(10,80,60,0.65) 0%, rgba(9,11,18,0.98) 68%)',
+          C.strand,
+          // Strand draden
+          '<path d="M20 100 Q80 180 150 200 Q220 220 280 150" stroke="'+C.strand+'" stroke-width="1.5" fill="none" opacity="0.3"/>'
+          + '<path d="M20 130 Q80 210 150 230 Q220 250 280 180" stroke="'+C.strand+'" stroke-width="1" fill="none" opacity="0.2"/>'
+          + '<path d="M20 400 Q80 340 150 330 Q220 320 280 380" stroke="'+C.strand+'" stroke-width="1.5" fill="none" opacity="0.25"/>'
+          + glowCirc(150,270,130,C.strandGlow,'0.2)')
+          + hunterBase('#0a5038',C.strand,C.strandGlow)
+        ),
+
+        // ─── WARLOCK ───
+        'Warlock_prismatic': p(
+          'radial-gradient(ellipse at 50% 50%, rgba(120,50,200,0.55) 0%, rgba(9,11,18,0.98) 70%)',
+          C.prismatic,
+          '<defs><radialGradient id="wpg" cx="50%" cy="45%" r="60%"><stop offset="0%" stop-color="#c8a2e8" stop-opacity="0.28"/><stop offset="100%" stop-color="#090b12" stop-opacity="0"/></radialGradient></defs>'
+          + '<rect width="300" height="500" fill="url(#wpg)"/>'
+          + glowCirc(150,250,150,C.prismaticGlow,'0.18)')
+          + '<circle cx="30" cy="248" r="35" fill="rgba(240,168,48,0.1)"/>'
+          + '<circle cx="270" cy="248" r="35" fill="rgba(121,200,240,0.1)"/>'
+          + warlockBase('#6b35b5',C.prismatic,C.prismaticGlow)
+        ),
+        'Warlock_arc': p(
+          'radial-gradient(ellipse at 50% 50%, rgba(20,80,160,0.6) 0%, rgba(9,11,18,0.98) 68%)',
+          C.arc,
+          glowCirc(150,250,140,C.arcGlow,'0.2)')
+          + '<path d="M50 200 Q150 170 250 200" stroke="'+C.arc+'" stroke-width="3" fill="none" opacity="0.3" stroke-linecap="round"/>'
+          + '<path d="M50 210 Q150 180 250 210" stroke="'+C.arc+'" stroke-width="1.5" fill="none" opacity="0.2" stroke-linecap="round"/>'
+          + warlockBase('#1040a0',C.arc,C.arcGlow)
+        ),
+        'Warlock_solar': p(
+          'radial-gradient(ellipse at 50% 50%, rgba(200,80,10,0.6) 0%, rgba(9,11,18,0.98) 68%)',
+          C.solar,
+          glowCirc(150,250,140,C.solarGlow,'0.22)')
+          + '<circle cx="150" cy="150" r="60" fill="rgba(240,168,48,0.12)"/>'
+          + warlockBase('#904010',C.solar,C.solarGlow)
+        ),
+        'Warlock_void': p(
+          'radial-gradient(ellipse at 50% 50%, rgba(70,10,130,0.65) 0%, rgba(9,11,18,0.98) 68%)',
+          C.void,
+          glowCirc(150,250,145,C.voidGlow,'0.22)')
+          + '<circle cx="150" cy="248" r="90" fill="rgba(80,10,140,0.15)"/>'
+          + warlockBase('#4a1080',C.void,C.voidGlow)
+        ),
+        'Warlock_stasis': p(
+          'radial-gradient(ellipse at 50% 50%, rgba(5,60,90,0.65) 0%, rgba(9,11,18,0.98) 68%)',
+          C.stasis,
+          '<polygon points="150,50 165,80 150,95 135,80" fill="'+C.stasis+'" opacity="0.25"/>'
+          + '<polygon points="50,200 62,180 74,200 62,220" fill="'+C.stasis+'" opacity="0.18"/>'
+          + '<polygon points="240,190 252,170 264,190 252,210" fill="'+C.stasis+'" opacity="0.2"/>'
+          + glowCirc(150,250,140,C.stasisGlow,'0.2)')
+          + warlockBase('#083858',C.stasis,C.stasisGlow)
+        ),
+        'Warlock_strand': p(
+          'radial-gradient(ellipse at 50% 50%, rgba(8,70,55,0.65) 0%, rgba(9,11,18,0.98) 68%)',
+          C.strand,
+          '<path d="M10 80 Q100 140 150 180 Q200 220 290 160" stroke="'+C.strand+'" stroke-width="2" fill="none" opacity="0.3"/>'
+          + '<path d="M10 110 Q100 170 150 210 Q200 250 290 190" stroke="'+C.strand+'" stroke-width="1.2" fill="none" opacity="0.2"/>'
+          + glowCirc(150,250,140,C.strandGlow,'0.2)')
+          + warlockBase('#084535',C.strand,C.strandGlow)
+        ),
+
+        // ─── TITAN ───
+        'Titan_prismatic': p(
+          'radial-gradient(ellipse at 50% 60%, rgba(110,40,200,0.55) 0%, rgba(9,11,18,0.98) 68%)',
+          C.prismatic,
+          '<defs><radialGradient id="tpg" cx="50%" cy="55%" r="55%"><stop offset="0%" stop-color="#c8a2e8" stop-opacity="0.25"/><stop offset="100%" stop-color="#090b12" stop-opacity="0"/></radialGradient></defs>'
+          + '<rect width="300" height="500" fill="url(#tpg)"/>'
+          + glowCirc(150,280,140,C.prismaticGlow,'0.18)')
+          + titanBase('#5a2a9a',C.prismatic,C.prismaticGlow)
+        ),
+        'Titan_arc': p(
+          'radial-gradient(ellipse at 50% 60%, rgba(15,75,160,0.6) 0%, rgba(9,11,18,0.98) 68%)',
+          C.arc,
+          '<path d="M80 60 L100 130 L85 130 L115 220" stroke="'+C.arc+'" stroke-width="3" fill="none" opacity="0.35"/>'
+          + '<path d="M200 80 L185 150 L200 150 L165 240" stroke="'+C.arc+'" stroke-width="2" fill="none" opacity="0.25"/>'
+          + glowCirc(150,280,140,C.arcGlow,'0.2)')
+          + titanBase('#0a3a8a',C.arc,C.arcGlow)
+        ),
+        'Titan_solar': p(
+          'radial-gradient(ellipse at 50% 60%, rgba(190,70,8,0.62) 0%, rgba(9,11,18,0.98) 68%)',
+          C.solar,
+          glowCirc(150,280,140,C.solarGlow,'0.22)')
+          + '<circle cx="55" cy="290" r="45" fill="rgba(240,168,48,0.15)"/>'
+          + titanBase('#803008',C.solar,C.solarGlow)
+        ),
+        'Titan_void': p(
+          'radial-gradient(ellipse at 50% 60%, rgba(65,8,125,0.65) 0%, rgba(9,11,18,0.98) 68%)',
+          C.void,
+          glowCirc(150,280,140,C.voidGlow,'0.22)')
+          + '<circle cx="55" cy="290" r="50" fill="rgba(90,10,150,0.15)"/>'
+          + titanBase('#420878',C.void,C.voidGlow)
+        ),
+        'Titan_stasis': p(
+          'radial-gradient(ellipse at 50% 60%, rgba(8,55,85,0.65) 0%, rgba(9,11,18,0.98) 68%)',
+          C.stasis,
+          '<polygon points="80,80 94,58 108,80 94,102" fill="'+C.stasis+'" opacity="0.22"/>'
+          + '<polygon points="200,90 214,68 228,90 214,112" fill="'+C.stasis+'" opacity="0.18"/>'
+          + '<polygon points="245,300 255,283 265,300 255,317" fill="'+C.stasis+'" opacity="0.2"/>'
+          + glowCirc(150,280,140,C.stasisGlow,'0.2)')
+          + titanBase('#063350',C.stasis,C.stasisGlow)
+        ),
+        'Titan_strand': p(
+          'radial-gradient(ellipse at 50% 60%, rgba(6,65,50,0.65) 0%, rgba(9,11,18,0.98) 68%)',
+          C.strand,
+          '<path d="M15 90 Q80 160 150 170 Q220 180 285 110" stroke="'+C.strand+'" stroke-width="2" fill="none" opacity="0.28"/>'
+          + '<path d="M15 120 Q80 190 150 200 Q220 210 285 140" stroke="'+C.strand+'" stroke-width="1.5" fill="none" opacity="0.18"/>'
+          + '<path d="M15 380 Q80 330 150 320 Q220 310 285 360" stroke="'+C.strand+'" stroke-width="1.5" fill="none" opacity="0.22"/>'
+          + glowCirc(150,280,140,C.strandGlow,'0.2)')
+          + titanBase('#063e30',C.strand,C.strandGlow)
+        ),
+      };
+    })();
+
     // ══════════════════════════════════════════
     // DESTINY 2 CHARACTER SCREEN — met echt poppetje
     // ══════════════════════════════════════════
@@ -1233,29 +1592,30 @@
       var portraitEl = document.getElementById('d2-charPortrait');
       var fallbackEl = document.getElementById('d2-charFallback');
 
-      // Kies het portret uit de database (klasse + subclass)
+      // Kies het portret: klasse + element, fallback naar prismatic van die klasse
       var portraitKey = className + '_' + element;
-      var portrait    = (window.GHQ_PORTRAITS && window.GHQ_PORTRAITS[portraitKey])
-                      || (window.GHQ_PORTRAITS && window.GHQ_PORTRAITS[className + '_prismatic'])
-                      || null;
+      var portrait    = window.GHQ_PORTRAITS[portraitKey]
+                     || window.GHQ_PORTRAITS[className + '_prismatic']
+                     || null;
 
-      // Achtergrond
+      // Achtergrond sfeer kleur
       if (renderEl) {
-        renderEl.style.background     = portrait ? portrait.bg : ('radial-gradient(ellipse 80% 60% at 50% 80%, ' + ec.glow + ' 0%, transparent 70%)');
-        renderEl.style.backgroundSize = 'cover';
+        renderEl.style.cssText = 'position:absolute;inset:0;background-repeat:no-repeat;transition:background 0.5s;'
+          + 'background:' + (portrait ? portrait.bg : 'radial-gradient(ellipse 80% 60% at 50% 80%,' + ec.glow + ' 0%,transparent 70%)') + ';';
       }
 
-      // Portret SVG tonen
+      // Portret SVG tonen in fallbackEl
       if (portraitEl) portraitEl.style.display = 'none';
       if (fallbackEl && portrait) {
-        fallbackEl.style.display        = 'flex';
-        fallbackEl.style.alignItems     = 'flex-end';
-        fallbackEl.style.justifyContent = 'center';
-        fallbackEl.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center;">'
-          + portrait.svg.replace('<svg ', '<svg style="width:auto;height:100%;max-height:420px;display:block;filter:drop-shadow(0 0 24px ' + portrait.accent + '80);" ')
+        fallbackEl.style.cssText = 'position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;';
+        fallbackEl.innerHTML = '<div style="width:100%;height:100%;position:relative;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;">'
+          + portrait.svg.replace(
+              '<svg ',
+              '<svg style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:auto;height:95%;max-width:280px;display:block;filter:drop-shadow(0 0 30px ' + portrait.accent + '88) drop-shadow(0 8px 16px rgba(0,0,0,0.8));" '
+            )
           + '</div>';
       } else if (fallbackEl) {
-        fallbackEl.style.display = 'flex';
+        fallbackEl.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;';
         fallbackEl.innerHTML = '';
       }
 
@@ -1313,15 +1673,19 @@
           { key:'strength',   label:'Strength',   color:'#ef5350' },
         ];
         var st = char.stats || {};
+        var hasRealStats = Object.keys(st).some(function(k){ return st[k] > 0; });
         statsEl.innerHTML = STAT_DEFS.map(function(d) {
-          var val = st[d.key] || 0;
-          var pct = Math.min(100, val);
+          var val = (st[d.key] !== undefined) ? st[d.key] : null;
+          var pct = val !== null ? Math.min(100, val) : 0;
+          var dispVal = val !== null ? val : (hasRealStats ? 0 : '—');
+          var tierClass = val >= 100 ? 'T10' : val >= 90 ? 'T9' : val >= 80 ? 'T8' : '';
           return '<div style="display:flex;align-items:center;gap:8px;">'
-            + '<div style="font-size:0.85rem;font-weight:900;color:#fff;width:32px;text-align:right;font-family:\'Space Grotesk\',sans-serif;">' + (val || '—') + '</div>'
+            + '<div style="font-size:0.85rem;font-weight:900;color:' + (val >= 100 ? d.color : '#fff') + ';width:32px;text-align:right;font-family:\'Space Grotesk\',sans-serif;">' + dispVal + '</div>'
             + '<div style="font-size:0.62rem;width:70px;color:rgba(255,255,255,0.45);white-space:nowrap;">' + d.label + '</div>'
-            + '<div style="flex:1;height:3px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;">'
-            + '<div style="height:100%;width:' + pct + '%;background:' + d.color + ';border-radius:2px;transition:width 0.5s;"></div>'
+            + '<div style="flex:1;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;">'
+            + '<div style="height:100%;width:' + pct + '%;background:' + d.color + ';border-radius:2px;transition:width 0.8s ease;box-shadow:0 0 6px ' + d.color + '80;"></div>'
             + '</div>'
+            + (val >= 100 ? '<div style="font-size:0.55rem;color:'+d.color+';font-weight:900;margin-left:2px;">MAX</div>' : '')
             + '</div>';
         }).join('');
       }
