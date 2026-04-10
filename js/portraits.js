@@ -1,4 +1,3 @@
-
 // ============================================================
 // GuardianHQ — js/portraits.js
 // 18 unieke karakter portretten: Hunter/Warlock/Titan × 6 subclasses
