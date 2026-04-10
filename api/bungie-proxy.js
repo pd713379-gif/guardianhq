@@ -318,13 +318,20 @@ export default async function handler(req, res) {
           const def = defs[i.itemHash] ?? {};
           const ins = instanceData[i.itemInstanceId] ?? {};
           const mods = getArmorMods(i.itemInstanceId);
+          const tierType = def.inventory?.tierType ?? 5;
+          // Gebruik screenshot als primaire afbeelding (volledig gevuld), icon als fallback
+          const screenshot = def.screenshot ? 'https://www.bungie.net' + def.screenshot : null;
+          const icon = def.displayProperties?.icon ? 'https://www.bungie.net' + def.displayProperties.icon : null;
+          const iconWatermark = def.iconWatermark ? 'https://www.bungie.net' + def.iconWatermark : null;
           return {
             bucketHash: i.bucketHash,
             slotName:   SLOT_NAMES[i.bucketHash] ?? 'Armor',
             name:       def.displayProperties?.name ?? SLOT_NAMES[i.bucketHash] ?? 'Armor',
-            icon:       def.displayProperties?.icon ? 'https://www.bungie.net' + def.displayProperties.icon : null,
-            tierType:   def.inventory?.tierType ?? 5,
-            isExotic:   (def.inventory?.tierType ?? 5) === 6,
+            icon,
+            screenshot,
+            iconWatermark,
+            tierType,
+            isExotic:   tierType === 6,
             power:      ins.primaryStat?.value ?? 0,
             mods,
           };
