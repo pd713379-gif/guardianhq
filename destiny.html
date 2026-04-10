@@ -282,7 +282,7 @@
                 </div>
 
                 <!-- KARAKTER PORTRET -->
-                <div style="flex:1;width:100%;position:relative;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;min-height:420px;height:420px;">
+                <div style="flex:1;width:100%;position:relative;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;min-height:420px;">
 
                   <!-- Laag 1: emblem achtergrond (kleur-sfeer) — klein, subtiel op de achtergrond -->
                   <div id="d2-charRender" style="position:absolute;inset:0;background-repeat:no-repeat;opacity:0.18;filter:blur(2px) saturate(1.4);transition:background 0.4s;"></div>
@@ -296,7 +296,7 @@
                        onerror="this.style.display='none';document.getElementById('d2-charFallback').style.display='flex';">
 
                   <!-- Laag 3: klasse-glow fallback (als geen portret beschikbaar) -->
-                  <div id="d2-charFallback" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+                  <div id="d2-charFallback" style="position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;overflow:hidden;">
                   </div>
 
                   <!-- Gradient overlay onderaan voor overgang naar stats -->
@@ -1243,6 +1243,7 @@
       if (renderEl) {
         renderEl.style.background     = portrait ? portrait.bg : ('radial-gradient(ellipse 80% 60% at 50% 80%, ' + ec.glow + ' 0%, transparent 70%)');
         renderEl.style.backgroundSize = 'cover';
+        renderEl.style.opacity        = portrait ? '0.35' : '0.18';
       }
 
       // Portret SVG tonen
@@ -1251,9 +1252,13 @@
         fallbackEl.style.display        = 'flex';
         fallbackEl.style.alignItems     = 'flex-end';
         fallbackEl.style.justifyContent = 'center';
-        fallbackEl.innerHTML = '<div style="width:100%;height:420px;display:flex;align-items:flex-end;justify-content:center;">'
-          + portrait.svg.replace('<svg ', '<svg style="width:auto;height:420px;display:block;filter:drop-shadow(0 0 24px ' + portrait.accent + '80);" ')
-          + '</div>';
+        fallbackEl.style.overflow       = 'hidden';
+        // Inject SVG met correcte afmetingen — fill de volledige container hoogte
+        var svgStr = portrait.svg.replace(
+          '<svg ',
+          '<svg style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:auto;height:100%;max-height:460px;display:block;filter:drop-shadow(0 0 28px ' + portrait.accent + '90);" '
+        );
+        fallbackEl.innerHTML = svgStr;
       } else if (fallbackEl) {
         fallbackEl.style.display = 'flex';
         fallbackEl.innerHTML = '';
