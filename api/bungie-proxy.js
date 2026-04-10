@@ -105,14 +105,15 @@ export default async function handler(req, res) {
       const mType = primary.membershipType;
       const mId   = primary.membershipId;
 
-      // 2. Profile: chars (200) + equipment (205) + instances (300) + plugs (309)
-      const profile = await bFetch(`/Destiny2/${mType}/Profile/${mId}/?components=200,205,300,302,309`, token);
+      // 2. Profile: chars (200) + equipment (205) + instances (300) + sockets (302) + char stats (304) + plugs (309)
+      const profile = await bFetch(`/Destiny2/${mType}/Profile/${mId}/?components=200,205,300,302,304,309`, token);
 
       const charsData    = profile?.characters?.data ?? {};
       const equipData    = profile?.characterEquipment?.data ?? {};
       const instanceData = profile?.itemComponents?.instances?.data ?? {};
       const plugsData    = profile?.itemComponents?.reusablePlugs?.data ?? {};
       const socketsData  = profile?.itemComponents?.sockets?.data ?? {};
+      const statsData    = profile?.characterStats?.data ?? {};
 
       // 3. Verzamel relevante hashes
       const RELEVANT_BUCKETS = new Set([
@@ -337,6 +338,21 @@ export default async function handler(req, res) {
           };
         });
 
+        // Character stats (component 304): Mobility, Resilience, Recovery, Discipline, Intellect, Strength
+        const STAT_HASHES = {
+          2996146975: 'mobility',
+          392767087:  'resilience',
+          1943323491: 'recovery',
+          1735777505: 'discipline',
+          144602215:  'intellect',
+          4244567218: 'strength',
+        };
+        const rawStats = statsData[charId]?.stats ?? {};
+        const stats = {};
+        for (const [hash, key] of Object.entries(STAT_HASHES)) {
+          stats[key] = rawStats[hash]?.value ?? 0;
+        }
+
         characters.push({
           charId,
           className: CLASS_NAMES[char.classType] ?? 'Guardian',
@@ -344,7 +360,7 @@ export default async function handler(req, res) {
           light:     char.light ?? 0,
           emblemBg:  char.emblemBackgroundPath ? 'https://www.bungie.net' + char.emblemBackgroundPath : null,
           emblemIcon: char.emblemPath ? 'https://www.bungie.net' + char.emblemPath : null,
-          subclass, weapons, armor,
+          subclass, weapons, armor, stats,
         });
       }
 
