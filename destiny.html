@@ -991,6 +991,38 @@
       bungieLogin();
     }
 
+    // ── AUTO-REFRESH INSTELLING (seconden) ──────────────────
+    const ITEM_MANAGER_REFRESH_SEC = 30;
+    let _autoRefreshTimer = null;
+
+    function startItemManagerAutoRefresh() {
+      stopItemManagerAutoRefresh();
+      _autoRefreshTimer = setInterval(async function() {
+        if (!isBungieLinked()) return;
+        // Stille refresh: geen loading spinner, gewoon data ophalen op de achtergrond
+        try {
+          const token = await getValidToken();
+          if (!token) return;
+          const res = await fetch('/api/bungie-proxy?action=charactergear', {
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          if (!res.ok) return;
+          const data = await res.json();
+          if (data.error || !data.characters || !data.characters.length) return;
+          _liveChars = data.characters;
+          renderLiveChars();
+          // Refresh ook de actieve char gear zonder de selectie te resetten
+          if (_liveChars[_activeCharIdx]) renderCharGear(_liveChars[_activeCharIdx]);
+        } catch(err) {
+          console.warn('[auto-refresh]', err.message);
+        }
+      }, ITEM_MANAGER_REFRESH_SEC * 1000);
+    }
+
+    function stopItemManagerAutoRefresh() {
+      if (_autoRefreshTimer) { clearInterval(_autoRefreshTimer); _autoRefreshTimer = null; }
+    }
+
     async function loadLiveCharacters() {
       const charCards = document.getElementById('charCards');
       const banner    = document.getElementById('bungieConnectBanner');
@@ -998,6 +1030,7 @@
       if (!isBungieLinked()) {
         if (banner) banner.style.display = 'block';
         renderStaticChars();
+        stopItemManagerAutoRefresh();
         return;
       }
       if (banner) banner.style.display = 'none';
@@ -1021,10 +1054,14 @@
         renderLiveChars();
         renderCharGear(_liveChars[0]);
 
+        // Start auto-refresh nu Bungie gekoppeld is
+        startItemManagerAutoRefresh();
+
       } catch(err) {
         console.warn('[charactergear]', err.message);
         if (banner) banner.style.display = 'block';
         renderStaticChars();
+        stopItemManagerAutoRefresh();
       }
     }
 
