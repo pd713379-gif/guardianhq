@@ -264,6 +264,8 @@
                 <div id="d2-sub-icons" style="display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;"></div>
                 <!-- Wapens -->
                 <div id="d2-weapons" style="display:flex;flex-direction:column;gap:10px;"></div>
+                <!-- Ghost / Ship / Sparrow -->
+                <div id="d2-collectibles" style="display:flex;flex-direction:column;gap:10px;margin-top:10px;"></div>
               </div>
 
               <!-- ═══ MIDDEN: KARAKTER POPPETJE ═══ -->
@@ -1412,6 +1414,16 @@
           : '<div style="color:rgba(255,255,255,0.2);font-size:0.75rem;padding:4px;">Geen wapens</div>';
       }
 
+      // ── GHOST / SHIP / SPARROW (links, onder wapens) ──
+      var collEl = document.getElementById('d2-collectibles');
+      if (collEl) {
+        collEl.innerHTML = [
+          renderD2CollectibleSlot(char.ghost,   'Ghost Shell', '👻'),
+          renderD2CollectibleSlot(char.ship,    'Ship',        '🚀'),
+          renderD2CollectibleSlot(char.sparrow, 'Sparrow',     '🏍️'),
+        ].join('');
+      }
+
       // ── ARMOR (rechts): slots 0-3 + class item ──
       var armEl   = document.getElementById('d2-armor');
       var classEl = document.getElementById('d2-classitem');
@@ -1455,6 +1467,35 @@
         + '<div style="font-size:0.57rem;margin-top:2px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:' + (exotic?'#f5c842':'rgba(155,114,207,0.9)') + ';">'
         + (exotic?'Exotic':'Legendary') + (item.typeName?' · '+item.typeName:'') + '</div>'
         + perkHtml
+        + '</div>'
+        + '</div>';
+    }
+
+    // ── COLLECTIBLE SLOT (Ghost / Ship / Sparrow) ──
+    function renderD2CollectibleSlot(item, slotLabel, emoji) {
+      if (!item) {
+        // Lege slot — zelfde stijl als lege armor
+        return '<div style="display:flex;align-items:center;gap:10px;opacity:0.35;">'
+          + '<div style="flex-shrink:0;width:68px;height:68px;border-radius:6px;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:1.5rem;">' + emoji + '</div>'
+          + '<div style="font-size:0.7rem;color:rgba(255,255,255,0.25);">' + slotLabel + '</div>'
+          + '</div>';
+      }
+      var exotic  = item.isExotic;
+      var tierColor = exotic ? '#f5c842' : '#9b72cf';
+      var iconBg  = exotic
+        ? 'linear-gradient(135deg,rgba(160,120,20,0.7),rgba(100,70,5,0.9))'
+        : 'linear-gradient(135deg,rgba(50,30,70,0.7),rgba(25,15,45,0.9))';
+      var border  = exotic ? 'rgba(245,200,66,0.55)' : 'rgba(155,114,207,0.4)';
+      // Gebruik screenshot als het beschikbaar is (bredere afbeelding), anders icon
+      var imgSrc  = item.screenshot || item.icon;
+      var iconHtml = imgSrc
+        ? '<img src="' + imgSrc + '" style="width:68px;height:68px;object-fit:cover;display:block;" referrerpolicy="no-referrer" onerror="this.src=\'' + (item.icon||'') + '\'">'
+        : '<div style="width:68px;height:68px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;">' + emoji + '</div>';
+      return '<div style="display:flex;align-items:flex-start;gap:10px;">'
+        + '<div style="flex-shrink:0;width:68px;height:68px;border-radius:6px;overflow:hidden;background:' + iconBg + ';border:2px solid ' + border + ';">' + iconHtml + '</div>'
+        + '<div style="flex:1;min-width:0;padding-top:4px;">'
+        + '<div style="font-size:0.76rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (item.name || slotLabel) + '</div>'
+        + '<div style="font-size:0.57rem;margin-top:2px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:' + tierColor + ';">' + (exotic ? 'Exotic' : 'Legendary') + ' · ' + slotLabel + '</div>'
         + '</div>'
         + '</div>';
     }
@@ -1574,9 +1615,9 @@
       document.querySelectorAll('.char-card').forEach(function(c){ c.classList.remove('active-char'); });
       if (el && el.classList) el.classList.add('active-char');
       var STATIC_CHARS = [
-        { className:'Hunter', light:2087, subclass:{ element:'prismatic', name:'Prismatic' }, weapons:[], armor:[] },
-        { className:'Warlock',light:2071, subclass:{ element:'prismatic', name:'Prismatic' }, weapons:[], armor:[] },
-        { className:'Titan',  light:2094, subclass:{ element:'prismatic', name:'Prismatic' }, weapons:[], armor:[] },
+        { className:'Hunter', light:2087, subclass:{ element:'prismatic', name:'Prismatic' }, weapons:[], armor:[], ghost:null, ship:null, sparrow:null },
+        { className:'Warlock',light:2071, subclass:{ element:'prismatic', name:'Prismatic' }, weapons:[], armor:[], ghost:null, ship:null, sparrow:null },
+        { className:'Titan',  light:2094, subclass:{ element:'prismatic', name:'Prismatic' }, weapons:[], armor:[], ghost:null, ship:null, sparrow:null },
       ];
       var char = STATIC_CHARS[idx] || STATIC_CHARS[0];
       renderBuildPanel(char);
