@@ -75,9 +75,19 @@ async function refreshBungieToken() {
 async function getValidToken() {
   var t = getBungieTokens();
   if (!t.access_token) return null;
+  // Token bijna verlopen (< 5 min)? Probeer te refreshen
   if (Date.now() > t.expires_at - 300000) {
-    if (!await refreshBungieToken()) return null;
-    return getBungieTokens().access_token;
+    var refreshed = await refreshBungieToken();
+    if (refreshed) {
+      return getBungieTokens().access_token;
+    }
+    // Refresh mislukt maar token nog niet 100% verlopen? Gewoon doorgaan met oude token
+    if (Date.now() < t.expires_at) {
+      console.warn('[getValidToken] Refresh mislukt, gebruik bestaand token');
+      return t.access_token;
+    }
+    // Token echt verlopen en refresh ook mislukt
+    return null;
   }
   return t.access_token;
 }
