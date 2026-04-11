@@ -116,6 +116,15 @@ export default async function handler(req, res) {
       const socketsData  = profile?.itemComponents?.sockets?.data ?? {};
       const statsData    = profile?.characterStats?.data ?? {};
 
+      // DEBUG: log wat Bungie teruggeeft voor stats (zie Vercel logs)
+      console.log('[stats-debug] profile keys:', Object.keys(profile ?? {}));
+      console.log('[stats-debug] characterStats aanwezig:', !!profile?.characterStats);
+      console.log('[stats-debug] statsData keys:', Object.keys(statsData));
+      const _firstChar = Object.keys(statsData)[0];
+      if (_firstChar) {
+        console.log('[stats-debug] rawStats sample:', JSON.stringify(statsData[_firstChar]?.stats ?? {}).slice(0, 400));
+      }
+
       // 3. Verzamel relevante hashes
       const RELEVANT_BUCKETS = new Set([
         3284755031,                                                      // subclass
