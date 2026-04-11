@@ -319,6 +319,13 @@
           </div>
         </div><!-- /buildPanel -->
 
+        <!-- ══ ITEM DETAIL POPUP ══ -->
+        <div id="itemPopupOverlay" onclick="closeItemPopup()" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.55);"></div>
+        <div id="itemPopup" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;width:min(420px,92vw);max-height:85vh;overflow-y:auto;background:#0d1020;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px;box-shadow:0 8px 48px rgba(0,0,0,0.7);">
+          <button onclick="closeItemPopup()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:rgba(255,255,255,0.4);font-size:1.2rem;cursor:pointer;line-height:1;">✕</button>
+          <div id="itemPopupContent"></div>
+        </div>
+
         <!-- fallback inv-grid (hidden, nog aanwezig voor renderInvGrid compatibiliteit) -->
         <div style="display:none">
           <div id="weaponsGrid"></div>
@@ -1457,7 +1464,8 @@
           + '</div>';
       }
 
-      return '<div style="display:flex;align-items:flex-start;gap:10px;">'
+      var itemJson = JSON.stringify(item).replace(/'/g,"&#39;").replace(/"/g,'&quot;');
+      return '<div style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;border-radius:10px;padding:4px;transition:background 0.15s;" onclick="openItemPopup(this)" data-item="' + itemJson + '" onmouseover="this.style.background=\'rgba(255,255,255,0.04)\'" onmouseout="this.style.background=\'\'">'
         + '<div style="flex-shrink:0;width:68px;height:68px;border-radius:6px;overflow:hidden;background:' + iconBg + ';border:2px solid ' + tier.border + ';position:relative;">'
         + (item.icon ? '<img src="' + item.icon + '" width="68" height="68" style="width:68px;height:68px;object-fit:cover;display:block;" referrerpolicy="no-referrer">' : '<div style="width:68px;height:68px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;">🔫</div>')
         + (item.power ? '<div style="position:absolute;bottom:2px;right:3px;font-size:0.6rem;font-weight:900;color:#f0c040;text-shadow:0 1px 4px rgba(0,0,0,0.9);">' + item.power + '</div>' : '')
@@ -1487,7 +1495,8 @@
       var iconHtml = item.icon
         ? '<img src="' + item.icon + '" width="68" height="68" style="width:68px;height:68px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
         : '<div style="width:68px;height:68px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;">' + emoji + '</div>';
-      return '<div style="display:flex;align-items:flex-start;gap:10px;">'
+      var itemJson = JSON.stringify(item).replace(/'/g,"&#39;").replace(/"/g,'&quot;');
+      return '<div style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;border-radius:10px;padding:4px;transition:background 0.15s;" onclick="openItemPopup(this)" data-item="' + itemJson + '" onmouseover="this.style.background=\'rgba(255,255,255,0.04)\'" onmouseout="this.style.background=\'\'">'
         + '<div style="flex-shrink:0;width:68px;height:68px;border-radius:6px;overflow:hidden;background:' + iconBg + ';border:2px solid ' + tier.border + ';position:relative;">'
         + iconHtml
         + '</div>'
@@ -1530,7 +1539,8 @@
       }
       modHtml += '</div>';
 
-      return '<div style="display:flex;align-items:flex-start;gap:10px;">'
+      var armorJson = JSON.stringify(item).replace(/'/g,"&#39;").replace(/"/g,'&quot;');
+      return '<div style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;border-radius:10px;padding:4px;transition:background 0.15s;" onclick="openItemPopup(this)" data-item="' + armorJson + '" onmouseover="this.style.background=\'rgba(255,255,255,0.04)\'" onmouseout="this.style.background=\'\'">'
         + '<div style="flex-shrink:0;width:68px;height:68px;border-radius:6px;overflow:hidden;background:' + iconBg + ';border:2px solid ' + tier.border + ';position:relative;display:flex;align-items:center;justify-content:center;">'
         + (item.icon ? '<img src="'+item.icon+'" width="68" height="68" style="width:68px;height:68px;object-fit:contain;display:block;" referrerpolicy="no-referrer">' : '<span style="font-size:1.6rem;">'+emoji+'</span>')
         + (item.power ? '<div style="position:absolute;bottom:2px;right:3px;font-size:0.6rem;font-weight:900;color:#f0c040;text-shadow:0 1px 4px rgba(0,0,0,0.9);">'+item.power+'</div>' : '')
@@ -1542,6 +1552,106 @@
         + '</div>'
         + '</div>';
     }
+
+    // ══════════════════════════════════════════════════════════
+    // ITEM DETAIL POPUP
+    // ══════════════════════════════════════════════════════════
+    function openItemPopup(el) {
+      var raw = el.getAttribute('data-item');
+      if (!raw) return;
+      var item;
+      try { item = JSON.parse(raw.replace(/&#39;/g,"'").replace(/&quot;/g,'"')); } catch(e) { return; }
+
+      var exotic  = item.isExotic;
+      var tier    = TIER_COLORS[item.tierType] || TIER_COLORS[5];
+      var tierColor = exotic ? '#f5c842' : 'rgba(155,114,207,0.9)';
+      var tierLabel = exotic ? 'Exotic' : 'Legendary';
+      var iconBg  = exotic
+        ? 'linear-gradient(135deg,rgba(160,120,20,0.7),rgba(100,70,5,0.9))'
+        : 'linear-gradient(135deg,rgba(50,30,70,0.7),rgba(25,15,45,0.9))';
+
+      // ── HEADER ──
+      var html = '<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;">'
+        + '<div style="flex-shrink:0;width:72px;height:72px;border-radius:10px;overflow:hidden;background:' + iconBg + ';border:2px solid ' + tier.border + ';">'
+        + (item.icon ? '<img src="' + item.icon + '" width="72" height="72" style="width:72px;height:72px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
+                     : '<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:2rem;">🎮</div>')
+        + '</div>'
+        + '<div style="flex:1;min-width:0;">'
+        + '<div style="font-size:1rem;font-weight:800;color:#fff;line-height:1.2;">' + (item.name || '—') + '</div>'
+        + '<div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:' + tierColor + ';margin-top:3px;">'
+        + tierLabel + (item.typeName ? ' · ' + item.typeName : '') + (item.slotName ? ' · ' + item.slotName : '') + '</div>'
+        + (item.power ? '<div style="font-size:0.95rem;font-weight:800;color:#f0c040;margin-top:4px;">⚡ ' + item.power + '</div>' : '')
+        + (item.flavorText ? '<div style="font-size:0.68rem;color:rgba(255,255,255,0.35);margin-top:6px;font-style:italic;line-height:1.4;">' + item.flavorText + '</div>' : '')
+        + '</div>'
+        + '</div>';
+
+      // ── WAPEN STATS ──
+      if (item.stats && item.stats.length) {
+        html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;margin-bottom:14px;">'
+          + '<div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:8px;">Wapen Stats</div>'
+          + '<div style="display:flex;flex-direction:column;gap:5px;">';
+        item.stats.forEach(function(s) {
+          var pct = Math.min(s.value, 100);
+          var barColor = pct >= 70 ? '#4caf82' : pct >= 40 ? '#4f8fff' : '#9b72cf';
+          html += '<div style="display:flex;align-items:center;gap:8px;">'
+            + '<div style="font-size:0.67rem;color:rgba(255,255,255,0.4);width:90px;flex-shrink:0;">' + s.label + '</div>'
+            + '<div style="flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,0.07);overflow:hidden;">'
+            + '<div style="width:' + pct + '%;height:100%;background:' + barColor + ';border-radius:2px;"></div>'
+            + '</div>'
+            + '<div style="font-size:0.67rem;color:#fff;width:22px;text-align:right;">' + s.value + '</div>'
+            + '</div>';
+        });
+        html += '</div></div>';
+      }
+
+      // ── PERKS ──
+      if (item.perks && item.perks.length) {
+        html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;margin-bottom:14px;">'
+          + '<div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:10px;">Perks</div>'
+          + '<div style="display:flex;flex-direction:column;gap:10px;">';
+        item.perks.forEach(function(p) {
+          html += '<div style="display:flex;align-items:flex-start;gap:10px;">'
+            + '<div style="flex-shrink:0;width:34px;height:34px;border-radius:50%;overflow:hidden;background:rgba(155,114,207,0.15);border:1px solid rgba(155,114,207,0.4);">'
+            + (p.icon ? '<img src="' + p.icon + '" width="34" height="34" style="width:34px;height:34px;object-fit:cover;display:block;" referrerpolicy="no-referrer">' : '')
+            + '</div>'
+            + '<div style="flex:1;min-width:0;">'
+            + '<div style="font-size:0.76rem;font-weight:700;color:#fff;">' + (p.name || '') + '</div>'
+            + (p.desc ? '<div style="font-size:0.65rem;color:rgba(255,255,255,0.4);line-height:1.45;margin-top:2px;">' + p.desc + '</div>' : '')
+            + '</div>'
+            + '</div>';
+        });
+        html += '</div></div>';
+      }
+
+      // ── ARMOR MODS ──
+      if (item.mods && item.mods.length) {
+        html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;">'
+          + '<div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:10px;">Mods</div>'
+          + '<div style="display:flex;flex-direction:column;gap:8px;">';
+        item.mods.forEach(function(m) {
+          if (!m || !m.name) return;
+          html += '<div style="display:flex;align-items:center;gap:10px;">'
+            + '<div style="flex-shrink:0;width:34px;height:34px;border-radius:6px;overflow:hidden;background:rgba(79,143,255,0.12);border:1px solid rgba(79,143,255,0.35);">'
+            + (m.icon ? '<img src="' + m.icon + '" width="34" height="34" style="width:34px;height:34px;object-fit:cover;display:block;" referrerpolicy="no-referrer">' : '')
+            + '</div>'
+            + '<div style="font-size:0.74rem;font-weight:600;color:rgba(255,255,255,0.85);">' + m.name + '</div>'
+            + '</div>';
+        });
+        html += '</div></div>';
+      }
+
+      document.getElementById('itemPopupContent').innerHTML = html;
+      document.getElementById('itemPopup').style.display = 'block';
+      document.getElementById('itemPopupOverlay').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeItemPopup() {
+      document.getElementById('itemPopup').style.display = 'none';
+      document.getElementById('itemPopupOverlay').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
     function renderLiveChars() {
       var charCards = document.getElementById('charCards');
       if (!charCards || !_liveChars.length) return;
