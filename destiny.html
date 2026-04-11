@@ -1231,7 +1231,7 @@
 
       if (renderEl) {
         if (screenshotUrl) {
-          // Screenshot als achtergrond + kleur overlay eroverheen
+          // Bungie screenshot als achtergrond + kleur overlay eroverheen
           renderEl.style.cssText = [
             'position:absolute;inset:0;z-index:0;transition:background 0.5s ease;',
             'background:',
@@ -1251,10 +1251,18 @@
         }
       }
 
-      // Geen SVG poppetje — fallbackEl leeg
+      // Eigen kunstwerk portret tonen via <img> in fallbackEl
       if (fallbackEl) {
-        fallbackEl.style.cssText = 'position:absolute;inset:0;z-index:1;pointer-events:none;';
-        fallbackEl.innerHTML = '';
+        fallbackEl.style.cssText = 'position:absolute;inset:0;z-index:1;pointer-events:none;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;';
+        if (portrait && portrait.img) {
+          var showImg = screenshotUrl ? '0' : '1';
+          fallbackEl.innerHTML = '<img src="' + portrait.img + '" alt="" '
+            + 'style="width:100%;height:100%;object-fit:cover;object-position:center top;'
+            + 'display:block;opacity:' + showImg + ';'
+            + 'filter:drop-shadow(0 0 28px ' + accent + '60);" />';
+        } else {
+          fallbackEl.innerHTML = '';
+        }
       }
 
       // ── POWER ──
