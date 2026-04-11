@@ -997,24 +997,30 @@
 
     function startItemManagerAutoRefresh() {
       stopItemManagerAutoRefresh();
+      let _refreshFailCount = 0;
       _autoRefreshTimer = setInterval(async function() {
         if (!isBungieLinked()) return;
-        // Stille refresh: geen loading spinner, gewoon data ophalen op de achtergrond
         try {
           const token = await getValidToken();
-          if (!token) return;
+          if (!token) {
+            _refreshFailCount++;
+            console.warn('[auto-refresh] Geen token, poging', _refreshFailCount);
+            // Na 5 mislukte pogingen stoppen (token echt verlopen)
+            if (_refreshFailCount >= 5) stopItemManagerAutoRefresh();
+            return;
+          }
+          _refreshFailCount = 0; // Reset teller bij succes
           const res = await fetch('/api/bungie-proxy?action=charactergear', {
             headers: { 'Authorization': 'Bearer ' + token }
           });
-          if (!res.ok) return;
+          if (!res.ok) return; // Tijdelijke fout, volgende keer opnieuw
           const data = await res.json();
           if (data.error || !data.characters || !data.characters.length) return;
           _liveChars = data.characters;
           renderLiveChars();
-          // Refresh ook de actieve char gear zonder de selectie te resetten
           if (_liveChars[_activeCharIdx]) renderCharGear(_liveChars[_activeCharIdx]);
         } catch(err) {
-          console.warn('[auto-refresh]', err.message);
+          console.warn('[auto-refresh]', err.message); // Fout loggen maar timer blijft draaien
         }
       }, ITEM_MANAGER_REFRESH_SEC * 1000);
     }
