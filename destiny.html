@@ -292,7 +292,7 @@
 
                   <!-- Laag 3: gradient overlay onderaan -->
                   <div style="position:absolute;bottom:0;left:0;right:0;height:220px;background:linear-gradient(to top,rgba(9,11,18,1) 0%,rgba(9,11,18,0.8) 40%,transparent 100%);pointer-events:none;z-index:2;"></div>
-                  <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(9,11,18,0.6) 0%,transparent 20%,transparent 80%,rgba(9,11,18,0.6) 100%);pointer-events:none;z-index:2;"></div>
+                  <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(9,11,18,0.75) 0%,transparent 30%,transparent 70%,rgba(9,11,18,0.75) 100%);pointer-events:none;z-index:2;"></div>
 
                   <!-- Laag 4: SUBCLASS + STATS onderaan -->
                   <div style="position:relative;z-index:3;width:100%;padding:0 20px 16px 20px;">
@@ -1221,22 +1221,21 @@
                      || window.GHQ_PORTRAITS[className + '_prismatic']
                      || null;
 
-      // Achtergrond sfeer kleur
+      // Vul de volledige achtergrond met de gradient scene
       if (renderEl) {
-        renderEl.style.background = portrait
-          ? portrait.bg
-          : 'radial-gradient(ellipse 80% 60% at 50% 80%,' + ec.glow + ' 0%,transparent 70%)';
+        renderEl.style.cssText = [
+          'position:absolute;inset:0;z-index:0;',
+          'transition:background 0.6s ease;',
+          'background:' + (portrait
+            ? portrait.bg
+            : 'radial-gradient(ellipse 80% 60% at 50% 80%,' + ec.glow + ' 0%,#090b12 70%)'),
+          ';',
+        ].join('');
       }
 
-      // Portret SVG tonen — groot, gecentreerd, onderaan verankerd
-      if (fallbackEl && portrait) {
-        fallbackEl.style.cssText = 'position:absolute;inset:0;z-index:1;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;overflow:hidden;';
-        fallbackEl.innerHTML = portrait.svg.replace(
-          '<svg ',
-          '<svg style="width:auto;height:100%;max-height:100%;max-width:100%;display:block;filter:drop-shadow(0 0 40px ' + portrait.accent + 'aa) drop-shadow(0 12px 24px rgba(0,0,0,0.9));" '
-        );
-      } else if (fallbackEl) {
-        fallbackEl.style.cssText = 'position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;pointer-events:none;';
+      // Geen SVG meer — fallbackEl leeg houden
+      if (fallbackEl) {
+        fallbackEl.style.cssText = 'position:absolute;inset:0;z-index:1;pointer-events:none;';
         fallbackEl.innerHTML = '';
       }
 
