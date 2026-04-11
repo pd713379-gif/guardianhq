@@ -10,7 +10,7 @@ window.GHQ_PORTRAITS = {
   'Hunter_prismatic': {
     bg: 'radial-gradient(ellipse 120% 80% at 50% 100%, #6b3fa0 0%, #2d1a5e 40%, #0a0612 100%)',
     accent: '#c8a2e8',
-    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg">
+    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
       <defs>
         <radialGradient id="Hp_bg" cx="50%" cy="80%" r="60%"><stop offset="0%" stop-color="#c8a2e8" stop-opacity="0.55"/><stop offset="100%" stop-color="#c8a2e8" stop-opacity="0"/></radialGradient>
         <filter id="Hp_f"><feGaussianBlur stdDeviation="4"/></filter>
@@ -51,7 +51,7 @@ window.GHQ_PORTRAITS = {
   'Hunter_arc': {
     bg: 'radial-gradient(ellipse 120% 80% at 50% 100%, #1a4a7a 0%, #0d2540 40%, #050d1a 100%)',
     accent: '#79c8f0',
-    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg">
+    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
       <defs>
         <radialGradient id="Ha_bg" cx="50%" cy="80%" r="60%"><stop offset="0%" stop-color="#79c8f0" stop-opacity="0.6"/><stop offset="100%" stop-color="#79c8f0" stop-opacity="0"/></radialGradient>
         <filter id="Ha_f"><feGaussianBlur stdDeviation="4"/></filter>
@@ -88,7 +88,7 @@ window.GHQ_PORTRAITS = {
   'Hunter_solar': {
     bg: 'radial-gradient(ellipse 120% 80% at 50% 100%, #7a2800 0%, #3d1200 40%, #130500 100%)',
     accent: '#f0a830',
-    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg">
+    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
       <defs>
         <radialGradient id="Hs_bg" cx="50%" cy="80%" r="60%"><stop offset="0%" stop-color="#f0a830" stop-opacity="0.6"/><stop offset="100%" stop-color="#f0a830" stop-opacity="0"/></radialGradient>
         <filter id="Hs_f"><feGaussianBlur stdDeviation="4"/></filter>
@@ -127,7 +127,7 @@ window.GHQ_PORTRAITS = {
   'Hunter_void': {
     bg: 'radial-gradient(ellipse 120% 80% at 50% 100%, #3d0078 0%, #1a0038 40%, #080010 100%)',
     accent: '#b574de',
-    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg">
+    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
       <defs>
         <radialGradient id="Hv_bg" cx="50%" cy="80%" r="60%"><stop offset="0%" stop-color="#b574de" stop-opacity="0.6"/><stop offset="100%" stop-color="#b574de" stop-opacity="0"/></radialGradient>
         <filter id="Hv_f"><feGaussianBlur stdDeviation="4"/></filter>
@@ -167,7 +167,7 @@ window.GHQ_PORTRAITS = {
   'Hunter_stasis': {
     bg: 'radial-gradient(ellipse 120% 80% at 50% 100%, #004060 0%, #001828 40%, #000810 100%)',
     accent: '#4ec3e0',
-    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg">
+    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
       <defs>
         <radialGradient id="Hst_bg" cx="50%" cy="80%" r="60%"><stop offset="0%" stop-color="#4ec3e0" stop-opacity="0.55"/><stop offset="100%" stop-color="#4ec3e0" stop-opacity="0"/></radialGradient>
         <filter id="Hst_f"><feGaussianBlur stdDeviation="3"/></filter>
@@ -206,7 +206,7 @@ window.GHQ_PORTRAITS = {
   'Hunter_strand': {
     bg: 'radial-gradient(ellipse 120% 80% at 50% 100%, #003d28 0%, #001a10 40%, #000a05 100%)',
     accent: '#31c48d',
-    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg">
+    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
       <defs>
         <radialGradient id="Hstr_bg" cx="50%" cy="80%" r="60%"><stop offset="0%" stop-color="#31c48d" stop-opacity="0.55"/><stop offset="100%" stop-color="#31c48d" stop-opacity="0"/></radialGradient>
         <filter id="Hstr_f"><feGaussianBlur stdDeviation="3"/></filter>
@@ -246,7 +246,7 @@ window.GHQ_PORTRAITS = {
   'Warlock_prismatic': {
     bg: 'radial-gradient(ellipse 120% 80% at 50% 100%, #5a2888 0%, #26124a 40%, #080410 100%)',
     accent: '#c8a2e8',
-    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg">
+    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
       <defs>
         <radialGradient id="Wp_bg" cx="50%" cy="70%" r="70%"><stop offset="0%" stop-color="#c8a2e8" stop-opacity="0.5"/><stop offset="100%" stop-color="#c8a2e8" stop-opacity="0"/></radialGradient>
         <filter id="Wp_f"><feGaussianBlur stdDeviation="5"/></filter>
@@ -280,7 +280,7 @@ window.GHQ_PORTRAITS = {
   'Warlock_arc': {
     bg: 'radial-gradient(ellipse 120% 80% at 50% 100%, #0a2a5a 0%, #041220 40%, #010508 100%)',
     accent: '#79c8f0',
-    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg">
+    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
       <defs>
         <radialGradient id="Wa_bg" cx="50%" cy="70%" r="70%"><stop offset="0%" stop-color="#79c8f0" stop-opacity="0.55"/><stop offset="100%" stop-color="#79c8f0" stop-opacity="0"/></radialGradient>
         <filter id="Wa_f"><feGaussianBlur stdDeviation="5"/></filter>
@@ -316,7 +316,7 @@ window.GHQ_PORTRAITS = {
   'Warlock_solar': {
     bg: 'radial-gradient(ellipse 120% 80% at 50% 100%, #6a2000 0%, #2d0e00 40%, #0a0300 100%)',
     accent: '#f0a830',
-    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg">
+    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
       <defs>
         <radialGradient id="Ws_bg" cx="50%" cy="70%" r="70%"><stop offset="0%" stop-color="#f0a830" stop-opacity="0.55"/><stop offset="100%" stop-color="#f0a830" stop-opacity="0"/></radialGradient>
         <filter id="Ws_f"><feGaussianBlur stdDeviation="5"/></filter>
@@ -348,7 +348,7 @@ window.GHQ_PORTRAITS = {
   'Warlock_void': {
     bg: 'radial-gradient(ellipse 120% 80% at 50% 100%, #2d0060 0%, #14002a 40%, #060010 100%)',
     accent: '#b574de',
-    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg">
+    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
       <defs>
         <radialGradient id="Wv_bg" cx="50%" cy="70%" r="70%"><stop offset="0%" stop-color="#b574de" stop-opacity="0.55"/><stop offset="100%" stop-color="#b574de" stop-opacity="0"/></radialGradient>
         <filter id="Wv_f"><feGaussianBlur stdDeviation="5"/></filter>
@@ -384,7 +384,7 @@ window.GHQ_PORTRAITS = {
   'Warlock_stasis': {
     bg: 'radial-gradient(ellipse 120% 80% at 50% 100%, #003050 0%, #001520 40%, #000810 100%)',
     accent: '#4ec3e0',
-    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg">
+    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
       <defs>
         <radialGradient id="Wst_bg" cx="50%" cy="70%" r="70%"><stop offset="0%" stop-color="#4ec3e0" stop-opacity="0.55"/><stop offset="100%" stop-color="#4ec3e0" stop-opacity="0"/></radialGradient>
         <filter id="Wst_f"><feGaussianBlur stdDeviation="5"/></filter>
@@ -415,7 +415,7 @@ window.GHQ_PORTRAITS = {
   'Warlock_strand': {
     bg: 'radial-gradient(ellipse 120% 80% at 50% 100%, #003520 0%, #001408 40%, #000500 100%)',
     accent: '#31c48d',
-    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg">
+    svg: `<svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
       <defs>
         <radialGradient id="Wstr_bg" cx="50%" cy="70%" r="70%"><stop offset="0%" stop-color="#31c48d" stop-opacity="0.55"/><stop offset="100%" stop-color="#31c48d" stop-opacity="0"/></radialGradient>
         <filter id="Wstr_f"><feGaussianBlur stdDeviation="5"/></filter>
@@ -449,7 +449,7 @@ window.GHQ_PORTRAITS = {
   'Titan_prismatic': {
     bg: 'radial-gradient(ellipse 120% 80% at 50% 100%, #4a2a7a 0%, #1e1030 40%, #080510 100%)',
     accent: '#c8a2e8',
-    svg: `<svg viewBox="0 0 260 440" xmlns="http://www.w3.org/2000/svg">
+    svg: `<svg viewBox="0 0 260 440" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
       <defs>
         <radialGradient id="Tp_bg" cx="50%" cy="80%" r="60%"><stop offset="0%" stop-color="#c8a2e8" stop-opacity="0.55"/><stop offset="100%" stop-color="#c8a2e8" stop-opacity="0"/></radialGradient>
         <filter id="Tp_f"><feGaussianBlur stdDeviation="4"/></filter>
@@ -490,7 +490,7 @@ window.GHQ_PORTRAITS = {
   'Titan_arc': {
     bg: 'radial-gradient(ellipse 120% 80% at 50% 100%, #082040 0%, #030c18 40%, #010408 100%)',
     accent: '#79c8f0',
-    svg: `<svg viewBox="0 0 260 440" xmlns="http://www.w3.org/2000/svg">
+    svg: `<svg viewBox="0 0 260 440" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
       <defs>
         <radialGradient id="Ta_bg" cx="50%" cy="80%" r="60%"><stop offset="0%" stop-color="#79c8f0" stop-opacity="0.65"/><stop offset="100%" stop-color="#79c8f0" stop-opacity="0"/></radialGradient>
         <filter id="Ta_f"><feGaussianBlur stdDeviation="4"/></filter>
@@ -534,7 +534,7 @@ window.GHQ_PORTRAITS = {
   'Titan_solar': {
     bg: 'radial-gradient(ellipse 120% 80% at 50% 100%, #5a1800 0%, #280a00 40%, #0a0300 100%)',
     accent: '#f0a830',
-    svg: `<svg viewBox="0 0 260 440" xmlns="http://www.w3.org/2000/svg">
+    svg: `<svg viewBox="0 0 260 440" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
       <defs>
         <radialGradient id="Ts_bg" cx="50%" cy="80%" r="60%"><stop offset="0%" stop-color="#f0a830" stop-opacity="0.65"/><stop offset="100%" stop-color="#f0a830" stop-opacity="0"/></radialGradient>
         <filter id="Ts_f"><feGaussianBlur stdDeviation="4"/></filter>
@@ -575,7 +575,7 @@ window.GHQ_PORTRAITS = {
   'Titan_void': {
     bg: 'radial-gradient(ellipse 120% 80% at 50% 100%, #220050 0%, #100028 40%, #050010 100%)',
     accent: '#b574de',
-    svg: `<svg viewBox="0 0 260 440" xmlns="http://www.w3.org/2000/svg">
+    svg: `<svg viewBox="0 0 260 440" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
       <defs>
         <radialGradient id="Tv_bg" cx="50%" cy="80%" r="60%"><stop offset="0%" stop-color="#b574de" stop-opacity="0.55"/><stop offset="100%" stop-color="#b574de" stop-opacity="0"/></radialGradient>
         <filter id="Tv_f"><feGaussianBlur stdDeviation="4"/></filter>
@@ -619,7 +619,7 @@ window.GHQ_PORTRAITS = {
   'Titan_stasis': {
     bg: 'radial-gradient(ellipse 120% 80% at 50% 100%, #003545 0%, #001520 40%, #000810 100%)',
     accent: '#4ec3e0',
-    svg: `<svg viewBox="0 0 260 440" xmlns="http://www.w3.org/2000/svg">
+    svg: `<svg viewBox="0 0 260 440" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
       <defs>
         <radialGradient id="Tst_bg" cx="50%" cy="80%" r="60%"><stop offset="0%" stop-color="#4ec3e0" stop-opacity="0.55"/><stop offset="100%" stop-color="#4ec3e0" stop-opacity="0"/></radialGradient>
         <filter id="Tst_f"><feGaussianBlur stdDeviation="4"/></filter>
@@ -665,7 +665,7 @@ window.GHQ_PORTRAITS = {
   'Titan_strand': {
     bg: 'radial-gradient(ellipse 120% 80% at 50% 100%, #003520 0%, #001408 40%, #000500 100%)',
     accent: '#31c48d',
-    svg: `<svg viewBox="0 0 260 440" xmlns="http://www.w3.org/2000/svg">
+    svg: `<svg viewBox="0 0 260 440" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
       <defs>
         <radialGradient id="Tstr_bg" cx="50%" cy="80%" r="60%"><stop offset="0%" stop-color="#31c48d" stop-opacity="0.55"/><stop offset="100%" stop-color="#31c48d" stop-opacity="0"/></radialGradient>
         <filter id="Tstr_f"><feGaussianBlur stdDeviation="4"/></filter>
