@@ -1215,25 +1215,43 @@
       var renderEl   = document.getElementById('d2-charRender');
       var fallbackEl = document.getElementById('d2-charFallback');
 
-      // Kies het portret: klasse + element, fallback naar prismatic van die klasse
+      // Kies het portret object (voor accent kleur + overlay)
       var portraitKey = className + '_' + element;
       var portrait    = window.GHQ_PORTRAITS[portraitKey]
                      || window.GHQ_PORTRAITS[className + '_prismatic']
                      || null;
 
-      // Vul de volledige achtergrond met de gradient scene
+      var accent   = portrait ? portrait.accent  : ec.color;
+      var overlay  = portrait ? portrait.overlay : 'rgba(80,20,140,0.25)';
+      var fallback = portrait ? portrait.fallback : ('radial-gradient(ellipse 80% 60% at 50% 80%,' + ec.glow + ' 0%,#090b12 70%)');
+
+      // Gebruik de subclass screenshot als CSS background (CORB-safe)
+      // char.subclass.screenshot is al via de proxy opgehaald
+      var screenshotUrl = subEl && subEl.screenshot ? subEl.screenshot : null;
+
       if (renderEl) {
-        renderEl.style.cssText = [
-          'position:absolute;inset:0;z-index:0;',
-          'transition:background 0.6s ease;',
-          'background:' + (portrait
-            ? portrait.bg
-            : 'radial-gradient(ellipse 80% 60% at 50% 80%,' + ec.glow + ' 0%,#090b12 70%)'),
-          ';',
-        ].join('');
+        if (screenshotUrl) {
+          // Screenshot als achtergrond + kleur overlay eroverheen
+          renderEl.style.cssText = [
+            'position:absolute;inset:0;z-index:0;transition:background 0.5s ease;',
+            'background:',
+            'linear-gradient(' + overlay + ',' + overlay + '),',
+            'linear-gradient(to top, rgba(9,11,18,0.4) 0%, transparent 50%),',
+            'url(' + screenshotUrl + ');',
+            'background-size:cover;',
+            'background-position:center 20%;',
+            'background-repeat:no-repeat;',
+          ].join('');
+        } else {
+          // Fallback gradient als geen screenshot beschikbaar
+          renderEl.style.cssText = [
+            'position:absolute;inset:0;z-index:0;transition:background 0.5s ease;',
+            'background:' + fallback + ';',
+          ].join('');
+        }
       }
 
-      // Geen SVG meer — fallbackEl leeg houden
+      // Geen SVG poppetje — fallbackEl leeg
       if (fallbackEl) {
         fallbackEl.style.cssText = 'position:absolute;inset:0;z-index:1;pointer-events:none;';
         fallbackEl.innerHTML = '';
