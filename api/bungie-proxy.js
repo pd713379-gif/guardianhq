@@ -350,14 +350,9 @@ export default async function handler(req, res) {
           };
         });
 
-        // Character stats (component 304): Mobility, Resilience, Recovery, Discipline, Intellect, Strength
-        // Verified Bungie stat hash mapping (https://data.destinysets.com/):
-        // Mobility    = 2996146975
-        // Resilience  = 1943323491
-        // Recovery    = 1735777505
-        // Discipline  = 144602215
-        // Intellect   = 392767087
-        // Strength    = 4244567218
+        // Character stats: Bungie component 200 (characters.data) bevat al een 'stats' object
+        // met de exacte hash->value mapping. Dit is betrouwbaarder dan component 304.
+        // Hashes: https://data.destinysets.com/
         const STAT_HASHES = {
           2996146975: 'mobility',
           1943323491: 'resilience',
@@ -366,21 +361,22 @@ export default async function handler(req, res) {
           392767087:  'intellect',
           4244567218: 'strength',
         };
-        const rawStats = statsData[charId]?.stats ?? {};
+
+        // Primair: stats uit char object (component 200) — altijd beschikbaar
+        const charRawStats = char.stats ?? {};
+        // Fallback: component 304 als char.stats leeg is
+        const c304RawStats = statsData[charId]?.stats ?? {};
+
         const stats = {};
         for (const [hash, key] of Object.entries(STAT_HASHES)) {
-          const v = rawStats[hash]?.value;
-          if (v !== undefined && (stats[key] === undefined || v > stats[key])) {
-            stats[key] = v;
-          }
+          const fromChar = charRawStats[hash]?.value ?? charRawStats[hash];
+          const from304  = c304RawStats[hash]?.value;
+          const val = (typeof fromChar === 'number') ? fromChar
+                    : (typeof from304  === 'number') ? from304
+                    : 0;
+          stats[key] = Math.min(val, 100);
         }
-        // Vul ontbrekende stats op met 0
-        for (const key of Object.values(STAT_HASHES)) {
-          if (stats[key] === undefined) stats[key] = 0;
-        }
-        // Debug: log rawStats hashes zodat we kunnen zien wat Bungie stuurt
-        const rawKeys = Object.keys(rawStats);
-        console.log('[stats] charId', charId, 'rawStats hashes:', rawKeys.join(','), 'stats:', JSON.stringify(stats));
+        console.log('[stats] charId', charId, 'char.stats keys:', Object.keys(charRawStats).join(','), '| final:', JSON.stringify(stats));
 
         // Character render URL
         // Bungie's echte karakter render is ALLEEN beschikbaar via hun eigen website renderer
