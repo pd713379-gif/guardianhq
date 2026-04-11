@@ -1423,21 +1423,26 @@
         var ei = ELEMENT_ICONS[c.subclass && c.subclass.element] || ELEMENT_ICONS.void;
         var isActive = idx === _activeCharIdx;
         var theme = CLASS_THEMES[c.className] || CLASS_THEMES.Hunter;
-        var subHtml = (c.subclass && c.subclass.icon && c.subclass.icon.indexOf('bungie.net')!==-1)
-          ? '<img src="' + c.subclass.icon + '" width="24" height="24" style="border-radius:4px;object-fit:cover;display:block;width:24px;height:24px;" referrerpolicy="no-referrer">'
-          : ei.svg;
+        var subIconBig = (c.subclass && c.subclass.icon && c.subclass.icon.indexOf('bungie.net')!==-1)
+          ? '<img src="' + c.subclass.icon + '" referrerpolicy="no-referrer" style="width:52px;height:52px;border-radius:8px;object-fit:cover;display:block;">'
+          : '<div style="width:52px;height:52px;border-radius:8px;background:' + ei.bg + ';display:flex;align-items:center;justify-content:center;">' + ei.svg + '</div>';
         var bgStyle = c.emblemBg ? 'background-image:url(' + c.emblemBg + ');background-size:cover;background-position:center left;' : '';
         var overlay = c.emblemBg ? '<div style="position:absolute;inset:0;background:rgba(3,5,10,0.72);border-radius:inherit;"></div>' : '';
         return '<div class="char-card ' + c.className.toLowerCase() + (isActive?' active-char':'') + '" onclick="selectLiveChar(' + idx + ')" style="position:relative;overflow:hidden;cursor:pointer;' + bgStyle + '">'
           + overlay
-          + '<div style="position:relative;z-index:1;display:flex;flex-direction:column;gap:6px;width:100%;">'
-          + '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:0.95rem;font-weight:800;color:' + theme.color + ';">' + c.className + '</div>'
-          + '<div style="font-size:1.4rem;font-weight:900;color:var(--gold2);">&#9889; ' + c.light + '</div>'
-          + '<div style="display:flex;align-items:center;gap:7px;margin-top:2px;">'
-          + '<div style="background:' + ei.bg + ';border-radius:6px;padding:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + subHtml + '</div>'
-          + '<div style="font-size:0.72rem;font-weight:700;color:' + ei.color + ';line-height:1.2;">' + ((c.subclass && c.subclass.name) || 'Subclass') + '</div>'
+          + '<div style="position:relative;z-index:1;display:flex;flex-direction:column;gap:4px;width:100%;height:100%;">'
+          + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">'
+          +   '<div>'
+          +     '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:0.95rem;font-weight:800;color:' + theme.color + ';">' + c.className + '</div>'
+          +     '<div style="font-size:1.4rem;font-weight:900;color:var(--gold2);">&#9889; ' + c.light + '</div>'
+          +   '</div>'
+          +   '<div style="flex-shrink:0;">' + subIconBig + '</div>'
           + '</div>'
-          + (isActive ? '<div style="position:absolute;top:8px;right:10px;font-size:0.6rem;padding:3px 8px;border-radius:6px;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);font-weight:700;letter-spacing:0.06em;">ACTIEF</div>' : '')
+          + '<div style="display:flex;align-items:center;gap:6px;margin-top:auto;background:rgba(0,0,0,0.35);border-radius:6px;padding:4px 8px;">'
+          +   '<div style="width:16px;height:16px;flex-shrink:0;">' + ei.svg + '</div>'
+          +   '<div style="font-size:0.75rem;font-weight:700;color:' + ei.color + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + ((c.subclass && c.subclass.name) || 'Subclass') + '</div>'
+          + '</div>'
+          + (isActive ? '<div style="position:absolute;top:6px;left:50%;transform:translateX(-50%);font-size:0.6rem;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);font-weight:700;letter-spacing:0.06em;">ACTIEF</div>' : '')
           + '</div></div>';
       }).join('');
     }
@@ -1463,13 +1468,19 @@
       charCards.innerHTML = STATIC.map(function(c, idx) {
         var ei = ELEMENT_ICONS[c.element] || ELEMENT_ICONS.void;
         var theme = CLASS_THEMES[c.className];
-        return '<div class="char-card ' + c.className.toLowerCase() + (idx===0?' active-char':'') + '" onclick="selectStaticChar(this,' + idx + ')">'
+        return '<div class="char-card ' + c.className.toLowerCase() + (idx===0?' active-char':'') + '" onclick="selectStaticChar(this,' + idx + ')" style="display:flex;flex-direction:column;gap:4px;">'
+          + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">'
+          + '<div>'
           + '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:0.95rem;font-weight:800;color:' + theme.color + ';">' + c.className + '</div>'
           + '<div style="font-size:1.4rem;font-weight:900;color:var(--gold2);">&#9889; ' + c.light + '</div>'
-          + '<div style="display:flex;align-items:center;gap:6px;margin-top:2px;">'
-          + '<div style="background:' + ei.bg + ';border-radius:6px;padding:3px;display:flex;">' + ei.svg + '</div>'
-          + '<div style="font-size:0.72rem;font-weight:600;color:' + ei.color + ';">' + c.subclassName + '</div>'
-          + '</div></div>';
+          + '</div>'
+          + '<div style="flex-shrink:0;width:52px;height:52px;border-radius:8px;background:' + ei.bg + ';display:flex;align-items:center;justify-content:center;">' + ei.svg + '</div>'
+          + '</div>'
+          + '<div style="display:flex;align-items:center;gap:6px;margin-top:auto;background:rgba(0,0,0,0.35);border-radius:6px;padding:4px 8px;">'
+          + '<div style="width:16px;height:16px;flex-shrink:0;">' + ei.svg + '</div>'
+          + '<div style="font-size:0.75rem;font-weight:700;color:' + ei.color + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + c.subclassName + '</div>'
+          + '</div>'
+          + '</div>';
       }).join('');
       // Toon Hunter build als default
       selectStaticChar(charCards.children[0], 0);
