@@ -1338,40 +1338,60 @@
         }).join('');
       }
 
-      // ── STATS (D2 stijl: getal + naam + balk) ──
+      // ── STATS (D2 stijl: getal + naam + tier-balk) ──
       var statsEl = document.getElementById('d2-stats');
       if (statsEl) {
         var STAT_DEFS = [
-          { key:'mobility',   label:'Mobility',   color:'#7ecef4' },
-          { key:'resilience', label:'Resilience', color:'#4db6e8' },
-          { key:'recovery',   label:'Recovery',   color:'#66bb6a' },
-          { key:'discipline', label:'Discipline', color:'#ab47bc' },
-          { key:'intellect',  label:'Intellect',  color:'#ffa726' },
-          { key:'strength',   label:'Strength',   color:'#ef5350' },
+          { key:'mobility',   label:'Mobility',   color:'#5bc8f5', glow:'#5bc8f540' },
+          { key:'resilience', label:'Resilience', color:'#4fc3f7', glow:'#4fc3f740' },
+          { key:'recovery',   label:'Recovery',   color:'#66bb6a', glow:'#66bb6a40' },
+          { key:'discipline', label:'Discipline', color:'#ce93d8', glow:'#ce93d840' },
+          { key:'intellect',  label:'Intellect',  color:'#ffb74d', glow:'#ffb74d40' },
+          { key:'strength',   label:'Strength',   color:'#ef5350', glow:'#ef535040' },
         ];
         var st = char.stats || {};
-        var hasRealStats = Object.keys(st).some(function(k){ return st[k] > 0; });
         statsEl.innerHTML = STAT_DEFS.map(function(d) {
-          var val = (st[d.key] !== undefined) ? st[d.key] : null;
+          var val = (st[d.key] !== undefined && st[d.key] !== null) ? Math.min(st[d.key], 100) : null;
           var dispVal = val !== null ? val : '—';
           var tier = val !== null ? Math.floor(val / 10) : 0;
-          var isMax = val >= 100;
-          var valColor = isMax ? d.color : val >= 70 ? '#fff' : 'rgba(255,255,255,0.6)';
-          // 10 tier-segmenten als balk
+          var isMax = val !== null && val >= 100;
+          var isHigh = val !== null && val >= 70;
+
+          // Waarde kleur + glow bij MAX
+          var valStyle = 'font-size:0.9rem;font-weight:900;width:28px;text-align:right;font-family:\'Space Grotesk\',sans-serif;letter-spacing:-0.02em;';
+          if (isMax) valStyle += 'color:' + d.color + ';text-shadow:0 0 10px ' + d.color + ',0 0 20px ' + d.glow + ';';
+          else if (isHigh) valStyle += 'color:#ffffff;';
+          else valStyle += 'color:rgba(255,255,255,0.55);';
+
+          // Tier-label rechts
+          var tierTxt = isMax ? 'MAX' : (val !== null ? 'T' + tier : '—');
+          var tierStyle = 'font-size:0.6rem;font-weight:800;width:26px;text-align:center;letter-spacing:0.03em;';
+          if (isMax) tierStyle += 'color:' + d.color + ';text-shadow:0 0 8px ' + d.color + ';';
+          else if (tier >= 7) tierStyle += 'color:rgba(255,255,255,0.6);';
+          else tierStyle += 'color:rgba(255,255,255,0.22);';
+
+          // 10 tier-segmenten
           var segments = '';
           for (var t = 0; t < 10; t++) {
-            var filled = val !== null && (t + 1) * 10 <= val;
-            var partial = val !== null && t * 10 < val && (t + 1) * 10 > val;
+            var segVal = (t + 1) * 10;
+            var prevVal = t * 10;
+            var filled   = val !== null && segVal <= val;
+            var partial  = val !== null && prevVal < val && segVal > val;
             var partialW = partial ? ((val % 10) * 10) + '%' : '100%';
-            segments += '<div style="flex:1;height:6px;border-radius:2px;background:rgba(255,255,255,0.07);overflow:hidden;position:relative;">'
-              + (filled || partial ? '<div style="position:absolute;left:0;top:0;height:100%;width:' + (filled ? '100%' : partialW) + ';background:' + d.color + ';border-radius:2px;box-shadow:0 0 4px ' + d.color + '60;"></div>' : '')
+            var segBg = filled ? d.color : (partial ? d.color : 'rgba(255,255,255,0.07)');
+            var segGlow = (filled || partial) ? 'box-shadow:0 0 5px ' + d.glow + ';' : '';
+            segments += '<div style="flex:1;height:7px;border-radius:2px;overflow:hidden;background:rgba(255,255,255,0.07);position:relative;">'
+              + ((filled || partial)
+                ? '<div style="position:absolute;left:0;top:0;height:100%;width:' + (filled ? '100%' : partialW) + ';background:' + d.color + ';border-radius:2px;' + segGlow + '"></div>'
+                : '')
               + '</div>';
           }
-          return '<div style="display:flex;align-items:center;gap:6px;">'
-            + '<div style="font-size:0.82rem;font-weight:900;color:' + valColor + ';width:28px;text-align:right;font-family:\'Space Grotesk\',sans-serif;' + (isMax ? 'text-shadow:0 0 8px '+d.color+'80;' : '') + '">' + dispVal + '</div>'
-            + '<div style="font-size:0.6rem;width:62px;color:rgba(255,255,255,0.4);white-space:nowrap;">' + d.label + '</div>'
+
+          return '<div style="display:flex;align-items:center;gap:7px;padding:2px 0;">'
+            + '<div style="' + valStyle + '">' + dispVal + '</div>'
+            + '<div style="font-size:0.6rem;width:64px;color:rgba(255,255,255,0.35);white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase;">' + d.label + '</div>'
             + '<div style="display:flex;flex:1;gap:2px;align-items:center;">' + segments + '</div>'
-            + '<div style="font-size:0.58rem;font-weight:800;color:' + (isMax ? d.color : 'rgba(255,255,255,0.25)') + ';width:22px;text-align:center;">' + (isMax ? 'MAX' : 'T'+tier) + '</div>'
+            + '<div style="' + tierStyle + '">' + tierTxt + '</div>'
             + '</div>';
         }).join('');
       }
