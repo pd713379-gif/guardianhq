@@ -274,7 +274,7 @@ export default async function handler(req, res) {
         return mods;
       }
 
-      // Helper: haal weapon perks op
+      // Helper: haal weapon perks op (met beschrijving)
       function getWeaponPerks(itemInstanceId, itemHash) {
         const plugs = plugsData[itemInstanceId]?.plugs ?? {};
         const perks = [];
@@ -286,12 +286,62 @@ export default async function handler(req, res) {
             const icon = plugDef.displayProperties?.icon;
             if (!name || !icon || name.includes('Default') || name.includes('Empty') || name.includes('Intrinsic')) continue;
             const cats = plugDef.itemCategoryHashes ?? [];
-            // Alleen echte weapon perks (cat 2237006975 = weapon perk)
             if (cats.includes(2237006975) || cats.includes(610365472)) {
-              perks.push({ name, icon: 'https://www.bungie.net' + icon });
+              perks.push({
+                name,
+                icon: 'https://www.bungie.net' + icon,
+                desc: plugDef.displayProperties?.description ?? '',
+              });
               if (perks.length >= 4) break;
             }
           }
+          if (perks.length >= 4) break;
+        }
+        return perks;
+      }
+
+      // Helper: haal weapon stats op uit manifest definitie
+      function getWeaponStats(itemHash) {
+        const def = defs[itemHash] ?? {};
+        const statsBlock = def.stats?.stats ?? {};
+        const WEAPON_STAT_HASHES = {
+          4284893193: 'Impact',
+          1240592695: 'Range',
+          155624089:  'Stability',
+          943549884:  'Handling',
+          4188031367: 'Reload Speed',
+          1591432999: 'Accuracy',
+          2523465841: 'Rounds/Min',
+          1030428403: 'Blast Radius',
+          2762071195: 'Velocity',
+          3614673599: 'Charge Time',
+          447667954:  'Draw Time',
+          925767036:  'Ammo Capacity',
+        };
+        const result = [];
+        for (const [hash, label] of Object.entries(WEAPON_STAT_HASHES)) {
+          const entry = statsBlock[hash];
+          if (entry && entry.value > 0) {
+            result.push({ label, value: entry.value });
+          }
+        }
+        return result.slice(0, 6);
+      }
+
+      // Helper: haal ghost/ship/sparrow perks op
+      function getCollectiblePerks(itemInstanceId) {
+        const sockets = socketsData[itemInstanceId]?.sockets ?? [];
+        const perks = [];
+        for (const socket of sockets) {
+          const hash = socket.plugHash;
+          if (!hash) continue;
+          const plugDef = defs[hash];
+          if (!plugDef) continue;
+          const name = plugDef.displayProperties?.name ?? '';
+          const icon = plugDef.displayProperties?.icon;
+          const desc = plugDef.displayProperties?.description ?? '';
+          if (!name || !icon || name.startsWith('Empty') || name.startsWith('Default') || name === 'Armor Perks') continue;
+          perks.push({ name, icon: 'https://www.bungie.net' + icon, desc });
           if (perks.length >= 4) break;
         }
         return perks;
@@ -320,16 +370,19 @@ export default async function handler(req, res) {
           const def = defs[i.itemHash] ?? {};
           const ins = instanceData[i.itemInstanceId] ?? {};
           const perks = getWeaponPerks(i.itemInstanceId, i.itemHash);
+          const wStats = getWeaponStats(i.itemHash);
           return {
             bucketHash: i.bucketHash,
             slotName:   SLOT_NAMES[i.bucketHash] ?? 'Wapen',
             name:       def.displayProperties?.name ?? SLOT_NAMES[i.bucketHash] ?? 'Wapen',
             icon:       def.displayProperties?.icon ? 'https://www.bungie.net' + def.displayProperties.icon : null,
+            flavorText: def.flavorText ?? '',
             typeName:   def.itemTypeDisplayName ?? '',
             tierType:   def.inventory?.tierType ?? 5,
             isExotic:   (def.inventory?.tierType ?? 5) === 6,
             power:      ins.primaryStat?.value ?? 0,
             perks,
+            stats:      wStats,
           };
         });
 
@@ -343,6 +396,7 @@ export default async function handler(req, res) {
           const screenshot = def.screenshot ? 'https://www.bungie.net' + def.screenshot : null;
           const icon = def.displayProperties?.icon ? 'https://www.bungie.net' + def.displayProperties.icon : null;
           const iconWatermark = def.iconWatermark ? 'https://www.bungie.net' + def.iconWatermark : null;
+          const armorPerks = getCollectiblePerks(i.itemInstanceId);
           return {
             bucketHash: i.bucketHash,
             slotName:   SLOT_NAMES[i.bucketHash] ?? 'Armor',
@@ -350,10 +404,12 @@ export default async function handler(req, res) {
             icon,
             screenshot,
             iconWatermark,
+            flavorText: def.flavorText ?? '',
             tierType,
             isExotic:   tierType === 6,
             power:      ins.primaryStat?.value ?? 0,
             mods,
+            perks:      armorPerks,
           };
         });
 
@@ -390,14 +446,17 @@ export default async function handler(req, res) {
           const raw = items.find(i => i.bucketHash === bucketHash);
           if (!raw) return null;
           const def = defs[raw.itemHash] ?? {};
+          const perks = getCollectiblePerks(raw.itemInstanceId);
           return {
             bucketHash,
-            slotName:  slotLabel,
-            name:      def.displayProperties?.name ?? slotLabel,
-            icon:      def.displayProperties?.icon ? 'https://www.bungie.net' + def.displayProperties.icon : null,
+            slotName:   slotLabel,
+            name:       def.displayProperties?.name ?? slotLabel,
+            icon:       def.displayProperties?.icon ? 'https://www.bungie.net' + def.displayProperties.icon : null,
             screenshot: def.screenshot ? 'https://www.bungie.net' + def.screenshot : null,
-            tierType:  def.inventory?.tierType ?? 4,
-            isExotic:  (def.inventory?.tierType ?? 4) === 6,
+            flavorText: def.flavorText ?? '',
+            tierType:   def.inventory?.tierType ?? 4,
+            isExotic:   (def.inventory?.tierType ?? 4) === 6,
+            perks,
           };
         }
         const ghost   = extractCollectible(GHOST_BUCKET,   'Ghost Shell');
