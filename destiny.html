@@ -1017,7 +1017,9 @@
           if (!res.ok) { console.warn('[auto-refresh] HTTP fout:', res.status); return; }
           const data = await res.json();
           if (data.error || !data.characters || !data.characters.length) { console.warn('[auto-refresh] Geen data:', data.error); return; }
-          console.log('[auto-refresh] ✅ Data bijgewerkt');
+          const activeChar = data.characters[_activeCharIdx];
+          const w1 = activeChar?.weapons?.[0]?.name ?? 'onbekend';
+          console.log('[auto-refresh] ✅ Data bijgewerkt | actief wapen slot 1:', w1);
           _liveChars = data.characters;
           renderLiveChars();
           if (_liveChars[_activeCharIdx]) renderCharGear(_liveChars[_activeCharIdx]);
