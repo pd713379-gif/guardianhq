@@ -1010,8 +1010,8 @@
             return;
           }
           _refreshFailCount = 0; // Reset teller bij succes
-          const res = await fetch('/api/bungie-proxy?action=charactergear', {
-            headers: { 'Authorization': 'Bearer ' + token }
+          const res = await fetch('/api/bungie-proxy?action=charactergear&_t=' + Date.now(), {
+            headers: { 'Authorization': 'Bearer ' + token, 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
           });
           if (!res.ok) return; // Tijdelijke fout, volgende keer opnieuw
           const data = await res.json();
@@ -1046,8 +1046,8 @@
         const token = await getValidToken();
         if (!token) throw new Error('Geen token');
 
-        const res = await fetch('/api/bungie-proxy?action=charactergear', {
-          headers: { 'Authorization': 'Bearer ' + token }
+        const res = await fetch('/api/bungie-proxy?action=charactergear&_t=' + Date.now(), {
+          headers: { 'Authorization': 'Bearer ' + token, 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
         });
         if (!res.ok) throw new Error('Proxy ' + res.status);
         const data = await res.json();
