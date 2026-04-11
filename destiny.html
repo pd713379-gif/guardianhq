@@ -1342,12 +1342,12 @@
       var statsEl = document.getElementById('d2-stats');
       if (statsEl) {
         var STAT_DEFS = [
-          { key:'mobility',   label:'Mobility',   color:'#5bc8f5', glow:'#5bc8f540' },
-          { key:'resilience', label:'Resilience', color:'#4fc3f7', glow:'#4fc3f740' },
-          { key:'recovery',   label:'Recovery',   color:'#66bb6a', glow:'#66bb6a40' },
-          { key:'discipline', label:'Discipline', color:'#ce93d8', glow:'#ce93d840' },
-          { key:'intellect',  label:'Intellect',  color:'#ffb74d', glow:'#ffb74d40' },
-          { key:'strength',   label:'Strength',   color:'#ef5350', glow:'#ef535040' },
+          { key:'resilience', label:'Health',   icon:'✛', color:'#5bc8f5', glow:'#5bc8f540' },
+          { key:'strength',   label:'Melee',    icon:'⚔', color:'#ef5350', glow:'#ef535040' },
+          { key:'discipline', label:'Grenade',  icon:'💣', color:'#ce93d8', glow:'#ce93d840' },
+          { key:'intellect',  label:'Super',    icon:'✳', color:'#ffb74d', glow:'#ffb74d40' },
+          { key:'recovery',   label:'Class',    icon:'△', color:'#66bb6a', glow:'#66bb6a40' },
+          { key:'mobility',   label:'Weapon',   icon:'⊕', color:'#4fc3f7', glow:'#4fc3f740' },
         ];
         var st = char.stats || {};
         // Debug: log wat er in stats zit
@@ -1393,7 +1393,10 @@
 
           return '<div style="display:flex;align-items:center;gap:7px;padding:2px 0;">'
             + '<div style="' + valStyle + '">' + dispVal + '</div>'
-            + '<div style="font-size:0.6rem;width:64px;color:rgba(255,255,255,0.35);white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase;">' + d.label + '</div>'
+            + '<div style="display:flex;align-items:center;gap:4px;width:76px;">'
+            + '<span style="font-size:0.8rem;line-height:1;opacity:0.65;">' + (d.icon || '') + '</span>'
+            + '<span style="font-size:0.6rem;color:rgba(255,255,255,0.35);white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase;">' + d.label + '</span>'
+            + '</div>'
             + '<div style="display:flex;flex:1;gap:2px;align-items:center;">' + segments + '</div>'
             + '<div style="' + tierStyle + '">' + tierTxt + '</div>'
             + '</div>';
