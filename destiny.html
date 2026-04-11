@@ -998,29 +998,31 @@
     function startItemManagerAutoRefresh() {
       stopItemManagerAutoRefresh();
       let _refreshFailCount = 0;
+      console.log('[auto-refresh] Timer gestart, interval:', ITEM_MANAGER_REFRESH_SEC, 'sec');
       _autoRefreshTimer = setInterval(async function() {
-        if (!isBungieLinked()) return;
+        console.log('[auto-refresh] Tick - data ophalen...');
+        if (!isBungieLinked()) { console.warn('[auto-refresh] Bungie niet gekoppeld'); return; }
         try {
           const token = await getValidToken();
           if (!token) {
             _refreshFailCount++;
             console.warn('[auto-refresh] Geen token, poging', _refreshFailCount);
-            // Na 5 mislukte pogingen stoppen (token echt verlopen)
             if (_refreshFailCount >= 5) stopItemManagerAutoRefresh();
             return;
           }
-          _refreshFailCount = 0; // Reset teller bij succes
+          _refreshFailCount = 0;
           const res = await fetch('/api/bungie-proxy?action=charactergear&_t=' + Date.now(), {
             headers: { 'Authorization': 'Bearer ' + token, 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
           });
-          if (!res.ok) return; // Tijdelijke fout, volgende keer opnieuw
+          if (!res.ok) { console.warn('[auto-refresh] HTTP fout:', res.status); return; }
           const data = await res.json();
-          if (data.error || !data.characters || !data.characters.length) return;
+          if (data.error || !data.characters || !data.characters.length) { console.warn('[auto-refresh] Geen data:', data.error); return; }
+          console.log('[auto-refresh] ✅ Data bijgewerkt');
           _liveChars = data.characters;
           renderLiveChars();
           if (_liveChars[_activeCharIdx]) renderCharGear(_liveChars[_activeCharIdx]);
         } catch(err) {
-          console.warn('[auto-refresh]', err.message); // Fout loggen maar timer blijft draaien
+          console.warn('[auto-refresh] Fout:', err.message);
         }
       }, ITEM_MANAGER_REFRESH_SEC * 1000);
     }
@@ -1030,9 +1032,6 @@
     }
 
     async function loadLiveCharacters() {
-      // Als auto-refresh al draait, niet opnieuw initialiseren
-      if (_autoRefreshTimer) return;
-
       const charCards = document.getElementById('charCards');
       const banner    = document.getElementById('bungieConnectBanner');
 
