@@ -342,15 +342,20 @@ export default async function handler(req, res) {
         });
 
         // Character stats (component 304): Mobility, Resilience, Recovery, Discipline, Intellect, Strength
+        // Verified Bungie stat hash mapping (https://data.destinysets.com/):
+        // Mobility    = 2996146975
+        // Resilience  = 1943323491
+        // Recovery    = 1735777505
+        // Discipline  = 144602215
+        // Intellect   = 392767087
+        // Strength    = 4244567218
         const STAT_HASHES = {
           2996146975: 'mobility',
-          392767087:  'resilience',
-          1943323491: 'recovery',
-          1735777505: 'discipline',
-          144602215:  'intellect',
+          1943323491: 'resilience',
+          1735777505: 'recovery',
+          144602215:  'discipline',
+          392767087:  'intellect',
           4244567218: 'strength',
-          // Extra hashes als fallback
-          1480404414: 'resilience',
         };
         const rawStats = statsData[charId]?.stats ?? {};
         const stats = {};
