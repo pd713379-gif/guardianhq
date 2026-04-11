@@ -171,6 +171,7 @@ export default async function handler(req, res) {
         873720784:'stasis',3291545503:'stasis',2842471113:'stasis',
         2932390016:'strand',613647897:'strand',242419885:'strand',
         3855807587:'prismatic',1216399026:'prismatic',3452049687:'prismatic',
+        4282591831:'prismatic',3168997075:'prismatic',
       };
       const SUBCLASS_NAMES = {
         2328211300:'Arc Strider',  3006627468:'Stormcaller',       1751782730:'Striker',      2958378809:'Arc Striker',
@@ -179,6 +180,7 @@ export default async function handler(req, res) {
         873720784:'Revenant',      3291645503:'Shadebinder',        2842471113:'Behemoth',
         2932390016:'Threadrunner', 613647897:'Broodweaver',         242419885:'Berserker',
         3855807587:'Prismatic',    1216399026:'Prismatic',          3452049687:'Prismatic',
+        4282591831:'Prismatic',    3168997075:'Prismatic',
       };
       const WEAPON_BUCKETS  = new Set([1498876634, 2465295065, 953998645]);
       const ARMOR_BUCKETS   = new Set([3448274439, 3551918588, 14239492, 20886954, 1585787867]);
