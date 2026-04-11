@@ -1031,12 +1031,14 @@
       if (_autoRefreshTimer) { clearInterval(_autoRefreshTimer); _autoRefreshTimer = null; }
     }
 
+    let _liveCharsLoading = false;
     async function loadLiveCharacters() {
-      // Voorkom dubbele initialisatie als timer al draait
-      if (_autoRefreshTimer) {
-        console.log('[loadLiveCharacters] Timer loopt al, skip');
+      // Voorkom dubbele initialisatie
+      if (_liveCharsLoading || _autoRefreshTimer) {
+        console.log('[loadLiveCharacters] Al bezig of timer loopt al, skip');
         return;
       }
+      _liveCharsLoading = true;
       const charCards = document.getElementById('charCards');
       const banner    = document.getElementById('bungieConnectBanner');
 
@@ -1075,6 +1077,8 @@
         if (banner) banner.style.display = 'block';
         renderStaticChars();
         stopItemManagerAutoRefresh();
+      } finally {
+        _liveCharsLoading = false;
       }
     }
 
