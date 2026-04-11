@@ -1032,6 +1032,11 @@
     }
 
     async function loadLiveCharacters() {
+      // Voorkom dubbele initialisatie als timer al draait
+      if (_autoRefreshTimer) {
+        console.log('[loadLiveCharacters] Timer loopt al, skip');
+        return;
+      }
       const charCards = document.getElementById('charCards');
       const banner    = document.getElementById('bungieConnectBanner');
 
