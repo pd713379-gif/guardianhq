@@ -349,6 +349,8 @@ export default async function handler(req, res) {
           1735777505: 'discipline',
           144602215:  'intellect',
           4244567218: 'strength',
+          // Extra hashes als fallback
+          1480404414: 'resilience',
         };
         const rawStats = statsData[charId]?.stats ?? {};
         const stats = {};
