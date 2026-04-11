@@ -1350,6 +1350,10 @@
           { key:'strength',   label:'Strength',   color:'#ef5350', glow:'#ef535040' },
         ];
         var st = char.stats || {};
+        // Debug: log wat er in stats zit
+        console.log('[d2-stats] char stats object:', JSON.stringify(st));
+        var allZero = Object.keys(st).length === 0 || Object.values(st).every(function(v){ return !v || v === 0; });
+        if (allZero) console.warn('[d2-stats] WAARSCHUWING: alle stats zijn 0 of leeg — proxy geeft geen stat data terug');
         statsEl.innerHTML = STAT_DEFS.map(function(d) {
           var val = (st[d.key] !== undefined && st[d.key] !== null) ? Math.min(st[d.key], 100) : null;
           var dispVal = val !== null ? val : '—';
