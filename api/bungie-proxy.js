@@ -130,6 +130,9 @@ export default async function handler(req, res) {
         3284755031,                                                      // subclass
         1498876634, 2465295065, 953998645,                               // weapons
         3448274439, 3551918588, 14239492, 20886954, 1585787867,          // armor
+        4023194814,                                                      // ghost shell
+        284967655,                                                       // ship
+        2025709351,                                                      // sparrow
       ]);
       const allHashes = new Set();
       const allPlugHashes = new Set();
@@ -194,9 +197,13 @@ export default async function handler(req, res) {
       const WEAPON_BUCKETS  = new Set([1498876634, 2465295065, 953998645]);
       const ARMOR_BUCKETS   = new Set([3448274439, 3551918588, 14239492, 20886954, 1585787867]);
       const SUBCLASS_BUCKET = 3284755031;
+      const GHOST_BUCKET    = 4023194814;
+      const SHIP_BUCKET     = 284967655;
+      const SPARROW_BUCKET  = 2025709351;
       const SLOT_NAMES = {
         1498876634:'Kinetisch', 2465295065:'Energie', 953998645:'Zwaar',
         3448274439:'Helm', 3551918588:'Gauntlets', 14239492:'Borst', 20886954:'Benen', 1585787867:'Class Item',
+        4023194814:'Ghost Shell', 284967655:'Ship', 2025709351:'Sparrow',
       };
 
       // Mod slot bucket hashes die we willen tonen (armor mods, niet intrinsics/perks)
@@ -378,7 +385,25 @@ export default async function handler(req, res) {
         }
         console.log('[stats] charId', charId, 'char.stats keys:', Object.keys(charRawStats).join(','), '| final:', JSON.stringify(stats));
 
-        // Character render URL
+        // Ghost Shell, Ship, Sparrow
+        function extractCollectible(bucketHash, slotLabel) {
+          const raw = items.find(i => i.bucketHash === bucketHash);
+          if (!raw) return null;
+          const def = defs[raw.itemHash] ?? {};
+          return {
+            bucketHash,
+            slotName:  slotLabel,
+            name:      def.displayProperties?.name ?? slotLabel,
+            icon:      def.displayProperties?.icon ? 'https://www.bungie.net' + def.displayProperties.icon : null,
+            screenshot: def.screenshot ? 'https://www.bungie.net' + def.screenshot : null,
+            tierType:  def.inventory?.tierType ?? 4,
+            isExotic:  (def.inventory?.tierType ?? 4) === 6,
+          };
+        }
+        const ghost   = extractCollectible(GHOST_BUCKET,   'Ghost Shell');
+        const ship    = extractCollectible(SHIP_BUCKET,    'Ship');
+        const sparrow = extractCollectible(SPARROW_BUCKET, 'Sparrow');
+
         // Bungie's echte karakter render is ALLEEN beschikbaar via hun eigen website renderer
         // De enige publiek toegankelijke afbeelding IS de emblemBackgroundPath
         // maar die is 474x96 panorama.
@@ -398,7 +423,7 @@ export default async function handler(req, res) {
           emblemHash: char.emblemHash ?? null,
           renderPath: char.emblemBackgroundPath ?? null,
           portraitUrl,
-          subclass, weapons, armor, stats,
+          subclass, weapons, armor, ghost, ship, sparrow, stats,
         });
       }
 
