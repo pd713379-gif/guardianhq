@@ -369,8 +369,18 @@ export default async function handler(req, res) {
         const rawStats = statsData[charId]?.stats ?? {};
         const stats = {};
         for (const [hash, key] of Object.entries(STAT_HASHES)) {
-          stats[key] = rawStats[hash]?.value ?? 0;
+          const v = rawStats[hash]?.value;
+          if (v !== undefined && (stats[key] === undefined || v > stats[key])) {
+            stats[key] = v;
+          }
         }
+        // Vul ontbrekende stats op met 0
+        for (const key of Object.values(STAT_HASHES)) {
+          if (stats[key] === undefined) stats[key] = 0;
+        }
+        // Debug: log rawStats hashes zodat we kunnen zien wat Bungie stuurt
+        const rawKeys = Object.keys(rawStats);
+        console.log('[stats] charId', charId, 'rawStats hashes:', rawKeys.join(','), 'stats:', JSON.stringify(stats));
 
         // Character render URL
         // Bungie's echte karakter render is ALLEEN beschikbaar via hun eigen website renderer
