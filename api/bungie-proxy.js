@@ -383,7 +383,10 @@ export default async function handler(req, res) {
       const ORDER = ['Hunter','Warlock','Titan'];
       characters.sort((a,b) => ORDER.indexOf(a.className) - ORDER.indexOf(b.className));
 
-      res.setHeader('Cache-Control', 'no-store');
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
       return res.status(200).json({ characters });
 
     } catch(err) {
