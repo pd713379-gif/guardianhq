@@ -106,7 +106,7 @@ export default async function handler(req, res) {
       const mId   = primary.membershipId;
 
       // 2. Profile: chars (200) + renders (204) + equipment (205) + instances (300) + sockets (302) + char stats (304) + plugs (309)
-      const profile = await bFetch(`/Destiny2/${mType}/Profile/${mId}/?components=200,204,205,300,302,304,309`, token);
+      const profile = await bFetch(`/Destiny2/${mType}/Profile/${mId}/?components=200,204,205,300,302,304,305,309`, token);
 
       const charsData      = profile?.characters?.data ?? {};
       const renderData     = profile?.characterRenderData?.data ?? {};
@@ -114,6 +114,8 @@ export default async function handler(req, res) {
       const instanceData = profile?.itemComponents?.instances?.data ?? {};
       const plugsData    = profile?.itemComponents?.reusablePlugs?.data ?? {};
       const socketsData  = profile?.itemComponents?.sockets?.data ?? {};
+      // Component 305 geeft per item alle socket states inclusief plugHash
+      const plugStatesData = profile?.itemComponents?.plugStates?.data ?? {};
       const statsData    = profile?.characterStats?.data ?? {};
 
       // DEBUG: log wat Bungie teruggeeft voor stats (zie Vercel logs)
@@ -148,10 +150,19 @@ export default async function handler(req, res) {
                 if (plug.plugItemHash) allPlugHashes.add(plug.plugItemHash);
               }
             }
-            // Verzamel socket plug hashes (302) — meer betrouwbaar voor uitgeruste mods
+            // Verzamel socket plug hashes (302) — uitgeruste plugs
             const sockets = socketsData[item.itemInstanceId]?.sockets ?? [];
             for (const socket of sockets) {
               if (socket.plugHash) allPlugHashes.add(socket.plugHash);
+              // Ook reusable plugs uit socket meenemen
+              for (const rp of (socket.reusablePlugs ?? [])) {
+                if (rp.plugItemHash) allPlugHashes.add(rp.plugItemHash);
+              }
+            }
+            // Component 305 plug states
+            for (const [plugHash] of Object.entries(plugStatesData)) {
+              const h = parseInt(plugHash);
+              if (h) allPlugHashes.add(h);
             }
           }
         }
@@ -225,47 +236,54 @@ export default async function handler(req, res) {
       }
 
       // Helper: haal mod-iconen op uit plugsData voor een item
-      // Strategie: alle sockets langslopen, skip lege/cosmetic/intrinsic plugs, pak eerste 5 echte mods
       function getArmorMods(itemInstanceId) {
         const mods = [];
         const seen = new Set();
 
-        // Primaire bron: component 302 (sockets) — uitgeruste plugs
+        // Stap 1: component 302 sockets — dit zijn de daadwerkelijk uitgeruste plugs
         const sockets = socketsData[itemInstanceId]?.sockets ?? [];
+        console.log('[mods-debug] instanceId', itemInstanceId, 'sockets count:', sockets.length,
+          'plugHashes:', sockets.map(s=>s.plugHash).filter(Boolean).join(','));
+
         for (const socket of sockets) {
           const hash = socket.plugHash;
           if (!hash || seen.has(hash)) continue;
           seen.add(hash);
           const plugDef = defs[hash];
-          if (!plugDef) continue;
-          const name  = plugDef.displayProperties?.name ?? '';
-          const icon  = plugDef.displayProperties?.icon ?? '';
-          if (!name || !icon || isSkipName(name)) continue;
+          if (!plugDef) {
+            console.log('[mods-debug] hash', hash, 'NOT in defs');
+            continue;
+          }
+          const name   = plugDef.displayProperties?.name ?? '';
+          const icon   = plugDef.displayProperties?.icon ?? '';
           const plugId = (plugDef.plug?.plugCategoryIdentifier ?? '').toLowerCase();
+          console.log('[mods-debug] hash', hash, 'name:', name, 'plugId:', plugId, 'hasIcon:', !!icon);
+          if (!name || !icon || isSkipName(name)) continue;
           if (isSkipPlugId(plugId)) continue;
-          // Accepteer alles wat een icon heeft en geen skip is — Bungie mods hebben altijd een icon
           mods.push({ name, icon: 'https://www.bungie.net' + icon, hash });
           if (mods.length >= 5) break;
         }
 
-        // Fallback via reusablePlugs (309) als sockets leeg of onvolledig zijn
-        if (mods.length === 0) {
+        // Stap 2: fallback via reusablePlugs (309)
+        if (mods.length < 3) {
           const plugs = plugsData[itemInstanceId]?.plugs ?? {};
-          for (const plugArr of Object.values(plugs)) {
-            for (const plug of (plugArr ?? [])) {
-              const hash = plug.plugItemHash;
-              if (!hash || seen.has(hash)) continue;
-              seen.add(hash);
-              const plugDef = defs[hash];
-              if (!plugDef) continue;
-              const name  = plugDef.displayProperties?.name ?? '';
-              const icon  = plugDef.displayProperties?.icon ?? '';
-              if (!name || !icon || isSkipName(name)) continue;
-              const plugId = (plugDef.plug?.plugCategoryIdentifier ?? '').toLowerCase();
-              if (isSkipPlugId(plugId)) continue;
-              mods.push({ name, icon: 'https://www.bungie.net' + icon, hash });
-              if (mods.length >= 5) break;
-            }
+          const plugSlots = Object.values(plugs);
+          console.log('[mods-debug] fallback: plugSlots count:', plugSlots.length);
+          for (const plugArr of plugSlots) {
+            // Alleen de eerste plug per slot — dat is de uitgeruste
+            const plug = plugArr?.[0];
+            if (!plug?.plugItemHash) continue;
+            const hash = plug.plugItemHash;
+            if (seen.has(hash)) continue;
+            seen.add(hash);
+            const plugDef = defs[hash];
+            if (!plugDef) continue;
+            const name   = plugDef.displayProperties?.name ?? '';
+            const icon   = plugDef.displayProperties?.icon ?? '';
+            const plugId = (plugDef.plug?.plugCategoryIdentifier ?? '').toLowerCase();
+            if (!name || !icon || isSkipName(name)) continue;
+            if (isSkipPlugId(plugId)) continue;
+            mods.push({ name, icon: 'https://www.bungie.net' + icon, hash });
             if (mods.length >= 5) break;
           }
         }
