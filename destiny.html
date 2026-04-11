@@ -1217,6 +1217,7 @@
 
       // Kies het portret object (voor accent kleur + overlay)
       var portraitKey = className + '_' + element;
+      console.log('[GuardianHQ] portret:', portraitKey, '| subclass element:', element, '| subclass hash:', subEl.hash);
       var portrait    = window.GHQ_PORTRAITS[portraitKey]
                      || window.GHQ_PORTRAITS[className + '_prismatic']
                      || null;
