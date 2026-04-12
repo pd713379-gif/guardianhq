@@ -229,63 +229,72 @@ export default async function handler(req, res) {
         return true;
       }
 
-      // Helper: haal ECHTE armor mods op per socket slot
-      // Logica: loop alle sockets, check per socket of het een mod-socket is,
-      // geef de uitgeruste mod terug (of null voor lege slot) — max 5 slots
+      // Helper: haal armor mods EN cosmetics op per socket slot
+      // Geeft { mods: [...], cosmetics: [...] }
+      // mods = enhancements.* (geen cosmetics) — alle slots, geen maximum
+      // cosmetics = shaders + ornaments
       function getArmorMods(itemInstanceId) {
         const mods = [];
+        const cosmetics = [];
         const sockets = socketsData[itemInstanceId]?.sockets ?? [];
 
         for (const socket of sockets) {
-          if (mods.length >= 5) break;
           const hash = socket.plugHash;
           if (!hash) continue;
           const plugDef = defs[hash];
           if (!plugDef) continue;
 
           const plugId = (plugDef.plug?.plugCategoryIdentifier ?? '').toLowerCase();
+          const name   = plugDef.displayProperties?.name ?? '';
+          const icon   = plugDef.displayProperties?.icon ?? '';
 
-          // Dit socket is een mod-socket als plugId begint met 'enhancements.'
-          // en niet cosmetisch is
-          if (!plugId.startsWith('enhancements.')) continue;
-          if (COSMETIC_PLUG_SKIP.some(s => plugId.includes(s))) continue;
-
-          const name = plugDef.displayProperties?.name ?? '';
-          const icon = plugDef.displayProperties?.icon ?? '';
-
-          // Lege mod slot — toon als null (wordt lege vakje)
-          if (!name || name.startsWith('Empty') || name.startsWith('Default') || name.startsWith('Deprecated') || !icon) {
-            mods.push(null);
+          // COSMETICS: shaders en ornaments apart bijhouden
+          if (plugId.includes('shader') || plugId.includes('ornament') || plugId.includes('transmat')) {
+            if (name && icon && !name.startsWith('Default') && !name.startsWith('Empty')) {
+              cosmetics.push({ name, icon: 'https://www.bungie.net' + icon, hash });
+            } else {
+              cosmetics.push(null); // lege cosmetische slot
+            }
             continue;
           }
 
-          mods.push({ name, icon: 'https://www.bungie.net' + icon, hash });
+          // MODS: alle enhancements.* sockets (geen cosmetics)
+          if (!plugId.startsWith('enhancements.')) continue;
+
+          if (!name || name.startsWith('Empty') || name.startsWith('Default') || name.startsWith('Deprecated') || !icon) {
+            mods.push(null); // lege mod slot
+          } else {
+            mods.push({ name, icon: 'https://www.bungie.net' + icon, hash });
+          }
         }
 
         // Fallback via reusablePlugs als sockets leeg zijn
-        if (mods.filter(Boolean).length === 0) {
+        if (mods.filter(Boolean).length === 0 && cosmetics.filter(Boolean).length === 0) {
           const plugs = plugsData[itemInstanceId]?.plugs ?? {};
           for (const plugArr of Object.values(plugs)) {
-            if (mods.length >= 5) break;
             const plug = plugArr?.[0];
             if (!plug?.plugItemHash) continue;
             const plugDef = defs[plug.plugItemHash];
             if (!plugDef) continue;
             const plugId = (plugDef.plug?.plugCategoryIdentifier ?? '').toLowerCase();
-            if (!plugId.startsWith('enhancements.')) continue;
-            if (COSMETIC_PLUG_SKIP.some(s => plugId.includes(s))) continue;
-            const name = plugDef.displayProperties?.name ?? '';
-            const icon = plugDef.displayProperties?.icon ?? '';
-            if (!name || name.startsWith('Empty') || name.startsWith('Default') || !icon) {
-              mods.push(null);
+            const name   = plugDef.displayProperties?.name ?? '';
+            const icon   = plugDef.displayProperties?.icon ?? '';
+            if (plugId.includes('shader') || plugId.includes('ornament')) {
+              if (name && icon && !name.startsWith('Default') && !name.startsWith('Empty'))
+                cosmetics.push({ name, icon: 'https://www.bungie.net' + icon, hash: plug.plugItemHash });
               continue;
             }
-            mods.push({ name, icon: 'https://www.bungie.net' + icon, hash: plug.plugItemHash });
+            if (!plugId.startsWith('enhancements.')) continue;
+            if (!name || name.startsWith('Empty') || name.startsWith('Default') || !icon) {
+              mods.push(null);
+            } else {
+              mods.push({ name, icon: 'https://www.bungie.net' + icon, hash: plug.plugItemHash });
+            }
           }
         }
 
-        console.log('[mods]', itemInstanceId, '=>', mods.length, ':', mods.map(m=>m?.name||'[leeg]').join(', '));
-        return mods;
+        console.log('[mods]', itemInstanceId, '=> mods:', mods.length, 'cosmetics:', cosmetics.length);
+        return { mods, cosmetics };
       }
 
       // Helper: haal weapon perks op (met beschrijving)
@@ -404,7 +413,7 @@ export default async function handler(req, res) {
         const armor = items.filter(i => ARMOR_BUCKETS.has(i.bucketHash)).map(i => {
           const def = defs[i.itemHash] ?? {};
           const ins = instanceData[i.itemInstanceId] ?? {};
-          const mods = getArmorMods(i.itemInstanceId);
+          const { mods, cosmetics } = getArmorMods(i.itemInstanceId);
           const tierType = def.inventory?.tierType ?? 5;
           // Gebruik screenshot als primaire afbeelding (volledig gevuld), icon als fallback
           const screenshot = def.screenshot ? 'https://www.bungie.net' + def.screenshot : null;
@@ -423,6 +432,7 @@ export default async function handler(req, res) {
             isExotic:   tierType === 6,
             power:      ins.primaryStat?.value ?? 0,
             mods,
+            cosmetics,
             perks:      armorPerks,
           };
         });
