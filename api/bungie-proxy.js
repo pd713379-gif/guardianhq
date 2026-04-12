@@ -351,6 +351,58 @@ export default async function handler(req, res) {
         return result.slice(0, 6);
       }
 
+      // Helper: haal weapon mods op (barrel, magazine, perk1, perk2, masterwork, mod)
+      // Wapen sockets in volgorde: barrel/scope | magazine/battery | perk1 | perk2 | masterwork | mod
+      // Wij willen alleen de echte equipped "mod" socket — plugId bevat 'weapon_mods' of 'enhancements.weapons'
+      function getWeaponMods(itemInstanceId) {
+        const mods = [];
+        const sockets = socketsData[itemInstanceId]?.sockets ?? [];
+
+        for (const socket of sockets) {
+          const hash = socket.plugHash;
+          if (!hash) continue;
+          const plugDef = defs[hash];
+          if (!plugDef) continue;
+
+          const plugId = (plugDef.plug?.plugCategoryIdentifier ?? '').toLowerCase();
+          const name   = plugDef.displayProperties?.name ?? '';
+          const icon   = plugDef.displayProperties?.icon ?? '';
+
+          // Wapen mod sockets: enhancements.weapons.* of plugId bevat 'weapon_mod'
+          const isWeaponMod = plugId.startsWith('enhancements.weapons') || plugId.includes('weapon_mod');
+          if (!isWeaponMod) continue;
+          if (!name || !icon) continue;
+          if (name.startsWith('Empty') || name.startsWith('Default') || name.startsWith('Deprecated')) {
+            mods.push(null);
+            continue;
+          }
+          mods.push({ name, icon: 'https://www.bungie.net' + icon, hash });
+        }
+
+        // Fallback via reusablePlugs
+        if (mods.filter(Boolean).length === 0) {
+          const plugs = plugsData[itemInstanceId]?.plugs ?? {};
+          for (const plugArr of Object.values(plugs)) {
+            const plug = plugArr?.[0];
+            if (!plug?.plugItemHash) continue;
+            const plugDef = defs[plug.plugItemHash];
+            if (!plugDef) continue;
+            const plugId = (plugDef.plug?.plugCategoryIdentifier ?? '').toLowerCase();
+            if (!plugId.startsWith('enhancements.weapons') && !plugId.includes('weapon_mod')) continue;
+            const name = plugDef.displayProperties?.name ?? '';
+            const icon = plugDef.displayProperties?.icon ?? '';
+            if (!name || !icon) continue;
+            if (name.startsWith('Empty') || name.startsWith('Default') || name.startsWith('Deprecated')) {
+              mods.push(null);
+              continue;
+            }
+            mods.push({ name, icon: 'https://www.bungie.net' + icon, hash: plug.plugItemHash });
+          }
+        }
+
+        return mods;
+      }
+
       // Helper: haal ghost/ship/sparrow perks op
       function getCollectiblePerks(itemInstanceId) {
         const sockets = socketsData[itemInstanceId]?.sockets ?? [];
@@ -394,6 +446,7 @@ export default async function handler(req, res) {
           const ins = instanceData[i.itemInstanceId] ?? {};
           const perks = getWeaponPerks(i.itemInstanceId, i.itemHash);
           const wStats = getWeaponStats(i.itemHash);
+          const wMods  = getWeaponMods(i.itemInstanceId);
           return {
             bucketHash: i.bucketHash,
             slotName:   SLOT_NAMES[i.bucketHash] ?? 'Wapen',
@@ -406,6 +459,7 @@ export default async function handler(req, res) {
             power:      ins.primaryStat?.value ?? 0,
             perks,
             stats:      wStats,
+            mods:       wMods,
           };
         });
 
