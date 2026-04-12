@@ -174,6 +174,17 @@ function updateNav() {
   const navAuth = document.getElementById('navAuth');
   const navSpacer = document.getElementById('navSpacer');
   if (!navAuth) return;
+
+  // Destiny 2 en Profiel alleen zichtbaar als ingelogd
+  const navLinks = document.querySelectorAll('.nav-center a');
+  navLinks.forEach(link => {
+    const href = link.getAttribute('href') || '';
+    const isProtected = href.includes('destiny.html') || href.includes('profile.html');
+    if (isProtected) {
+      link.style.display = user ? '' : 'none';
+    }
+  });
+
   if (user) {
     navAuth.innerHTML = `
       <div class="nav-user">
