@@ -1478,8 +1478,10 @@
             }
 
             var marginLeft = (t === 10) ? 'margin-left:4px;' : '';
+            // No overflow:hidden for glow segments so box-shadow can bleed out
+            var overflow = isGlowSegment ? '' : 'overflow:hidden;';
 
-            segments += '<div style="flex:1;height:7px;border-radius:2px;overflow:hidden;background:' + segBgEmpty + ';position:relative;' + marginLeft + '">'
+            segments += '<div style="flex:1;height:7px;border-radius:2px;' + overflow + 'background:' + segBgEmpty + ';position:relative;' + marginLeft + '">'
               + ((filled || partial)
                 ? '<div style="position:absolute;left:0;top:0;height:100%;width:' + (filled ? '100%' : partialW) + ';border-radius:2px;' + fillStyle + '"></div>'
                 : '')
