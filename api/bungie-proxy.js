@@ -561,7 +561,7 @@ export default async function handler(req, res) {
           const val = (typeof fromChar === 'number') ? fromChar
                     : (typeof from304  === 'number') ? from304
                     : 0;
-          stats[key] = Math.min(val, 100);
+          stats[key] = Math.min(val, 200); // Stats kunnen tot 200 gaan met mods
         }
         console.log('[stats] charId', charId, 'char.stats keys:', Object.keys(charRawStats).join(','), '| final:', JSON.stringify(stats));
 
