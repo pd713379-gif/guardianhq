@@ -1403,36 +1403,49 @@
         var allZero = Object.keys(st).length === 0 || Object.values(st).every(function(v){ return !v || v === 0; });
         if (allZero) console.warn('[d2-stats] WAARSCHUWING: alle stats zijn 0 of leeg — proxy geeft geen stat data terug');
         statsEl.innerHTML = STAT_DEFS.map(function(d) {
-          var val = (st[d.key] !== undefined && st[d.key] !== null) ? Math.min(st[d.key], 100) : null;
+          // Stat kan tot 200 gaan (base + armor bonussen)
+          var raw = (st[d.key] !== undefined && st[d.key] !== null) ? st[d.key] : null;
+          var val = raw !== null ? Math.min(raw, 200) : null;
           var dispVal = val !== null ? val : '—';
-          var tier = val !== null ? Math.floor(val / 10) : 0;
-          var isMax = val !== null && val >= 100;
-          var isHigh = val !== null && val >= 70;
+          var isOver100 = val !== null && val > 100;
+          var isMax200  = val !== null && val >= 200;
+          var isMax100  = val !== null && val >= 100;
+          var tier = val !== null ? Math.floor(Math.min(val, 100) / 10) : 0;
 
-          // Waarde kleur + glow bij MAX
+          // Waarde kleur
           var valStyle = 'font-size:0.9rem;font-weight:900;width:28px;text-align:right;font-family:\'Space Grotesk\',sans-serif;letter-spacing:-0.02em;';
-          if (isMax) valStyle += 'color:' + d.color + ';text-shadow:0 0 10px ' + d.color + ',0 0 20px ' + d.glow + ';';
-          else if (isHigh) valStyle += 'color:#ffffff;';
+          if (isOver100) valStyle += 'color:' + d.color + ';text-shadow:0 0 12px ' + d.color + ',0 0 24px ' + d.color + ';';
+          else if (isMax100) valStyle += 'color:' + d.color + ';text-shadow:0 0 10px ' + d.color + ',0 0 20px ' + d.glow + ';';
+          else if (val !== null && val >= 70) valStyle += 'color:#ffffff;';
           else valStyle += 'color:rgba(255,255,255,0.55);';
 
-          // Tier-label rechts
-          var tierTxt = isMax ? 'MAX' : (val !== null ? 'T' + tier : '—');
+          // Tier label
+          var tierTxt = isMax200 ? '200' : isMax100 ? 'MAX' : (val !== null ? 'T' + tier : '—');
           var tierStyle = 'font-size:0.6rem;font-weight:800;width:26px;text-align:center;letter-spacing:0.03em;';
-          if (isMax) tierStyle += 'color:' + d.color + ';text-shadow:0 0 8px ' + d.color + ';';
+          if (isOver100) tierStyle += 'color:' + d.color + ';text-shadow:0 0 10px ' + d.color + ';';
+          else if (isMax100) tierStyle += 'color:' + d.color + ';text-shadow:0 0 8px ' + d.color + ';';
           else if (tier >= 7) tierStyle += 'color:rgba(255,255,255,0.6);';
           else tierStyle += 'color:rgba(255,255,255,0.22);';
 
-          // 10 tier-segmenten
+          // 20 segmenten: 1-10 = tot 100, 11-20 = 101-200
+          // Segment 1-10 normale kleur, segment 11-20 glow kleur
           var segments = '';
-          for (var t = 0; t < 10; t++) {
-            var segVal = (t + 1) * 10;
-            var prevVal = t * 10;
-            var filled   = val !== null && segVal <= val;
-            var partial  = val !== null && prevVal < val && segVal > val;
-            var partialW = partial ? ((val % 10) * 10) + '%' : '100%';
-            var segBg = filled ? d.color : (partial ? d.color : 'rgba(255,255,255,0.07)');
-            var segGlow = (filled || partial) ? 'box-shadow:0 0 5px ' + d.glow + ';' : '';
-            segments += '<div style="flex:1;height:7px;border-radius:2px;overflow:hidden;background:rgba(255,255,255,0.07);position:relative;">'
+          for (var t = 0; t < 20; t++) {
+            var segMin   = t * 10;
+            var segMax   = (t + 1) * 10;
+            var isGlowSeg = t >= 10;
+            var filled   = val !== null && val >= segMax;
+            var partial  = val !== null && val > segMin && val < segMax;
+            var partialW = partial ? ((val - segMin) * 10) + '%' : '100%';
+            var segGlow  = '';
+            if (filled || partial) {
+              segGlow = isGlowSeg
+                ? 'box-shadow:0 0 8px ' + d.color + ',0 0 16px ' + d.color + ';filter:brightness(1.4);'
+                : 'box-shadow:0 0 4px ' + d.glow + ';';
+            }
+            // Klein extra spatietje na segment 10 als visuele scheiding bij de 100-grens
+            var extraMargin = (t === 9) ? 'margin-right:3px;' : '';
+            segments += '<div style="flex:1;height:7px;border-radius:2px;overflow:hidden;background:rgba(255,255,255,0.07);position:relative;' + extraMargin + '">'
               + ((filled || partial)
                 ? '<div style="position:absolute;left:0;top:0;height:100%;width:' + (filled ? '100%' : partialW) + ';background:' + d.color + ';border-radius:2px;' + segGlow + '"></div>'
                 : '')
