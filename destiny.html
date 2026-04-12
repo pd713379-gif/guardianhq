@@ -1442,7 +1442,7 @@
           // Waarde kleur + glow bij MAX of boven 100
           var valStyle = 'font-size:0.9rem;font-weight:900;width:32px;text-align:right;font-family:\'Space Grotesk\',sans-serif;letter-spacing:-0.02em;';
           if (isMax) valStyle += 'color:' + d.color + ';text-shadow:0 0 10px ' + d.color + ',0 0 20px ' + d.glow + ',0 0 40px ' + d.color + ';';
-          else if (isOver100) valStyle += 'color:#ffd700;text-shadow:0 0 8px #ffd700,0 0 18px #ffaa00,0 0 32px rgba(255,200,0,0.8);';
+          else if (isOver100) valStyle += 'color:#ffffff;text-shadow:0 0 4px #fff,0 0 10px #ffee44,0 0 22px #ffd700,0 0 40px #ffaa00,0 0 60px rgba(255,180,0,0.8);';
           else if (isHigh) valStyle += 'color:#ffffff;';
           else valStyle += 'color:rgba(255,255,255,0.55);';
 
@@ -1450,7 +1450,7 @@
           var tierTxt = isMax ? 'MAX' : (val !== null ? 'T' + tier : '—');
           var tierStyle = 'font-size:0.6rem;font-weight:800;width:26px;text-align:center;letter-spacing:0.03em;';
           if (isMax) tierStyle += 'color:' + d.color + ';text-shadow:0 0 8px ' + d.color + ';';
-          else if (isOver100) tierStyle += 'color:#ffd700;text-shadow:0 0 6px #ffd700,0 0 14px #ffaa00;';
+          else if (isOver100) tierStyle += 'color:#ffffff;text-shadow:0 0 4px #fff,0 0 10px #ffee44,0 0 22px #ffd700,0 0 38px #ffaa00;';
           else if (tier >= 7) tierStyle += 'color:rgba(255,255,255,0.6);';
           else tierStyle += 'color:rgba(255,255,255,0.22);';
 
