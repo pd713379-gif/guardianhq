@@ -502,6 +502,10 @@
 
     // Activiteit-specifieke SVG iconen per type — Destiny-accuraat
     const ACT_ICONS = {
+      // Exotic Mission: ster met schittering
+      exotic: { bg: 'rgba(212,168,67,0.22)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="12,2 14.5,9 22,9 16,13.5 18.5,21 12,16.5 5.5,21 8,13.5 2,9 9.5,9" stroke="rgba(212,168,67,0.95)" stroke-width="1.4" stroke-linejoin="round" fill="rgba(212,168,67,0.20)"/><circle cx="12" cy="12" r="2.5" fill="rgba(212,168,67,0.9)"/></svg>` },
+      // Seasonal: kristal / seizoen icoon
+      seasonal: { bg: 'rgba(79,143,255,0.18)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3L14 9H20L15 13L17 19L12 15L7 19L9 13L4 9H10Z" stroke="rgba(79,143,255,0.9)" stroke-width="1.5" stroke-linejoin="round" fill="rgba(79,143,255,0.15)"/></svg>` },
       // Raid: schild met kruis (Raid banner stijl)
       raid: { bg: 'rgba(155,114,207,0.22)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L4 5.5V11c0 4.8 3.4 9.3 8 10.5C16.6 20.3 20 15.8 20 11V5.5L12 2z" stroke="rgba(155,114,207,0.95)" stroke-width="1.5" fill="rgba(155,114,207,0.15)"/><line x1="12" y1="7" x2="12" y2="16" stroke="rgba(155,114,207,0.95)" stroke-width="1.5" stroke-linecap="round"/><line x1="7.5" y1="11.5" x2="16.5" y2="11.5" stroke="rgba(155,114,207,0.95)" stroke-width="1.5" stroke-linecap="round"/></svg>` },
       // Dungeon: schedel met ogen
@@ -574,10 +578,25 @@
 
       function showSlice() {
         if (!_rotationQueue.length) return;
-        // Pak 4 opeenvolgende items uit de gemixte queue (wraps around)
+        // Pak 4 items uit de queue — zorg dat nooit 2 van hetzelfde type naast elkaar
         const slice = [];
-        for (let i = 0; i < ACTS_VISIBLE; i++) {
-          slice.push(_rotationQueue[(_rotationIdx + i) % _rotationQueue.length]);
+        const usedTypes = {};
+        let attempts = 0;
+        let idx = _rotationIdx;
+        while (slice.length < ACTS_VISIBLE && attempts < _rotationQueue.length * 2) {
+          const item = _rotationQueue[idx % _rotationQueue.length];
+          const typeCount = usedTypes[item.type] || 0;
+          // Max 1 van hetzelfde type per zichtbare slice (behalve als er geen keuze is)
+          if (typeCount < 1 || (slice.length >= _rotationQueue.length - 1)) {
+            slice.push(item);
+            usedTypes[item.type] = typeCount + 1;
+          }
+          idx++;
+          attempts++;
+        }
+        // Vul aan als er toch te weinig zijn (kleine pool)
+        while (slice.length < ACTS_VISIBLE && slice.length < _rotationQueue.length) {
+          slice.push(_rotationQueue[(_rotationIdx + slice.length) % _rotationQueue.length]);
         }
 
         // Fade-out → update → fade-in
