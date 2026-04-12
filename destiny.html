@@ -1465,6 +1465,22 @@
       }
 
       var itemJson = JSON.stringify(item).replace(/'/g,"&#39;").replace(/"/g,'&quot;');
+      // Wapen mods rij
+      var wpnModHtml = '';
+      if (item.mods && item.mods.length > 0) {
+        wpnModHtml = '<div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;">';
+        item.mods.forEach(function(mod) {
+          if (mod && mod.icon && mod.icon.indexOf('bungie.net') !== -1) {
+            wpnModHtml += '<div title="' + (mod.name||'Mod') + '" style="width:22px;height:22px;border-radius:4px;overflow:hidden;background:rgba(245,200,66,0.1);border:1px solid rgba(245,200,66,0.35);">'
+              + '<img src="' + mod.icon + '" width="22" height="22" style="width:22px;height:22px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
+              + '</div>';
+          } else {
+            wpnModHtml += '<div title="Lege mod slot" style="width:22px;height:22px;border-radius:4px;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.15);"></div>';
+          }
+        });
+        wpnModHtml += '</div>';
+      }
+
       return '<div style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;border-radius:10px;padding:4px;transition:background 0.15s;" onclick="openItemPopup(this)" data-item="' + itemJson + '" onmouseover="this.style.background=\'rgba(255,255,255,0.04)\'" onmouseout="this.style.background=\'\'">'
         + '<div style="flex-shrink:0;width:68px;height:68px;border-radius:6px;overflow:hidden;background:' + iconBg + ';border:2px solid ' + tier.border + ';position:relative;">'
         + (item.icon ? '<img src="' + item.icon + '" width="68" height="68" style="width:68px;height:68px;object-fit:cover;display:block;" referrerpolicy="no-referrer">' : '<div style="width:68px;height:68px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;">🔫</div>')
@@ -1475,6 +1491,7 @@
         + '<div style="font-size:0.57rem;margin-top:2px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:' + (exotic?'#f5c842':'rgba(155,114,207,0.9)') + ';">'
         + (exotic?'Exotic':'Legendary') + (item.typeName?' · '+item.typeName:'') + '</div>'
         + perkHtml
+        + wpnModHtml
         + '</div>'
         + '</div>';
     }
@@ -1644,15 +1661,19 @@
         html += '</div></div>';
       }
 
-      // ── ARMOR MODS ──
-      if (item.mods && item.mods.length) {
+      // ── MODS (wapen of armor) ──
+      if (item.mods && item.mods.filter(Boolean).length > 0) {
+        var isWeapon = !!(item.stats && item.stats.length);
+        var modBorderColor = isWeapon ? 'rgba(245,200,66,0.35)' : 'rgba(79,143,255,0.35)';
+        var modBg          = isWeapon ? 'rgba(245,200,66,0.1)'  : 'rgba(79,143,255,0.12)';
+        var modLabel       = isWeapon ? 'Wapen Mods' : 'Armor Mods';
         html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;">'
-          + '<div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:10px;">Mods</div>'
+          + '<div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:10px;">' + modLabel + '</div>'
           + '<div style="display:flex;flex-direction:column;gap:8px;">';
         item.mods.forEach(function(m) {
           if (!m || !m.name) return;
           html += '<div style="display:flex;align-items:center;gap:10px;">'
-            + '<div style="flex-shrink:0;width:34px;height:34px;border-radius:6px;overflow:hidden;background:rgba(79,143,255,0.12);border:1px solid rgba(79,143,255,0.35);">'
+            + '<div style="flex-shrink:0;width:34px;height:34px;border-radius:6px;overflow:hidden;background:' + modBg + ';border:1px solid ' + modBorderColor + ';">'
             + (m.icon ? '<img src="' + m.icon + '" width="34" height="34" style="width:34px;height:34px;object-fit:cover;display:block;" referrerpolicy="no-referrer">' : '')
             + '</div>'
             + '<div style="font-size:0.74rem;font-weight:600;color:rgba(255,255,255,0.85);">' + m.name + '</div>'
