@@ -502,6 +502,10 @@
 
     // Activiteit-specifieke SVG iconen per type — Destiny-accuraat
     const ACT_ICONS = {
+      // Seasonal: seizoen ster
+      seasonal: { bg: 'rgba(79,143,255,0.18)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="12,2 15,9 22,9 16.5,13.5 18.5,21 12,16.5 5.5,21 7.5,13.5 2,9 9,9" stroke="rgba(79,143,255,0.95)" stroke-width="1.4" stroke-linejoin="round" fill="rgba(79,143,255,0.18)"/></svg>` },
+      // Exotic Mission: gouden ster
+      exotic: { bg: 'rgba(212,168,67,0.22)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="12,2 14.5,9 22,9 16,13.5 18.5,21 12,16.5 5.5,21 8,13.5 2,9 9.5,9" stroke="rgba(212,168,67,0.95)" stroke-width="1.4" stroke-linejoin="round" fill="rgba(212,168,67,0.20)"/><circle cx="12" cy="12" r="2" fill="rgba(212,168,67,0.9)"/></svg>` },
       // Raid: schild met kruis (Raid banner stijl)
       raid: { bg: 'rgba(155,114,207,0.22)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L4 5.5V11c0 4.8 3.4 9.3 8 10.5C16.6 20.3 20 15.8 20 11V5.5L12 2z" stroke="rgba(155,114,207,0.95)" stroke-width="1.5" fill="rgba(155,114,207,0.15)"/><line x1="12" y1="7" x2="12" y2="16" stroke="rgba(155,114,207,0.95)" stroke-width="1.5" stroke-linecap="round"/><line x1="7.5" y1="11.5" x2="16.5" y2="11.5" stroke="rgba(155,114,207,0.95)" stroke-width="1.5" stroke-linecap="round"/></svg>` },
       // Dungeon: schedel met ogen
@@ -560,7 +564,7 @@
           } else {
             // Update bestaande met live info (betere naam, pgcrImage etc.)
             const idx = combined.findIndex(x => x.name.toLowerCase().replace(/[:\s]+/g,'') === key);
-            if (idx >= 0) combined[idx] = { ...combined[idx], ...a };
+            if (idx >= 0) { const l = combined[idx]; combined[idx] = { ...l, ...a, type: l.type, badge: l.badge, badgeClass: l.badgeClass }; }
           }
         });
       }
@@ -574,10 +578,26 @@
 
       function showSlice() {
         if (!_rotationQueue.length) return;
-        // Pak 4 opeenvolgende items uit de gemixte queue (wraps around)
+        // Pak 4 items — nooit 2 van hetzelfde type tegelijk zichtbaar
         const slice = [];
-        for (let i = 0; i < ACTS_VISIBLE; i++) {
-          slice.push(_rotationQueue[(_rotationIdx + i) % _rotationQueue.length]);
+        const usedTypes = new Set();
+        let idx = _rotationIdx;
+        let attempts = 0;
+        while (slice.length < ACTS_VISIBLE && attempts < _rotationQueue.length * 2) {
+          const item = _rotationQueue[idx % _rotationQueue.length];
+          if (!usedTypes.has(item.type)) {
+            slice.push(item);
+            usedTypes.add(item.type);
+          }
+          idx++;
+          attempts++;
+        }
+        // Vul aan als pool te klein is
+        idx = _rotationIdx;
+        while (slice.length < ACTS_VISIBLE && slice.length < _rotationQueue.length) {
+          const item = _rotationQueue[idx % _rotationQueue.length];
+          if (!slice.includes(item)) slice.push(item);
+          idx++;
         }
 
         // Fade-out → update → fade-in
