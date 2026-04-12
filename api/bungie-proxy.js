@@ -218,61 +218,73 @@ export default async function handler(req, res) {
       };
 
       // Mod slot bucket hashes die we willen tonen (armor mods, niet intrinsics/perks)
-      // Echte armor mods hebben plugCategoryIdentifier die begint met 'enhancements.'
-      // Dat is de enige betrouwbare manier om ze te identificeren
+      // Echte armor mods: plugCategoryIdentifier begint met 'enhancements.'
+      // maar NIET cosmetics zoals shaders/ornaments (die hebben 'shader','ornaments','ghost_projections')
+      const COSMETIC_PLUG_SKIP = ['shader','ornament','ghost_projection','transmat','emote','finisher'];
       function isRealArmorMod(plugDef) {
         const plugId = (plugDef.plug?.plugCategoryIdentifier ?? '').toLowerCase();
-        // Moet beginnen met 'enhancements.' — dit zijn alle echte armor mods in D2
-        return plugId.startsWith('enhancements.');
+        if (!plugId.startsWith('enhancements.')) return false;
+        // Skip cosmetische enhancements
+        if (COSMETIC_PLUG_SKIP.some(s => plugId.includes(s))) return false;
+        return true;
       }
 
-      // Helper: haal ECHTE armor mods op — alleen enhancements.* plugs
+      // Helper: haal ECHTE armor mods op per socket slot
+      // Logica: loop alle sockets, check per socket of het een mod-socket is,
+      // geef de uitgeruste mod terug (of null voor lege slot) — max 5 slots
       function getArmorMods(itemInstanceId) {
         const mods = [];
-        const seen = new Set();
-
-        // Component 302 sockets — uitgeruste plugs per socket slot
         const sockets = socketsData[itemInstanceId]?.sockets ?? [];
 
         for (const socket of sockets) {
+          if (mods.length >= 5) break;
           const hash = socket.plugHash;
-          if (!hash || seen.has(hash)) continue;
-          seen.add(hash);
+          if (!hash) continue;
           const plugDef = defs[hash];
           if (!plugDef) continue;
-          // Alleen echte mods: plugCategoryIdentifier begint met 'enhancements.'
-          if (!isRealArmorMod(plugDef)) continue;
+
+          const plugId = (plugDef.plug?.plugCategoryIdentifier ?? '').toLowerCase();
+
+          // Dit socket is een mod-socket als plugId begint met 'enhancements.'
+          // en niet cosmetisch is
+          if (!plugId.startsWith('enhancements.')) continue;
+          if (COSMETIC_PLUG_SKIP.some(s => plugId.includes(s))) continue;
+
           const name = plugDef.displayProperties?.name ?? '';
           const icon = plugDef.displayProperties?.icon ?? '';
-          if (!name || !icon) continue;
-          // Skip lege slots
-          if (name.startsWith('Empty') || name.startsWith('Default') || name.startsWith('Deprecated')) continue;
+
+          // Lege mod slot — toon als null (wordt lege vakje)
+          if (!name || name.startsWith('Empty') || name.startsWith('Default') || name.startsWith('Deprecated') || !icon) {
+            mods.push(null);
+            continue;
+          }
+
           mods.push({ name, icon: 'https://www.bungie.net' + icon, hash });
-          if (mods.length >= 5) break;
         }
 
-        // Fallback via reusablePlugs (309) — pak eerste plug per slot
-        if (mods.length === 0) {
+        // Fallback via reusablePlugs als sockets leeg zijn
+        if (mods.filter(Boolean).length === 0) {
           const plugs = plugsData[itemInstanceId]?.plugs ?? {};
           for (const plugArr of Object.values(plugs)) {
+            if (mods.length >= 5) break;
             const plug = plugArr?.[0];
             if (!plug?.plugItemHash) continue;
-            const hash = plug.plugItemHash;
-            if (seen.has(hash)) continue;
-            seen.add(hash);
-            const plugDef = defs[hash];
+            const plugDef = defs[plug.plugItemHash];
             if (!plugDef) continue;
-            if (!isRealArmorMod(plugDef)) continue;
+            const plugId = (plugDef.plug?.plugCategoryIdentifier ?? '').toLowerCase();
+            if (!plugId.startsWith('enhancements.')) continue;
+            if (COSMETIC_PLUG_SKIP.some(s => plugId.includes(s))) continue;
             const name = plugDef.displayProperties?.name ?? '';
             const icon = plugDef.displayProperties?.icon ?? '';
-            if (!name || !icon) continue;
-            if (name.startsWith('Empty') || name.startsWith('Default') || name.startsWith('Deprecated')) continue;
-            mods.push({ name, icon: 'https://www.bungie.net' + icon, hash });
-            if (mods.length >= 5) break;
+            if (!name || name.startsWith('Empty') || name.startsWith('Default') || !icon) {
+              mods.push(null);
+              continue;
+            }
+            mods.push({ name, icon: 'https://www.bungie.net' + icon, hash: plug.plugItemHash });
           }
         }
 
-        console.log('[mods]', itemInstanceId, '=>', mods.length, ':', mods.map(m=>m.name).join(', '));
+        console.log('[mods]', itemInstanceId, '=>', mods.length, ':', mods.map(m=>m?.name||'[leeg]').join(', '));
         return mods;
       }
 
