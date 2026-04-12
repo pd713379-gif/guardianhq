@@ -600,7 +600,28 @@
           idx++;
         }
 
-        // Fade-out → update → fade-in
+        // Lokale plaatjes mapping — naam bevat trefwoord → bestandsnaam
+        // Hoofdletters maakt niet uit want we gebruiken de exacte bestandsnaam
+        const LOCAL_IMAGES = [
+          { match: 'duality',              file: 'Duality.png' },
+          { match: 'ghosts of the deep',   file: 'Ghosts-of-the-Deep.png' },
+          { match: 'grasp of avarice',     file: 'grasp-of-avarice.png' },
+          { match: 'pit of heresy',        file: 'pit-of-heresy.png' },
+          { match: 'prophecy',             file: 'prophecy.png' },
+          { match: 'shattered throne',     file: 'shattered-throne.png' },
+          { match: 'spire of the watcher', file: 'spire-of-the-watcher.png' },
+          { match: 'vesper',               file: 'vespers-host.png' },
+          { match: 'warlord',              file: 'warlords-ruin.png' },
+        ];
+
+        function getLocalImage(name) {
+          if (!name) return null;
+          const n = name.toLowerCase();
+          const found = LOCAL_IMAGES.find(x => n.includes(x.match));
+          return found ? `/img/activities/${found.file}` : null;
+        }
+
+
         container.style.transition = 'opacity 0.35s ease';
         container.style.opacity = '0';
 
@@ -608,11 +629,13 @@
           container.innerHTML = slice.map(a => {
             const iconDef = ACT_ICONS[a.type] ?? { bg: 'rgba(255,255,255,0.06)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>` };
 
-            // Plaatje via eigen proxy (voorkomt CORB), SVG alleen als er geen plaatje is
+            // Plaatje: eerst lokaal eigen plaatje proberen, dan live API pgcrImage via proxy
+            const localImg = getLocalImage(a.name);
             const proxyUrl = a.pgcrImage ? `/api/bungie-proxy?action=img&url=${encodeURIComponent(a.pgcrImage)}` : null;
+            const imgUrl = localImg || proxyUrl;
 
-            const iconContent = proxyUrl
-              ? `<div style="position:absolute;inset:0;background-image:url('${proxyUrl}');background-size:cover;background-position:center;border-radius:9px;"></div>`
+            const iconContent = imgUrl
+              ? `<div style="position:absolute;inset:0;background-image:url('${imgUrl}');background-size:cover;background-position:center;border-radius:9px;"></div>`
               : iconDef.svg;
 
             return `
