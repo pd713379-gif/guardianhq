@@ -1442,7 +1442,7 @@
           // Waarde kleur + glow bij MAX of boven 100
           var valStyle = 'font-size:0.9rem;font-weight:900;width:32px;text-align:right;font-family:\'Space Grotesk\',sans-serif;letter-spacing:-0.02em;';
           if (isMax) valStyle += 'color:' + d.color + ';text-shadow:0 0 10px ' + d.color + ',0 0 20px ' + d.glow + ',0 0 40px ' + d.color + ';';
-          else if (isOver100) valStyle += 'color:' + d.color + ';text-shadow:0 0 8px ' + d.color + ',0 0 16px ' + d.glow + ';';
+          else if (isOver100) valStyle += 'color:#ffd700;text-shadow:0 0 8px #ffd700,0 0 18px #ffaa00,0 0 32px rgba(255,200,0,0.8);';
           else if (isHigh) valStyle += 'color:#ffffff;';
           else valStyle += 'color:rgba(255,255,255,0.55);';
 
@@ -1450,7 +1450,7 @@
           var tierTxt = isMax ? 'MAX' : (val !== null ? 'T' + tier : '—');
           var tierStyle = 'font-size:0.6rem;font-weight:800;width:26px;text-align:center;letter-spacing:0.03em;';
           if (isMax) tierStyle += 'color:' + d.color + ';text-shadow:0 0 8px ' + d.color + ';';
-          else if (isOver100) tierStyle += 'color:' + d.color + ';text-shadow:0 0 6px ' + d.color + ';';
+          else if (isOver100) tierStyle += 'color:#ffd700;text-shadow:0 0 6px #ffd700,0 0 14px #ffaa00;';
           else if (tier >= 7) tierStyle += 'color:rgba(255,255,255,0.6);';
           else tierStyle += 'color:rgba(255,255,255,0.22);';
 
@@ -1465,11 +1465,13 @@
             var partial = val !== null && val > segMin && val < segMax;
             var partialW = partial ? ((val - segMin) * 10) + '%' : '100%';
 
-            var segBgEmpty = isGlowSegment ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.07)';
+            var segBgEmpty = isGlowSegment ? 'rgba(255,200,0,0.06)' : 'rgba(255,255,255,0.07)';
             var fillStyle = '';
             if (filled || partial) {
               if (isGlowSegment) {
-                fillStyle = 'background:' + d.color + ';box-shadow:0 0 6px ' + d.color + ',0 0 12px ' + d.color + ',0 0 20px ' + d.glow + ';filter:brightness(1.5);';
+                fillStyle = 'background:linear-gradient(90deg,#ffe066,#ffd700,#ffb300);'
+                  + 'box-shadow:0 0 6px #ffd700,0 0 14px #ffd700,0 0 28px #ffaa00,0 0 48px rgba(255,200,0,0.7);'
+                  + 'filter:brightness(1.3) saturate(1.2);';
               } else {
                 fillStyle = 'background:' + d.color + ';box-shadow:0 0 4px ' + d.glow + ';';
               }
