@@ -248,12 +248,15 @@ export default async function handler(req, res) {
           const name   = plugDef.displayProperties?.name ?? '';
           const icon   = plugDef.displayProperties?.icon ?? '';
 
-          // COSMETICS: shaders en ornaments apart bijhouden
-          if (plugId.includes('shader') || plugId.includes('ornament') || plugId.includes('transmat')) {
-            if (name && icon && !name.startsWith('Default') && !name.startsWith('Empty')) {
+          // COSMETICS: shaders, ornaments, universal ornaments (armor_skins)
+          const isCosmeticPlug = plugId.includes('shader') || plugId.includes('ornament')
+            || plugId.includes('transmat') || plugId.includes('armor_skins')
+            || plugId.includes('armor_plug_one') || plugId === 'v400.plugs.armor.masterworks.trackers';
+          if (isCosmeticPlug) {
+            if (name && icon && !name.startsWith('Default') && !name.startsWith('Empty') && !name.startsWith('Deprecated')) {
               cosmetics.push({ name, icon: 'https://www.bungie.net' + icon, hash });
             } else {
-              cosmetics.push(null); // lege cosmetische slot
+              cosmetics.push(null);
             }
             continue;
           }
@@ -279,7 +282,9 @@ export default async function handler(req, res) {
             const plugId = (plugDef.plug?.plugCategoryIdentifier ?? '').toLowerCase();
             const name   = plugDef.displayProperties?.name ?? '';
             const icon   = plugDef.displayProperties?.icon ?? '';
-            if (plugId.includes('shader') || plugId.includes('ornament')) {
+            const isCosmeticFallback = plugId.includes('shader') || plugId.includes('ornament')
+              || plugId.includes('transmat') || plugId.includes('armor_skins') || plugId.includes('armor_plug_one');
+            if (isCosmeticFallback) {
               if (name && icon && !name.startsWith('Default') && !name.startsWith('Empty'))
                 cosmetics.push({ name, icon: 'https://www.bungie.net' + icon, hash: plug.plugItemHash });
               continue;
