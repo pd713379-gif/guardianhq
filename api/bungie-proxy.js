@@ -297,28 +297,57 @@ export default async function handler(req, res) {
         return { mods, cosmetics };
       }
 
-      // Helper: haal weapon perks op (met beschrijving)
+      // Helper: haal weapon perks op via sockets (302) — betrouwbaarder dan plugsData
       function getWeaponPerks(itemInstanceId, itemHash) {
-        const plugs = plugsData[itemInstanceId]?.plugs ?? {};
         const perks = [];
-        for (const [, plugArr] of Object.entries(plugs)) {
-          for (const plug of (plugArr ?? [])) {
-            const plugDef = defs[plug.plugItemHash];
-            if (!plugDef) continue;
-            const name = plugDef.displayProperties?.name ?? '';
-            const icon = plugDef.displayProperties?.icon;
-            if (!name || !icon || name.includes('Default') || name.includes('Empty') || name.includes('Intrinsic')) continue;
-            const cats = plugDef.itemCategoryHashes ?? [];
-            if (cats.includes(2237006975) || cats.includes(610365472)) {
-              perks.push({
-                name,
-                icon: 'https://www.bungie.net' + icon,
-                desc: plugDef.displayProperties?.description ?? '',
-              });
-              if (perks.length >= 4) break;
-            }
-          }
+        const seen  = new Set();
+        const SKIP_PLUGIDS = ['frames','magazines','barrels','scopes','batteries','guards','grips','stocks','tubes','intrinsic','enhancements','shader','ornament'];
+
+        // Primair: sockets (302) — uitgeruste plugs in volgorde
+        const sockets = socketsData[itemInstanceId]?.sockets ?? [];
+        for (const socket of sockets) {
+          const hash = socket.plugHash;
+          if (!hash || seen.has(hash)) continue;
+          seen.add(hash);
+          const plugDef = defs[hash];
+          if (!plugDef) continue;
+          const name   = plugDef.displayProperties?.name ?? '';
+          const icon   = plugDef.displayProperties?.icon ?? '';
+          const desc   = plugDef.displayProperties?.description ?? '';
+          const plugId = (plugDef.plug?.plugCategoryIdentifier ?? '').toLowerCase();
+          if (!name || !icon) continue;
+          if (name.startsWith('Empty') || name.startsWith('Default') || name.startsWith('Deprecated')) continue;
+          // Skip frames/barrels/magazines/etc — die zijn geen perks
+          if (SKIP_PLUGIDS.some(s => plugId.includes(s))) continue;
+          perks.push({ name, icon: 'https://www.bungie.net' + icon, desc });
           if (perks.length >= 4) break;
+        }
+
+        // Fallback: reusablePlugs (309)
+        if (perks.length === 0) {
+          const plugs = plugsData[itemInstanceId]?.plugs ?? {};
+          for (const [, plugArr] of Object.entries(plugs)) {
+            for (const plug of (plugArr ?? [])) {
+              const hash = plug.plugItemHash;
+              if (!hash || seen.has(hash)) continue;
+              seen.add(hash);
+              const plugDef = defs[hash];
+              if (!plugDef) continue;
+              const name   = plugDef.displayProperties?.name ?? '';
+              const icon   = plugDef.displayProperties?.icon ?? '';
+              const desc   = plugDef.displayProperties?.description ?? '';
+              const plugId = (plugDef.plug?.plugCategoryIdentifier ?? '').toLowerCase();
+              if (!name || !icon) continue;
+              if (name.startsWith('Empty') || name.startsWith('Default') || name.startsWith('Deprecated')) continue;
+              if (SKIP_PLUGIDS.some(s => plugId.includes(s))) continue;
+              const cats = plugDef.itemCategoryHashes ?? [];
+              if (cats.includes(2237006975) || cats.includes(610365472)) {
+                perks.push({ name, icon: 'https://www.bungie.net' + icon, desc });
+                if (perks.length >= 4) break;
+              }
+            }
+            if (perks.length >= 4) break;
+          }
         }
         return perks;
       }
@@ -340,6 +369,18 @@ export default async function handler(req, res) {
           3614673599: 'Charge Time',
           447667954:  'Draw Time',
           925767036:  'Ammo Capacity',
+          3871231066: 'Magazine',
+          2961396640: 'Zoom',
+          1931675084: 'Inventory Size',
+          3597844532: 'Aim Assistance',
+          1345609583: 'Airborne Effectiveness',
+          3555269338: 'Recoil Direction',
+          2714457168: 'Shield Duration',
+          1842278070: 'Guard Efficiency',
+          3736848092: 'Guard Resistance',
+          1305347063: 'Charge Rate',
+          3022301683: 'Guard Endurance',
+          2396949875: 'Swing Speed',
         };
         const result = [];
         for (const [hash, label] of Object.entries(WEAPON_STAT_HASHES)) {
@@ -348,7 +389,7 @@ export default async function handler(req, res) {
             result.push({ label, value: entry.value });
           }
         }
-        return result.slice(0, 6);
+        return result;
       }
 
       // Helper: haal weapon mods op (barrel, magazine, perk1, perk2, masterwork, mod)
@@ -404,18 +445,23 @@ export default async function handler(req, res) {
       }
 
       // Helper: haal ghost/ship/sparrow perks op
+      // Skip shaders, projections, cosmetics — pak alleen echte perks
       function getCollectiblePerks(itemInstanceId) {
         const sockets = socketsData[itemInstanceId]?.sockets ?? [];
-        const perks = [];
+        const perks   = [];
+        const COLL_SKIP = ['shader','projection','transmat','ornament','ghost_mod_shader','ghost_mod_projection'];
         for (const socket of sockets) {
           const hash = socket.plugHash;
           if (!hash) continue;
           const plugDef = defs[hash];
           if (!plugDef) continue;
-          const name = plugDef.displayProperties?.name ?? '';
-          const icon = plugDef.displayProperties?.icon;
-          const desc = plugDef.displayProperties?.description ?? '';
-          if (!name || !icon || name.startsWith('Empty') || name.startsWith('Default') || name === 'Armor Perks') continue;
+          const name   = plugDef.displayProperties?.name ?? '';
+          const icon   = plugDef.displayProperties?.icon ?? '';
+          const desc   = plugDef.displayProperties?.description ?? '';
+          const plugId = (plugDef.plug?.plugCategoryIdentifier ?? '').toLowerCase();
+          if (!name || !icon) continue;
+          if (name.startsWith('Empty') || name.startsWith('Default') || name.startsWith('Deprecated') || name === 'Armor Perks') continue;
+          if (COLL_SKIP.some(s => plugId.includes(s))) continue;
           perks.push({ name, icon: 'https://www.bungie.net' + icon, desc });
           if (perks.length >= 4) break;
         }
