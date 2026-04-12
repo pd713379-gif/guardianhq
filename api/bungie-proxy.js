@@ -297,96 +297,101 @@ export default async function handler(req, res) {
         return { mods, cosmetics };
       }
 
-      // Helper: haal weapon perks op via sockets (302) — betrouwbaarder dan plugsData
+      // Helper: haal weapon perks op
+      // Echte perks hebben itemCategoryHash 2237006975 (Weapon Perks)
+      // Frames/barrels/etc hebben andere categorieen
       function getWeaponPerks(itemInstanceId, itemHash) {
         const perks = [];
         const seen  = new Set();
-        const SKIP_PLUGIDS = ['frames','magazines','barrels','scopes','batteries','guards','grips','stocks','tubes','intrinsic','enhancements','shader','ornament'];
 
-        // Primair: sockets (302) — uitgeruste plugs in volgorde
+        // Loop alle socket plugs — filter op categorie 2237006975
         const sockets = socketsData[itemInstanceId]?.sockets ?? [];
         for (const socket of sockets) {
+          if (perks.length >= 4) break;
           const hash = socket.plugHash;
           if (!hash || seen.has(hash)) continue;
           seen.add(hash);
           const plugDef = defs[hash];
           if (!plugDef) continue;
-          const name   = plugDef.displayProperties?.name ?? '';
-          const icon   = plugDef.displayProperties?.icon ?? '';
-          const desc   = plugDef.displayProperties?.description ?? '';
-          const plugId = (plugDef.plug?.plugCategoryIdentifier ?? '').toLowerCase();
+          const cats = plugDef.itemCategoryHashes ?? [];
+          // Alleen echte weapon perks
+          if (!cats.includes(2237006975)) continue;
+          const name = plugDef.displayProperties?.name ?? '';
+          const icon = plugDef.displayProperties?.icon ?? '';
+          const desc = plugDef.displayProperties?.description ?? '';
           if (!name || !icon) continue;
           if (name.startsWith('Empty') || name.startsWith('Default') || name.startsWith('Deprecated')) continue;
-          // Skip frames/barrels/magazines/etc — die zijn geen perks
-          if (SKIP_PLUGIDS.some(s => plugId.includes(s))) continue;
           perks.push({ name, icon: 'https://www.bungie.net' + icon, desc });
-          if (perks.length >= 4) break;
         }
 
-        // Fallback: reusablePlugs (309)
+        // Fallback via reusablePlugs als sockets leeg zijn
         if (perks.length === 0) {
           const plugs = plugsData[itemInstanceId]?.plugs ?? {};
           for (const [, plugArr] of Object.entries(plugs)) {
+            if (perks.length >= 4) break;
             for (const plug of (plugArr ?? [])) {
               const hash = plug.plugItemHash;
               if (!hash || seen.has(hash)) continue;
               seen.add(hash);
               const plugDef = defs[hash];
               if (!plugDef) continue;
-              const name   = plugDef.displayProperties?.name ?? '';
-              const icon   = plugDef.displayProperties?.icon ?? '';
-              const desc   = plugDef.displayProperties?.description ?? '';
-              const plugId = (plugDef.plug?.plugCategoryIdentifier ?? '').toLowerCase();
+              const cats = plugDef.itemCategoryHashes ?? [];
+              if (!cats.includes(2237006975)) continue;
+              const name = plugDef.displayProperties?.name ?? '';
+              const icon = plugDef.displayProperties?.icon ?? '';
+              const desc = plugDef.displayProperties?.description ?? '';
               if (!name || !icon) continue;
               if (name.startsWith('Empty') || name.startsWith('Default') || name.startsWith('Deprecated')) continue;
-              if (SKIP_PLUGIDS.some(s => plugId.includes(s))) continue;
-              const cats = plugDef.itemCategoryHashes ?? [];
-              if (cats.includes(2237006975) || cats.includes(610365472)) {
-                perks.push({ name, icon: 'https://www.bungie.net' + icon, desc });
-                if (perks.length >= 4) break;
-              }
+              perks.push({ name, icon: 'https://www.bungie.net' + icon, desc });
+              if (perks.length >= 4) break;
             }
-            if (perks.length >= 4) break;
           }
         }
         return perks;
       }
 
       // Helper: haal weapon stats op uit manifest definitie
+      // Stat hashes: https://data.destinysets.com/
       function getWeaponStats(itemHash) {
         const def = defs[itemHash] ?? {};
         const statsBlock = def.stats?.stats ?? {};
-        const WEAPON_STAT_HASHES = {
-          4284893193: 'Impact',
-          1240592695: 'Range',
-          155624089:  'Stability',
-          943549884:  'Handling',
-          4188031367: 'Reload Speed',
-          1591432999: 'Accuracy',
-          2523465841: 'Rounds/Min',
-          1030428403: 'Blast Radius',
-          2762071195: 'Velocity',
-          3614673599: 'Charge Time',
-          447667954:  'Draw Time',
-          925767036:  'Ammo Capacity',
-          3871231066: 'Magazine',
-          2961396640: 'Zoom',
-          1931675084: 'Inventory Size',
-          3597844532: 'Aim Assistance',
-          1345609583: 'Airborne Effectiveness',
-          3555269338: 'Recoil Direction',
-          2714457168: 'Shield Duration',
-          1842278070: 'Guard Efficiency',
-          3736848092: 'Guard Resistance',
-          1305347063: 'Charge Rate',
-          3022301683: 'Guard Endurance',
-          2396949875: 'Swing Speed',
-        };
+
+        // Alle bekende wapen stat hashes — volgorde bepaalt weergave
+        const WEAPON_STAT_ORDER = [
+          [2523465841, 'Rounds/Min'],
+          [2961396640, 'Zoom'],
+          [4284893193, 'Impact'],
+          [1240592695, 'Range'],
+          [155624089,  'Stability'],
+          [943549884,  'Handling'],
+          [4188031367, 'Reload Speed'],
+          [1030428403, 'Blast Radius'],
+          [2762071195, 'Velocity'],
+          [3614673599, 'Charge Time'],
+          [447667954,  'Draw Time'],
+          [3597844532, 'Aim Assistance'],
+          [1345609583, 'Airborne'],
+          [3555269338, 'Recoil Direction'],
+          [1931675084, 'Inventory Size'],
+          [925767036,  'Ammo Capacity'],
+          [3871231066, 'Magazine'],
+          // Sword stats
+          [2396949875, 'Swing Speed'],
+          [1842278070, 'Guard Efficiency'],
+          [3736848092, 'Guard Resistance'],
+          [1305347063, 'Charge Rate'],
+          [3022301683, 'Guard Endurance'],
+          [2714457168, 'Shield Duration'],
+        ];
+
         const result = [];
-        for (const [hash, label] of Object.entries(WEAPON_STAT_HASHES)) {
+        const seenLabels = new Set();
+        for (const [hash, label] of WEAPON_STAT_ORDER) {
+          if (seenLabels.has(label)) continue;
           const entry = statsBlock[hash];
-          if (entry && entry.value > 0) {
+          if (entry !== undefined && entry.value > 0) {
             result.push({ label, value: entry.value });
+            seenLabels.add(label);
           }
         }
         return result;
