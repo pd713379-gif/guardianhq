@@ -625,5 +625,25 @@ export default async function handler(req, res) {
     }
   }
 
+  // IMAGE PROXY — laadt Bungie afbeeldingen via eigen server (voorkomt CORB)
+  if (action === 'img') {
+    const imgUrl = req.query.url;
+    if (!imgUrl || !imgUrl.startsWith('https://www.bungie.net/')) {
+      return res.status(400).json({ error: 'Ongeldige URL' });
+    }
+    try {
+      const r = await fetch(imgUrl, { headers: { 'X-API-Key': API_KEY } });
+      if (!r.ok) return res.status(r.status).end();
+      const contentType = r.headers.get('content-type') || 'image/jpeg';
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 's-maxage=86400');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      const buf = await r.arrayBuffer();
+      return res.status(200).send(Buffer.from(buf));
+    } catch(err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
   return res.status(400).json({ error: 'Onbekende actie.' });
 }
