@@ -1710,8 +1710,9 @@
         html += '</div></div>';
       }
 
-      // ── PERKS ──
-      if (item.perks && item.perks.length) {
+      // ── PERKS — alleen voor wapens, armor heeft geen perks ──
+      var isWeaponItem = !!(item.stats && item.stats.length);
+      if (isWeaponItem && item.perks && item.perks.length) {
         html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;margin-bottom:14px;">'
           + '<div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:10px;">Perks</div>'
           + '<div style="display:flex;flex-direction:column;gap:10px;">';
@@ -1731,7 +1732,7 @@
 
       // ── MODS (wapen of armor) ──
       if (item.mods && item.mods.filter(Boolean).length > 0) {
-        var isWeapon = !!(item.stats && item.stats.length);
+        var isWeapon = isWeaponItem;
         var modBorderColor = isWeapon ? 'rgba(245,200,66,0.35)' : 'rgba(79,143,255,0.35)';
         var modBg          = isWeapon ? 'rgba(245,200,66,0.1)'  : 'rgba(79,143,255,0.12)';
         var modLabel       = isWeapon ? 'Wapen Mods' : 'Armor Mods';
