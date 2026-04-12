@@ -1527,10 +1527,12 @@
         ? 'linear-gradient(135deg,rgba(160,120,20,0.7),rgba(100,70,5,0.9))'
         : 'linear-gradient(135deg,rgba(50,30,80,0.6),rgba(20,12,40,0.9))';
 
-      var mods = item.mods || [];
+      var mods      = item.mods || [];
+      var cosmetics = item.cosmetics || [];
+
+      // Armor mods rij
       var modHtml = '<div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;">';
-      for (var i = 0; i < 5; i++) {
-        var mod = mods[i];
+      mods.forEach(function(mod) {
         if (mod && mod.icon && mod.icon.indexOf('bungie.net') !== -1) {
           modHtml += '<div title="' + (mod.name||'Mod') + '" style="width:26px;height:26px;border-radius:5px;overflow:hidden;background:rgba(155,114,207,0.15);border:1px solid rgba(155,114,207,0.5);">'
             + '<img src="' + mod.icon + '" width="26" height="26" style="width:26px;height:26px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
@@ -1538,8 +1540,24 @@
         } else {
           modHtml += '<div title="Lege mod slot" style="width:26px;height:26px;border-radius:5px;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.15);"></div>';
         }
-      }
+      });
       modHtml += '</div>';
+
+      // Cosmetics rij (shader + ornament) — alleen tonen als er iets in zit
+      var cosmeticHtml = '';
+      if (cosmetics.length > 0) {
+        cosmeticHtml = '<div style="display:flex;gap:4px;margin-top:3px;flex-wrap:wrap;">';
+        cosmetics.forEach(function(c) {
+          if (c && c.icon && c.icon.indexOf('bungie.net') !== -1) {
+            cosmeticHtml += '<div title="' + (c.name||'Cosmetic') + '" style="width:26px;height:26px;border-radius:5px;overflow:hidden;background:rgba(79,143,255,0.1);border:1px solid rgba(79,143,255,0.3);">'
+              + '<img src="' + c.icon + '" width="26" height="26" style="width:26px;height:26px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
+              + '</div>';
+          } else {
+            cosmeticHtml += '<div title="Lege cosmetische slot" style="width:26px;height:26px;border-radius:5px;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.1);"></div>';
+          }
+        });
+        cosmeticHtml += '</div>';
+      }
 
       var armorJson = JSON.stringify(item).replace(/'/g,"&#39;").replace(/"/g,'&quot;');
       return '<div style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;border-radius:10px;padding:4px;transition:background 0.15s;" onclick="openItemPopup(this)" data-item="' + armorJson + '" onmouseover="this.style.background=\'rgba(255,255,255,0.04)\'" onmouseout="this.style.background=\'\'">'
@@ -1551,6 +1569,7 @@
         + '<div style="font-size:0.74rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(item.name||'—')+'</div>'
         + '<div style="font-size:0.57rem;margin-top:2px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:'+(exotic?'#f5c842':'rgba(155,114,207,0.9)') + ';">'+(exotic?'Exotic':'Legendary')+'</div>'
         + modHtml
+        + cosmeticHtml
         + '</div>'
         + '</div>';
     }
@@ -1637,6 +1656,23 @@
             + (m.icon ? '<img src="' + m.icon + '" width="34" height="34" style="width:34px;height:34px;object-fit:cover;display:block;" referrerpolicy="no-referrer">' : '')
             + '</div>'
             + '<div style="font-size:0.74rem;font-weight:600;color:rgba(255,255,255,0.85);">' + m.name + '</div>'
+            + '</div>';
+        });
+        html += '</div></div>';
+      }
+
+      // ── ARMOR COSMETICS in popup ──
+      if (item.cosmetics && item.cosmetics.filter(Boolean).length > 0) {
+        html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;margin-top:4px;">'
+          + '<div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:8px;">Cosmetics</div>'
+          + '<div style="display:flex;gap:8px;flex-wrap:wrap;">';
+        item.cosmetics.forEach(function(c) {
+          if (!c || !c.icon) return;
+          html += '<div style="display:flex;align-items:center;gap:8px;">'
+            + '<div style="flex-shrink:0;width:34px;height:34px;border-radius:6px;overflow:hidden;background:rgba(79,143,255,0.1);border:1px solid rgba(79,143,255,0.3);">'
+            + '<img src="' + c.icon + '" width="34" height="34" style="width:34px;height:34px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
+            + '</div>'
+            + '<div style="font-size:0.72rem;color:rgba(255,255,255,0.7);">' + (c.name||'') + '</div>'
             + '</div>';
         });
         html += '</div></div>';
