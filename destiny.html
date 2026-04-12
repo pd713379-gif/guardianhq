@@ -613,16 +613,28 @@
             // Anders → SVG fallback
             // CORB-fix: gebruik CSS background-image voor Bungie afbeeldingen
             // <img src> van bungie.net wordt geblokkeerd door CORB, CSS background niet
-            // Gebruik altijd SVG iconen — externe Bungie afbeeldingen worden geblokkeerd door CORB
+            // Gebruik pgcrImage als CSS background-image (niet geblokkeerd door CORB)
+            // SVG icoon als overlay bovenop de foto — altijd zichtbaar
+            const hasPgcr = !!a.pgcrImage;
             const iconHtml = iconDef.svg;
+
+            const iconStyle = hasPgcr
+              ? `background-image:url('${escHtml(a.pgcrImage)}');background-size:cover;background-position:center;background-color:${iconDef.bg};`
+              : `background:${iconDef.bg};`;
+
+            // Met foto: SVG als subtiele overlay rechtsonder; zonder foto: SVG gecentreerd
+            const iconContent = hasPgcr
+              ? `<div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,0.15),rgba(0,0,0,0.4));border-radius:9px;"></div>
+                 <div style="position:absolute;bottom:2px;right:2px;opacity:0.85;">${iconHtml}</div>`
+              : iconHtml;
 
             return `
             <div class="activity-item" style="">
-              <div style="background:${iconDef.bg};
+              <div style="position:relative;${iconStyle}
                 display:flex;align-items:center;justify-content:center;
                 min-width:44px;width:44px;height:44px;border-radius:10px;flex-shrink:0;
                 border:1px solid rgba(255,255,255,0.1);overflow:hidden;
-                box-shadow:0 2px 8px rgba(0,0,0,0.4);">${iconHtml}</div>
+                box-shadow:0 2px 8px rgba(0,0,0,0.4);">${iconContent}</div>
               <div style="flex:1;min-width:0;">
                 <div class="act-name">${escHtml(a.name)}</div>
                 <div class="act-sub">${escHtml(a.sub)}</div>
