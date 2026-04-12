@@ -564,7 +564,7 @@
           } else {
             // Update bestaande met live info (betere naam, pgcrImage etc.)
             const idx = combined.findIndex(x => x.name.toLowerCase().replace(/[:\s]+/g,'') === key);
-            if (idx >= 0) { const l = combined[idx]; combined[idx] = { ...l, ...a, type: l.type, badge: l.badge, badgeClass: l.badgeClass }; }
+            if (idx >= 0) { const l = combined[idx]; combined[idx] = { ...l, ...a, type: l.type, badge: l.badge, badgeClass: l.badgeClass, pgcrImage: a.pgcrImage || l.pgcrImage }; }
           }
         });
       }
