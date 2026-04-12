@@ -502,6 +502,10 @@
 
     // Activiteit-specifieke SVG iconen per type — Destiny-accuraat
     const ACT_ICONS = {
+      // Exotic Mission: ster met schittering
+      exotic: { bg: 'rgba(212,168,67,0.22)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="12,2 14.5,9 22,9 16,13.5 18.5,21 12,16.5 5.5,21 8,13.5 2,9 9.5,9" stroke="rgba(212,168,67,0.95)" stroke-width="1.4" stroke-linejoin="round" fill="rgba(212,168,67,0.20)"/><circle cx="12" cy="12" r="2.5" fill="rgba(212,168,67,0.9)"/></svg>` },
+      // Seasonal: kristal / seizoen icoon
+      seasonal: { bg: 'rgba(79,143,255,0.18)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3L14 9H20L15 13L17 19L12 15L7 19L9 13L4 9H10Z" stroke="rgba(79,143,255,0.9)" stroke-width="1.5" stroke-linejoin="round" fill="rgba(79,143,255,0.15)"/></svg>` },
       // Raid: schild met kruis (Raid banner stijl)
       raid: { bg: 'rgba(155,114,207,0.22)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L4 5.5V11c0 4.8 3.4 9.3 8 10.5C16.6 20.3 20 15.8 20 11V5.5L12 2z" stroke="rgba(155,114,207,0.95)" stroke-width="1.5" fill="rgba(155,114,207,0.15)"/><line x1="12" y1="7" x2="12" y2="16" stroke="rgba(155,114,207,0.95)" stroke-width="1.5" stroke-linecap="round"/><line x1="7.5" y1="11.5" x2="16.5" y2="11.5" stroke="rgba(155,114,207,0.95)" stroke-width="1.5" stroke-linecap="round"/></svg>` },
       // Dungeon: schedel met ogen
@@ -560,7 +564,7 @@
           } else {
             // Update bestaande met live info (betere naam, pgcrImage etc.)
             const idx = combined.findIndex(x => x.name.toLowerCase().replace(/[:\s]+/g,'') === key);
-            if (idx >= 0) combined[idx] = { ...combined[idx], ...a };
+            if (idx >= 0) { const local = combined[idx]; combined[idx] = { ...local, ...a, type: local.type, badge: local.badge, badgeClass: local.badgeClass }; }
           }
         });
       }
@@ -574,10 +578,25 @@
 
       function showSlice() {
         if (!_rotationQueue.length) return;
-        // Pak 4 opeenvolgende items uit de gemixte queue (wraps around)
+        // Pak 4 items uit de queue — zorg dat nooit 2 van hetzelfde type naast elkaar
         const slice = [];
-        for (let i = 0; i < ACTS_VISIBLE; i++) {
-          slice.push(_rotationQueue[(_rotationIdx + i) % _rotationQueue.length]);
+        const usedTypes = {};
+        let attempts = 0;
+        let idx = _rotationIdx;
+        while (slice.length < ACTS_VISIBLE && attempts < _rotationQueue.length * 2) {
+          const item = _rotationQueue[idx % _rotationQueue.length];
+          const typeCount = usedTypes[item.type] || 0;
+          // Max 1 van hetzelfde type per zichtbare slice (behalve als er geen keuze is)
+          if (typeCount < 1 || (slice.length >= _rotationQueue.length - 1)) {
+            slice.push(item);
+            usedTypes[item.type] = typeCount + 1;
+          }
+          idx++;
+          attempts++;
+        }
+        // Vul aan als er toch te weinig zijn (kleine pool)
+        while (slice.length < ACTS_VISIBLE && slice.length < _rotationQueue.length) {
+          slice.push(_rotationQueue[(_rotationIdx + slice.length) % _rotationQueue.length]);
         }
 
         // Fade-out → update → fade-in
@@ -594,20 +613,12 @@
             // Anders → SVG fallback
             // CORB-fix: gebruik CSS background-image voor Bungie afbeeldingen
             // <img src> van bungie.net wordt geblokkeerd door CORB, CSS background niet
-            let iconHtml;
-            if (a.pgcrImage) {
-              // CSS background-image: wordt NIET geblokkeerd door CORB
-              iconHtml = `<div style="position:relative;width:100%;height:100%;border-radius:8px;background-image:url('${escHtml(a.pgcrImage)}');background-size:cover;background-position:center;"></div>`;
-            } else if (a.typeIconUrl) {
-              // typeIconUrl ook via CSS background om CORB te vermijden
-              iconHtml = `<div style="width:30px;height:30px;background-image:url('${escHtml(a.typeIconUrl)}');background-size:contain;background-repeat:no-repeat;background-position:center;filter:brightness(1.2) drop-shadow(0 0 4px rgba(212,168,67,0.4));"></div>`;
-            } else {
-              iconHtml = iconDef.svg;
-            }
+            // Gebruik altijd SVG iconen — externe Bungie afbeeldingen worden geblokkeerd door CORB
+            const iconHtml = iconDef.svg;
 
             return `
             <div class="activity-item" style="">
-              <div style="background:${a.pgcrImage ? 'transparent' : iconDef.bg};
+              <div style="background:${iconDef.bg};
                 display:flex;align-items:center;justify-content:center;
                 min-width:44px;width:44px;height:44px;border-radius:10px;flex-shrink:0;
                 border:1px solid rgba(255,255,255,0.1);overflow:hidden;
@@ -1465,6 +1476,22 @@
       }
 
       var itemJson = JSON.stringify(item).replace(/'/g,"&#39;").replace(/"/g,'&quot;');
+      // Wapen mods rij
+      var wpnModHtml = '';
+      if (item.mods && item.mods.length > 0) {
+        wpnModHtml = '<div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;">';
+        item.mods.forEach(function(mod) {
+          if (mod && mod.icon && mod.icon.indexOf('bungie.net') !== -1) {
+            wpnModHtml += '<div title="' + (mod.name||'Mod') + '" style="width:22px;height:22px;border-radius:4px;overflow:hidden;background:rgba(245,200,66,0.1);border:1px solid rgba(245,200,66,0.35);">'
+              + '<img src="' + mod.icon + '" width="22" height="22" style="width:22px;height:22px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
+              + '</div>';
+          } else {
+            wpnModHtml += '<div title="Lege mod slot" style="width:22px;height:22px;border-radius:4px;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.15);"></div>';
+          }
+        });
+        wpnModHtml += '</div>';
+      }
+
       return '<div style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;border-radius:10px;padding:4px;transition:background 0.15s;" onclick="openItemPopup(this)" data-item="' + itemJson + '" onmouseover="this.style.background=\'rgba(255,255,255,0.04)\'" onmouseout="this.style.background=\'\'">'
         + '<div style="flex-shrink:0;width:68px;height:68px;border-radius:6px;overflow:hidden;background:' + iconBg + ';border:2px solid ' + tier.border + ';position:relative;">'
         + (item.icon ? '<img src="' + item.icon + '" width="68" height="68" style="width:68px;height:68px;object-fit:cover;display:block;" referrerpolicy="no-referrer">' : '<div style="width:68px;height:68px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;">🔫</div>')
@@ -1475,6 +1502,7 @@
         + '<div style="font-size:0.57rem;margin-top:2px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:' + (exotic?'#f5c842':'rgba(155,114,207,0.9)') + ';">'
         + (exotic?'Exotic':'Legendary') + (item.typeName?' · '+item.typeName:'') + '</div>'
         + perkHtml
+        + wpnModHtml
         + '</div>'
         + '</div>';
     }
@@ -1495,6 +1523,20 @@
       var iconHtml = item.icon
         ? '<img src="' + item.icon + '" width="68" height="68" style="width:68px;height:68px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
         : '<div style="width:68px;height:68px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;">' + emoji + '</div>';
+            // Perks als kleine icoontjes (zelfde als wapens)
+      var collPerkHtml = '';
+      if (item.perks && item.perks.length) {
+        collPerkHtml = '<div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;">'
+          + item.perks.slice(0,4).map(function(p) {
+              return '<div title="' + (p.name||'') + '" style="width:26px;height:26px;border-radius:50%;overflow:hidden;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.2);">'
+                + (p.icon && p.icon.indexOf('bungie.net')!==-1
+                  ? '<img src="' + p.icon + '" width="26" height="26" style="width:26px;height:26px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
+                  : '<div style="width:26px;height:26px;background:rgba(255,255,255,0.05);border-radius:50%;"></div>')
+                + '</div>';
+            }).join('')
+          + '</div>';
+      }
+
       var itemJson = JSON.stringify(item).replace(/'/g,"&#39;").replace(/"/g,'&quot;');
       return '<div style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;border-radius:10px;padding:4px;transition:background 0.15s;" onclick="openItemPopup(this)" data-item="' + itemJson + '" onmouseover="this.style.background=\'rgba(255,255,255,0.04)\'" onmouseout="this.style.background=\'\'">'
         + '<div style="flex-shrink:0;width:68px;height:68px;border-radius:6px;overflow:hidden;background:' + iconBg + ';border:2px solid ' + tier.border + ';position:relative;">'
@@ -1505,6 +1547,7 @@
         + '<div style="font-size:0.57rem;margin-top:2px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:' + (exotic ? '#f5c842' : 'rgba(155,114,207,0.9)') + ';">'
         + (exotic ? 'Exotic' : 'Legendary') + ' · ' + slotLabel
         + '</div>'
+        + collPerkHtml
         + '</div>'
         + '</div>';
     }
@@ -1527,10 +1570,12 @@
         ? 'linear-gradient(135deg,rgba(160,120,20,0.7),rgba(100,70,5,0.9))'
         : 'linear-gradient(135deg,rgba(50,30,80,0.6),rgba(20,12,40,0.9))';
 
-      var mods = item.mods || [];
+      var mods      = item.mods || [];
+      var cosmetics = item.cosmetics || [];
+
+      // Armor mods rij
       var modHtml = '<div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;">';
-      for (var i = 0; i < 5; i++) {
-        var mod = mods[i];
+      mods.forEach(function(mod) {
         if (mod && mod.icon && mod.icon.indexOf('bungie.net') !== -1) {
           modHtml += '<div title="' + (mod.name||'Mod') + '" style="width:26px;height:26px;border-radius:5px;overflow:hidden;background:rgba(155,114,207,0.15);border:1px solid rgba(155,114,207,0.5);">'
             + '<img src="' + mod.icon + '" width="26" height="26" style="width:26px;height:26px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
@@ -1538,8 +1583,24 @@
         } else {
           modHtml += '<div title="Lege mod slot" style="width:26px;height:26px;border-radius:5px;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.15);"></div>';
         }
-      }
+      });
       modHtml += '</div>';
+
+      // Cosmetics rij (shader + ornament) — alleen tonen als er iets in zit
+      var cosmeticHtml = '';
+      if (cosmetics.length > 0) {
+        cosmeticHtml = '<div style="display:flex;gap:4px;margin-top:3px;flex-wrap:wrap;">';
+        cosmetics.forEach(function(c) {
+          if (c && c.icon && c.icon.indexOf('bungie.net') !== -1) {
+            cosmeticHtml += '<div title="' + (c.name||'Cosmetic') + '" style="width:26px;height:26px;border-radius:5px;overflow:hidden;background:rgba(79,143,255,0.1);border:1px solid rgba(79,143,255,0.3);">'
+              + '<img src="' + c.icon + '" width="26" height="26" style="width:26px;height:26px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
+              + '</div>';
+          } else {
+            cosmeticHtml += '<div title="Lege cosmetische slot" style="width:26px;height:26px;border-radius:5px;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.1);"></div>';
+          }
+        });
+        cosmeticHtml += '</div>';
+      }
 
       var armorJson = JSON.stringify(item).replace(/'/g,"&#39;").replace(/"/g,'&quot;');
       return '<div style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;border-radius:10px;padding:4px;transition:background 0.15s;" onclick="openItemPopup(this)" data-item="' + armorJson + '" onmouseover="this.style.background=\'rgba(255,255,255,0.04)\'" onmouseout="this.style.background=\'\'">'
@@ -1551,6 +1612,7 @@
         + '<div style="font-size:0.74rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(item.name||'—')+'</div>'
         + '<div style="font-size:0.57rem;margin-top:2px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:'+(exotic?'#f5c842':'rgba(155,114,207,0.9)') + ';">'+(exotic?'Exotic':'Legendary')+'</div>'
         + modHtml
+        + cosmeticHtml
         + '</div>'
         + '</div>';
     }
@@ -1625,18 +1687,39 @@
         html += '</div></div>';
       }
 
-      // ── ARMOR MODS ──
-      if (item.mods && item.mods.length) {
+      // ── MODS (wapen of armor) ──
+      if (item.mods && item.mods.filter(Boolean).length > 0) {
+        var isWeapon = !!(item.stats && item.stats.length);
+        var modBorderColor = isWeapon ? 'rgba(245,200,66,0.35)' : 'rgba(79,143,255,0.35)';
+        var modBg          = isWeapon ? 'rgba(245,200,66,0.1)'  : 'rgba(79,143,255,0.12)';
+        var modLabel       = isWeapon ? 'Wapen Mods' : 'Armor Mods';
         html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;">'
-          + '<div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:10px;">Mods</div>'
+          + '<div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:10px;">' + modLabel + '</div>'
           + '<div style="display:flex;flex-direction:column;gap:8px;">';
         item.mods.forEach(function(m) {
           if (!m || !m.name) return;
           html += '<div style="display:flex;align-items:center;gap:10px;">'
-            + '<div style="flex-shrink:0;width:34px;height:34px;border-radius:6px;overflow:hidden;background:rgba(79,143,255,0.12);border:1px solid rgba(79,143,255,0.35);">'
+            + '<div style="flex-shrink:0;width:34px;height:34px;border-radius:6px;overflow:hidden;background:' + modBg + ';border:1px solid ' + modBorderColor + ';">'
             + (m.icon ? '<img src="' + m.icon + '" width="34" height="34" style="width:34px;height:34px;object-fit:cover;display:block;" referrerpolicy="no-referrer">' : '')
             + '</div>'
             + '<div style="font-size:0.74rem;font-weight:600;color:rgba(255,255,255,0.85);">' + m.name + '</div>'
+            + '</div>';
+        });
+        html += '</div></div>';
+      }
+
+      // ── ARMOR COSMETICS in popup ──
+      if (item.cosmetics && item.cosmetics.filter(Boolean).length > 0) {
+        html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;margin-top:4px;">'
+          + '<div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:8px;">Cosmetics</div>'
+          + '<div style="display:flex;gap:8px;flex-wrap:wrap;">';
+        item.cosmetics.forEach(function(c) {
+          if (!c || !c.icon) return;
+          html += '<div style="display:flex;align-items:center;gap:8px;">'
+            + '<div style="flex-shrink:0;width:34px;height:34px;border-radius:6px;overflow:hidden;background:rgba(79,143,255,0.1);border:1px solid rgba(79,143,255,0.3);">'
+            + '<img src="' + c.icon + '" width="34" height="34" style="width:34px;height:34px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
+            + '</div>'
+            + '<div style="font-size:0.72rem;color:rgba(255,255,255,0.7);">' + (c.name||'') + '</div>'
             + '</div>';
         });
         html += '</div></div>';
