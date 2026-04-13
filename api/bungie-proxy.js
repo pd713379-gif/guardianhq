@@ -85,7 +85,7 @@ export default async function handler(req, res) {
         icons[k] = d?.Response?.displayProperties?.icon ? 'https://www.bungie.net' + d.Response.displayProperties.icon : null;
       } catch { icons[k] = null; }
     }));
-    res.setHeader('Cache-Control', 's-maxage=86400');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
     return res.status(200).json(icons);
   }
 
