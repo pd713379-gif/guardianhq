@@ -644,6 +644,16 @@
           { match: 'tomb of elders',       file: 'seasonal.png' },
           { match: 'seasonal',             file: 'seasonal.png' },
           { match: 'raid',                 file: 'raid.png' },
+          { match: "king's fall",          file: 'raid.png' },
+          { match: "crota's end",          file: 'raid.png' },
+          { match: 'deep stone crypt',     file: 'raid.png' },
+          { match: 'vow of the disciple',  file: 'raid.png' },
+          { match: 'garden of salvation',  file: 'raid.png' },
+          { match: 'last wish',            file: 'raid.png' },
+          { match: 'root of nightmares',   file: 'raid.png' },
+          { match: "salvation's edge",     file: 'raid.png' },
+          { match: 'vault of glass',       file: 'raid.png' },
+          { match: 'pantheon',             file: 'raid.png' },
         ];
 
         function getLocalImage(name) {
@@ -661,11 +671,9 @@
           container.innerHTML = slice.map(a => {
             const iconDef = ACT_ICONS[a.type] ?? { bg: 'rgba(255,255,255,0.06)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>` };
 
-            // Raids: eerst Bungie proxy (echt plaatje), dan lokaal als fallback
-            // Andere activiteiten: eerst lokaal plaatje, dan SVG
+            // Altijd lokaal plaatje — raids gebruiken raid.png, rest eigen plaatje of SVG
             const localImg = getLocalImage(a.name);
-            const proxyUrl = a.pgcrImage ? `/api/bungie-proxy?action=img&url=${encodeURIComponent(a.pgcrImage)}` : null;
-            const imgUrl = (a.type === 'raid' || a.type === 'dungeon') ? (proxyUrl || localImg) : (localImg || proxyUrl);
+            const imgUrl = localImg;
 
             const iconContent = imgUrl
               ? `<div style="position:absolute;inset:0;background-image:url('${imgUrl}');background-size:cover;background-position:center;border-radius:9px;"></div>`
