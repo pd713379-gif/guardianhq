@@ -19,8 +19,11 @@ export default async function handler(req, res) {
   // ── 2. SERVER STATUS ──
   try {
     const alertRes = await fetch('https://www.bungie.net/Platform/GlobalAlerts/', { headers: { 'X-API-Key': API_KEY } });
-    const alerts = (await alertRes.json())?.Response ?? [];
-    result.serverOnline = alerts.length === 0;
+    const alertData = await alertRes.json();
+    const alerts = alertData?.Response ?? [];
+    // Filter alleen echte maintenance alerts (niet info berichten)
+    const maintenanceAlerts = alerts.filter(a => a.AlertType === 'GlobalAlert' || a.AlertType === 'maintenance');
+    result.serverOnline = maintenanceAlerts.length === 0;
     result.alerts = alerts.map(a => a.AlertHtml || '').slice(0, 2);
   } catch { result.serverOnline = null; result.alerts = []; }
 
