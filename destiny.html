@@ -247,7 +247,7 @@
 
         <!-- ══ COMPLETE BUILD PANEL ══ -->
         <div id="buildPanel" style="display:none;">
-          <div id="d2CharScreen" style="position:relative;border-radius:16px;overflow:hidden;background:#090b12;min-height:580px;border:1px solid rgba(255,255,255,0.08);">
+          <div id="d2CharScreen" style="position:relative;border-radius:16px;overflow:visible;background:#090b12;min-height:580px;border:1px solid rgba(255,255,255,0.08);">
 
             <!-- ACHTERGROND kleur accent -->
             <div id="charScreenColorOverlay" style="position:absolute;inset:0;opacity:0.06;pointer-events:none;z-index:0;transition:background 0.5s;"></div>
@@ -281,13 +281,13 @@
                 </div>
 
                 <!-- KARAKTER PORTRET -->
-                <div style="flex:1;width:100%;position:relative;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;min-height:380px;">
+                <div style="flex:1;width:100%;position:relative;display:flex;align-items:flex-end;justify-content:center;overflow:visible;min-height:380px;">
 
                   <!-- Laag 1: subclass kleur achtergrond glow -->
                   <div id="d2-charRender" style="position:absolute;inset:0;z-index:0;transition:background 0.5s;"></div>
 
                   <!-- Laag 2: portret SVG (klasse x subclass) -->
-                  <div id="d2-charFallback" style="position:absolute;inset:0;z-index:1;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;overflow:hidden;"></div>
+                  <div id="d2-charFallback" style="position:absolute;inset:0;z-index:1;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;overflow:visible;"></div>
 
                   <!-- Laag 3: gradient overlay onderaan -->
                   <div style="position:absolute;bottom:0;left:0;right:0;height:220px;background:linear-gradient(to top,rgba(9,11,18,1) 0%,rgba(9,11,18,0.8) 40%,transparent 100%);pointer-events:none;z-index:2;"></div>
