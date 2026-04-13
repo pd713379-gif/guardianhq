@@ -166,9 +166,24 @@
 
           <!-- Wapens -->
           <div class="d-card glass">
-            <div class="d-card-label">🔫 Featured Wapens <span style="font-size:0.7rem;color:var(--text3);font-weight:400">· Xur deze week</span></div>
-            <div id="featuredWeaponsGrid" class="weapon-grid">
-              <div style="color:var(--text3);font-size:0.8rem;padding:8px">Laden...</div>
+            <div class="d-card-label">🔫 Featured Wapens</div>
+            <div class="weapon-grid">
+              <div class="w-card w-exotic" style="display:flex;align-items:center;gap:10px;padding:10px">
+                <img src="/api/bungie-proxy?action=img&url=https%3A%2F%2Fwww.bungie.net%2Fcommon%2Fdestiny2_content%2Ficons%2F3ff48eb8a0bb52de29904ecc7fcd1219.jpg" style="width:48px;height:48px;border-radius:8px;flex-shrink:0;">
+                <div><div class="w-name">Wish-Ender</div><div class="w-type">Exotic Bow</div><div class="w-power">⚡ 2050</div></div>
+              </div>
+              <div class="w-card w-legendary" style="display:flex;align-items:center;gap:10px;padding:10px">
+                <img src="/api/bungie-proxy?action=img&url=https%3A%2F%2Fwww.bungie.net%2Fcommon%2Fdestiny2_content%2Ficons%2F5e25b9ef3f669e053b428945a31ca8b7.jpg" style="width:48px;height:48px;border-radius:8px;flex-shrink:0;">
+                <div><div class="w-name">Palindrome</div><div class="w-type">Hand Cannon</div><div class="w-power">⚡ 2100</div></div>
+              </div>
+              <div class="w-card w-exotic" style="display:flex;align-items:center;gap:10px;padding:10px">
+                <img src="/api/bungie-proxy?action=img&url=https%3A%2F%2Fwww.bungie.net%2Fcommon%2Fdestiny2_content%2Ficons%2Fe3b1d924bc8185384e79e0b8418231e5.jpg" style="width:48px;height:48px;border-radius:8px;flex-shrink:0;">
+                <div><div class="w-name">Gjallarhorn</div><div class="w-type">Exotic Rocket</div><div class="w-power">⚡ 2100</div></div>
+              </div>
+              <div class="w-card w-legendary" style="display:flex;align-items:center;gap:10px;padding:10px">
+                <img src="/api/bungie-proxy?action=img&url=https%3A%2F%2Fwww.bungie.net%2Fcommon%2Fdestiny2_content%2Ficons%2F6c78c79fc2994a981955ad52aa0ed045.jpg" style="width:48px;height:48px;border-radius:8px;flex-shrink:0;">
+                <div><div class="w-name">The Messenger</div><div class="w-type">Pulse Rifle</div><div class="w-power">⚡ 2095</div></div>
+              </div>
             </div>
           </div>
 
@@ -629,16 +644,6 @@
           { match: 'tomb of elders',       file: 'seasonal.png' },
           { match: 'seasonal',             file: 'seasonal.png' },
           { match: 'raid',                 file: 'raid.png' },
-          { match: "king's fall",          file: 'raid.png' },
-          { match: "crota's end",          file: 'raid.png' },
-          { match: 'deep stone crypt',     file: 'raid.png' },
-          { match: 'vow of the disciple',  file: 'raid.png' },
-          { match: 'garden of salvation',  file: 'raid.png' },
-          { match: 'last wish',            file: 'raid.png' },
-          { match: 'root of nightmares',   file: 'raid.png' },
-          { match: "salvation's edge",     file: 'raid.png' },
-          { match: 'vault of glass',       file: 'raid.png' },
-          { match: 'pantheon',             file: 'raid.png' },
         ];
 
         function getLocalImage(name) {
@@ -656,9 +661,11 @@
           container.innerHTML = slice.map(a => {
             const iconDef = ACT_ICONS[a.type] ?? { bg: 'rgba(255,255,255,0.06)', svg: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>` };
 
-            // Altijd lokaal plaatje — raids gebruiken raid.png, rest eigen plaatje of SVG
+            // Raids: eerst Bungie proxy (echt plaatje), dan lokaal als fallback
+            // Andere activiteiten: eerst lokaal plaatje, dan SVG
             const localImg = getLocalImage(a.name);
-            const imgUrl = localImg;
+            const proxyUrl = a.pgcrImage ? `/api/bungie-proxy?action=img&url=${encodeURIComponent(a.pgcrImage)}` : null;
+            const imgUrl = (a.type === 'raid' || a.type === 'dungeon') ? (proxyUrl || localImg) : (localImg || proxyUrl);
 
             const iconContent = imgUrl
               ? `<div style="position:absolute;inset:0;background-image:url('${imgUrl}');background-size:cover;background-position:center;border-radius:9px;"></div>`
@@ -744,11 +751,9 @@
         if (data.activities) {
           renderActivities(data.activities);
         } else {
+          // Fallback: toon een nette melding ipv skeleton
           renderActivities([]);
         }
-
-        // Featured Wapens (Xur)
-        renderFeaturedWeapons(data.featuredWeapons);
 
         // Laatste update tijd
         document.getElementById('statsLastUpdate').textContent =
@@ -758,133 +763,6 @@
         console.warn('[live-stats] Fout:', err.message);
         document.getElementById('statsLastUpdate').textContent = 'Stats tijdelijk niet beschikbaar';
       }
-    }
-
-    // ── FEATURED WAPENS RENDERER ──
-    function renderFeaturedWeapons(weapons) {
-      const grid = document.getElementById('featuredWeaponsGrid');
-      if (!grid) return;
-
-      // Fallback wapens als Xur niet beschikbaar is
-      const fallback = [
-        { name:'Falling Guillotine', typeName:'Legendary Sword',       isExotic:false, icon:null },
-        { name:'Palindrome',   typeName:'Hand Cannon',         isExotic:false, icon:'/api/bungie-proxy?action=img&url=https%3A%2F%2Fwww.bungie.net%2Fcommon%2Fdestiny2_content%2Ficons%2F5e25b9ef3f669e053b428945a31ca8b7.jpg' },
-        { name:'Gjallarhorn',  typeName:'Exotic Rocket Launcher',isExotic:true,icon:'/api/bungie-proxy?action=img&url=https%3A%2F%2Fwww.bungie.net%2Fcommon%2Fdestiny2_content%2Ficons%2Fe3b1d924bc8185384e79e0b8418231e5.jpg' },
-        { name:'The Messenger',typeName:'Pulse Rifle',         isExotic:false, icon:'/api/bungie-proxy?action=img&url=https%3A%2F%2Fwww.bungie.net%2Fcommon%2Fdestiny2_content%2Ficons%2F6c78c79fc2994a981955ad52aa0ed045.jpg' },
-      ];
-
-      const list = (weapons && weapons.length > 0) ? weapons : fallback;
-
-      grid.innerHTML = list.map(w => {
-        const borderColor = w.isExotic ? 'rgba(212,168,67,0.5)' : 'rgba(155,114,207,0.4)';
-        const tierLabel   = w.isExotic ? '⭐ Exotic' : '💜 Legendary';
-        const tierColor   = w.isExotic ? '#f5c842' : '#9b72cf';
-        const dataW = escHtml(JSON.stringify(w));
-
-        return `<div class="w-card ${w.isExotic ? 'w-exotic' : 'w-legendary'}"
-          style="display:flex;align-items:center;gap:10px;padding:10px;cursor:pointer;border:1px solid ${borderColor};border-radius:12px;"
-          onclick="openFeaturedWeaponPopup(this)" data-weapon="${dataW}">
-          <div style="flex-shrink:0;width:52px;height:52px;border-radius:8px;overflow:hidden;border:2px solid ${borderColor};background:rgba(255,255,255,0.06);">
-            ${w.icon ? `<img src="${escHtml(w.icon)}" width="52" height="52" style="object-fit:cover;display:block;" referrerpolicy="no-referrer" onerror="this.style.display='none'">` : '<div style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">🔫</div>'}
-          </div>
-          <div style="flex:1;min-width:0;">
-            <div class="w-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(w.name)}</div>
-            <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:${tierColor};">${tierLabel}</div>
-            <div class="w-type">${escHtml(w.typeName)}</div>
-          </div>
-        </div>`;
-      }).join('');
-    }
-
-    async function loadFeaturedWeaponIcons() {
-      try {
-        const res = await fetch('/api/bungie-proxy?action=weaponicons');
-        if (!res.ok) return;
-        const icons = await res.json();
-        const grid = document.getElementById('featuredWeaponsGrid');
-        if (!grid) return;
-        const cards = grid.querySelectorAll('[data-weapon]');
-        cards.forEach(card => {
-          try {
-            const w = JSON.parse(card.getAttribute('data-weapon').replace(/&quot;/g,'"'));
-            let iconUrl = null;
-            if (w.name === 'Falling Guillotine' && icons.fallingGuillotine) iconUrl = icons.fallingGuillotine;
-            if (w.name === 'Palindrome' && icons.palindrome)           iconUrl = icons.palindrome;
-            if (w.name === 'Gjallarhorn' && icons.apex)                iconUrl = icons.apex;
-            if (w.name === 'The Messenger' && icons.likelySuspect)     iconUrl = icons.likelySuspect;
-            if (iconUrl) {
-              const img = card.querySelector('img');
-              if (img) img.src = '/api/bungie-proxy?action=img&url=' + encodeURIComponent(iconUrl);
-            }
-          } catch {}
-        });
-      } catch {}
-    }
-    loadFeaturedWeaponIcons();
-    function openFeaturedWeaponPopup(el) {
-      const raw = el.getAttribute('data-weapon');
-      if (!raw) return;
-      let w;
-      try { w = JSON.parse(raw.replace(/&quot;/g, '"').replace(/&#39;/g, "'")); } catch { return; }
-
-      const tierColor   = w.isExotic ? '#f5c842' : 'rgba(155,114,207,0.9)';
-      const tierLabel   = w.isExotic ? 'Exotic' : 'Legendary';
-      const borderColor = w.isExotic ? 'rgba(212,168,67,0.5)' : 'rgba(155,114,207,0.4)';
-      const iconBg      = w.isExotic ? 'linear-gradient(135deg,rgba(160,120,20,0.7),rgba(100,70,5,0.9))' : 'linear-gradient(135deg,rgba(50,30,70,0.7),rgba(25,15,45,0.9))';
-
-      let html = `<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;">
-        <div style="flex-shrink:0;width:72px;height:72px;border-radius:10px;overflow:hidden;background:${iconBg};border:2px solid ${borderColor};">
-          ${w.icon ? `<img src="${escHtml(w.icon)}" width="72" height="72" style="width:72px;height:72px;object-fit:cover;display:block;" referrerpolicy="no-referrer">` : '<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:2rem;">🔫</div>'}
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:1rem;font-weight:800;color:#fff;line-height:1.2;">${escHtml(w.name)}</div>
-          <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${tierColor};margin-top:3px;">${tierLabel}${w.typeName ? ' · ' + escHtml(w.typeName) : ''}</div>
-          ${w.flavorText ? `<div style="font-size:0.68rem;color:rgba(255,255,255,0.35);margin-top:6px;font-style:italic;line-height:1.4;">${escHtml(w.flavorText)}</div>` : ''}
-        </div>
-      </div>`;
-
-      // Stats
-      if (w.stats && w.stats.length) {
-        html += `<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;margin-bottom:14px;">
-          <div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:8px;">Wapen Stats</div>
-          <div style="display:flex;flex-direction:column;gap:5px;">`;
-        w.stats.forEach(s => {
-          const pct = Math.min(s.value, 100);
-          const barColor = pct >= 70 ? '#4caf82' : pct >= 40 ? '#4f8fff' : '#9b72cf';
-          html += `<div style="display:flex;align-items:center;gap:8px;">
-            <div style="font-size:0.67rem;color:rgba(255,255,255,0.4);width:90px;flex-shrink:0;">${escHtml(s.label)}</div>
-            <div style="flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,0.07);overflow:hidden;">
-              <div style="width:${pct}%;height:100%;background:${barColor};border-radius:2px;"></div>
-            </div>
-            <div style="font-size:0.67rem;color:#fff;width:22px;text-align:right;">${s.value}</div>
-          </div>`;
-        });
-        html += `</div></div>`;
-      }
-
-      // Perks
-      if (w.perks && w.perks.length) {
-        html += `<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;">
-          <div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:10px;">Perks</div>
-          <div style="display:flex;flex-direction:column;gap:10px;">`;
-        w.perks.forEach(p => {
-          html += `<div style="display:flex;align-items:flex-start;gap:10px;">
-            <div style="flex-shrink:0;width:34px;height:34px;border-radius:50%;overflow:hidden;background:rgba(155,114,207,0.15);border:1px solid rgba(155,114,207,0.4);">
-              ${p.icon ? `<img src="${escHtml(p.icon)}" width="34" height="34" style="width:34px;height:34px;object-fit:cover;display:block;" referrerpolicy="no-referrer">` : ''}
-            </div>
-            <div style="flex:1;min-width:0;">
-              <div style="font-size:0.76rem;font-weight:700;color:#fff;">${escHtml(p.name)}</div>
-              ${p.desc ? `<div style="font-size:0.65rem;color:rgba(255,255,255,0.4);line-height:1.45;margin-top:2px;">${escHtml(p.desc)}</div>` : ''}
-            </div>
-          </div>`;
-        });
-        html += `</div></div>`;
-      }
-
-      document.getElementById('itemPopupContent').innerHTML = html;
-      document.getElementById('itemPopup').style.display = 'block';
-      document.getElementById('itemPopupOverlay').style.display = 'block';
-      document.body.style.overflow = 'hidden';
     }
 
     // Countdown timer (live aftellen per seconde)
@@ -1189,7 +1067,7 @@
     }
 
     // ── AUTO-REFRESH INSTELLING (seconden) ──────────────────
-    const ITEM_MANAGER_REFRESH_SEC = 30;
+    const ITEM_MANAGER_REFRESH_SEC = 5;
     let _autoRefreshTimer = null;
 
     function startItemManagerAutoRefresh() {
@@ -1464,6 +1342,7 @@
 
       // Kies het portret object (voor accent kleur + overlay)
       var portraitKey = className + '_' + element;
+      console.log('[GuardianHQ] portret:', portraitKey, '| subclass element:', element, '| subclass hash:', subEl.hash);
       var portrait    = window.GHQ_PORTRAITS[portraitKey]
                      || window.GHQ_PORTRAITS[className + '_prismatic']
                      || null;
@@ -1547,6 +1426,7 @@
         ];
         var st = char.stats || {};
         // Debug: log wat er in stats zit
+        console.log('[d2-stats] char stats object:', JSON.stringify(st));
         var allZero = Object.keys(st).length === 0 || Object.values(st).every(function(v){ return !v || v === 0; });
         if (allZero) console.warn('[d2-stats] WAARSCHUWING: alle stats zijn 0 of leeg — proxy geeft geen stat data terug');
         statsEl.innerHTML = STAT_DEFS.map(function(d) {
@@ -2016,10 +1896,7 @@
     }
 
     function initDimTab() {
-      // Alleen laden als nog niet geladen
-      if (!_liveChars.length && !_liveCharsLoading && !_autoRefreshTimer) {
-        loadLiveCharacters();
-      }
+      loadLiveCharacters();
     }
 
     // ══════════════════════════════════════════════════════════
