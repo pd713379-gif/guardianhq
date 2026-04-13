@@ -1485,7 +1485,8 @@
         fallbackEl.style.cssText = 'position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;';
         if (portrait && portrait.img) {
           fallbackEl.innerHTML = '<img src="' + portrait.img + '" alt="" '
-            + 'style="width:100%;height:100%;object-fit:cover;object-position:center -20%;'
+            + 'style="width:100%;height:120%;object-fit:cover;object-position:center top%;'
+            + 'margin-top:-10%;position:absolute;left:0;top:0;'
             + 'display:block;filter:drop-shadow(0 0 28px ' + accent + '60);" />';
         } else {
           fallbackEl.innerHTML = '';
