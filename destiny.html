@@ -767,7 +767,7 @@
 
       // Fallback wapens als Xur niet beschikbaar is
       const fallback = [
-        { name:'Wish-Ender',   typeName:'Exotic Bow',            isExotic:true,  icon:'/api/bungie-proxy?action=img&url=https%3A%2F%2Fwww.bungie.net%2Fcommon%2Fdestiny2_content%2Ficons%2Ff3d1fd691fc0edb0eac9fe8bb4228dab.jpg' },
+        { name:'Wish-Ender',   typeName:'Exotic Bow',            isExotic:true,  icon:null },
         { name:'Palindrome',   typeName:'Hand Cannon',         isExotic:false, icon:'/api/bungie-proxy?action=img&url=https%3A%2F%2Fwww.bungie.net%2Fcommon%2Fdestiny2_content%2Ficons%2F5e25b9ef3f669e053b428945a31ca8b7.jpg' },
         { name:'Gjallarhorn',  typeName:'Exotic Rocket Launcher',isExotic:true,icon:'/api/bungie-proxy?action=img&url=https%3A%2F%2Fwww.bungie.net%2Fcommon%2Fdestiny2_content%2Ficons%2Fe3b1d924bc8185384e79e0b8418231e5.jpg' },
         { name:'The Messenger',typeName:'Pulse Rifle',         isExotic:false, icon:'/api/bungie-proxy?action=img&url=https%3A%2F%2Fwww.bungie.net%2Fcommon%2Fdestiny2_content%2Ficons%2F6c78c79fc2994a981955ad52aa0ed045.jpg' },
@@ -796,30 +796,28 @@
       }).join('');
     }
 
-    // Haal echte wapen iconen op via proxy (zelfde als wishlist)
     async function loadFeaturedWeaponIcons() {
       try {
         const res = await fetch('/api/bungie-proxy?action=weaponicons');
         if (!res.ok) return;
         const icons = await res.json();
-        // Update Wish-Ender icoon als die beschikbaar is
-        if (icons.wishEnder) {
-          const grid = document.getElementById('featuredWeaponsGrid');
-          if (grid) {
-            const imgs = grid.querySelectorAll('img');
-            imgs.forEach(img => {
-              const card = img.closest('[data-weapon]');
-              if (card) {
-                try {
-                  const w = JSON.parse(card.getAttribute('data-weapon').replace(/&quot;/g,'"'));
-                  if (w.name === 'Wish-Ender') {
-                    img.src = '/api/bungie-proxy?action=img&url=' + encodeURIComponent(icons.wishEnder);
-                  }
-                } catch {}
-              }
-            });
-          }
-        }
+        const grid = document.getElementById('featuredWeaponsGrid');
+        if (!grid) return;
+        const cards = grid.querySelectorAll('[data-weapon]');
+        cards.forEach(card => {
+          try {
+            const w = JSON.parse(card.getAttribute('data-weapon').replace(/&quot;/g,'"'));
+            let iconUrl = null;
+            if (w.name === 'Wish-Ender' && icons.wishEnder)           iconUrl = icons.wishEnder;
+            if (w.name === 'Palindrome' && icons.palindrome)           iconUrl = icons.palindrome;
+            if (w.name === 'Gjallarhorn' && icons.apex)                iconUrl = icons.apex;
+            if (w.name === 'The Messenger' && icons.likelySuspect)     iconUrl = icons.likelySuspect;
+            if (iconUrl) {
+              const img = card.querySelector('img');
+              if (img) img.src = '/api/bungie-proxy?action=img&url=' + encodeURIComponent(iconUrl);
+            }
+          } catch {}
+        });
       } catch {}
     }
     loadFeaturedWeaponIcons();
@@ -1466,7 +1464,6 @@
 
       // Kies het portret object (voor accent kleur + overlay)
       var portraitKey = className + '_' + element;
-      console.log('[GuardianHQ] portret:', portraitKey, '| subclass element:', element, '| subclass hash:', subEl.hash);
       var portrait    = window.GHQ_PORTRAITS[portraitKey]
                      || window.GHQ_PORTRAITS[className + '_prismatic']
                      || null;
@@ -1550,7 +1547,6 @@
         ];
         var st = char.stats || {};
         // Debug: log wat er in stats zit
-        console.log('[d2-stats] char stats object:', JSON.stringify(st));
         var allZero = Object.keys(st).length === 0 || Object.values(st).every(function(v){ return !v || v === 0; });
         if (allZero) console.warn('[d2-stats] WAARSCHUWING: alle stats zijn 0 of leeg — proxy geeft geen stat data terug');
         statsEl.innerHTML = STAT_DEFS.map(function(d) {
@@ -2020,7 +2016,10 @@
     }
 
     function initDimTab() {
-      loadLiveCharacters();
+      // Alleen laden als nog niet geladen
+      if (!_liveChars.length && !_liveCharsLoading && !_autoRefreshTimer) {
+        loadLiveCharacters();
+      }
     }
 
     // ══════════════════════════════════════════════════════════
