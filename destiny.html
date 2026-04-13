@@ -796,7 +796,33 @@
       }).join('');
     }
 
-    // ── FEATURED WEAPON POPUP ──
+    // Haal echte wapen iconen op via proxy (zelfde als wishlist)
+    async function loadFeaturedWeaponIcons() {
+      try {
+        const res = await fetch('/api/bungie-proxy?action=weaponicons');
+        if (!res.ok) return;
+        const icons = await res.json();
+        // Update Wish-Ender icoon als die beschikbaar is
+        if (icons.wishEnder) {
+          const grid = document.getElementById('featuredWeaponsGrid');
+          if (grid) {
+            const imgs = grid.querySelectorAll('img');
+            imgs.forEach(img => {
+              const card = img.closest('[data-weapon]');
+              if (card) {
+                try {
+                  const w = JSON.parse(card.getAttribute('data-weapon').replace(/&quot;/g,'"'));
+                  if (w.name === 'Wish-Ender') {
+                    img.src = '/api/bungie-proxy?action=img&url=' + encodeURIComponent(icons.wishEnder);
+                  }
+                } catch {}
+              }
+            });
+          }
+        }
+      } catch {}
+    }
+    loadFeaturedWeaponIcons();
     function openFeaturedWeaponPopup(el) {
       const raw = el.getAttribute('data-weapon');
       if (!raw) return;
