@@ -316,13 +316,6 @@
           </div>
         </div><!-- /buildPanel -->
 
-        <!-- ══ ITEM DETAIL POPUP ══ -->
-        <div id="itemPopupOverlay" onclick="closeItemPopup()" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.55);"></div>
-        <div id="itemPopup" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;width:min(420px,92vw);max-height:85vh;overflow-y:auto;background:#0d1020;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px;box-shadow:0 8px 48px rgba(0,0,0,0.7);">
-          <button onclick="closeItemPopup()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:rgba(255,255,255,0.4);font-size:1.2rem;cursor:pointer;line-height:1;">✕</button>
-          <div id="itemPopupContent"></div>
-        </div>
-
         <!-- fallback inv-grid (hidden, nog aanwezig voor renderInvGrid compatibiliteit) -->
         <div style="display:none">
           <div id="weaponsGrid"></div>
@@ -391,6 +384,13 @@
       </div>
 
     </div>
+  </div>
+
+  <!-- ══ ITEM DETAIL POPUP ══ -->
+  <div id="itemPopupOverlay" onclick="closeItemPopup()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);"></div>
+  <div id="itemPopup" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10000;width:min(420px,92vw);max-height:85vh;overflow-y:auto;background:#0d1020;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px;box-shadow:0 8px 48px rgba(0,0,0,0.7);">
+    <button onclick="closeItemPopup()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:rgba(255,255,255,0.4);font-size:1.2rem;cursor:pointer;line-height:1;">✕</button>
+    <div id="itemPopupContent"></div>
   </div>
 
   <div class="toast" id="ghq-toast"></div>
@@ -1932,7 +1932,6 @@
       document.getElementById('itemPopup').style.display = 'none';
       document.getElementById('itemPopupOverlay').style.display = 'none';
       document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
     }
 
     function renderLiveChars() {
