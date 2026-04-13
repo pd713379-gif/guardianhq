@@ -884,6 +884,7 @@
       document.getElementById('itemPopupContent').innerHTML = html;
       document.getElementById('itemPopup').style.display = 'block';
       document.getElementById('itemPopupOverlay').style.display = 'block';
+      document.body.style.overflow = 'hidden';
     }
 
     // Countdown timer (live aftellen per seconde)
@@ -1924,11 +1925,13 @@
       document.getElementById('itemPopupContent').innerHTML = html;
       document.getElementById('itemPopup').style.display = 'block';
       document.getElementById('itemPopupOverlay').style.display = 'block';
+      document.body.style.overflow = 'hidden';
     }
 
     function closeItemPopup() {
       document.getElementById('itemPopup').style.display = 'none';
       document.getElementById('itemPopupOverlay').style.display = 'none';
+      document.body.style.overflow = '';
     }
 
     function renderLiveChars() {
