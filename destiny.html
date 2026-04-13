@@ -1465,7 +1465,7 @@
       // Kies het portret object (voor accent kleur + overlay)
       var portraitKey = element + '_' + className;
       var portrait    = window.GHQ_PORTRAITS[portraitKey]
-                     || window.GHQ_PORTRAITS[className + '_prismatic']
+                     || window.GHQ_PORTRAITS['prismatic_' + className]
                      || null;
 
       var accent   = portrait ? portrait.accent  : ec.color;
