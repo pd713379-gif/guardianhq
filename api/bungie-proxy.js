@@ -76,7 +76,7 @@ export default async function handler(req, res) {
 
   // ── WEAPON ICONS (wishlist) ─────────────────────────────────
   if (action === 'weaponicons') {
-    const HASHES = { palindrome:1912364120, igneous:2314610827, retrofit:3103325054, apex:1851777734, fallingGuillotine:1815105249, wishEnder:814876684, likelySuspect:1994645182 };
+    const HASHES = { palindrome:1912364120, igneous:2314610827, retrofit:3103325054, apex:1851777734, fallingGuillotine:1815105249, wishEnder:1192594738, likelySuspect:1994645182 };
     const icons = {};
     await Promise.allSettled(Object.entries(HASHES).map(async ([k, h]) => {
       try {
