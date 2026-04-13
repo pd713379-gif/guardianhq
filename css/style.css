@@ -293,11 +293,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 1.5rem}
 
 /* WEAPONS */
 .weapon-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.w-card{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;transition:border-color 0.2s}
+.w-card{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;transition:border-color 0.2s;min-width:0;overflow:hidden}
 .w-card:hover{border-color:var(--border2)}
 .w-exotic{border-left:3px solid #f5c518}
 .w-legendary{border-left:3px solid #9b72cf}
-.w-name{font-size:0.82rem;font-weight:600;margin-bottom:2px}
+.w-name{font-size:0.82rem;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .w-type{font-size:0.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px}
 .w-power{font-size:0.75rem;color:var(--gold2);font-weight:700;margin-top:6px}
 
