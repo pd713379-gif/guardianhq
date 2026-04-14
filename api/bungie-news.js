@@ -51,7 +51,7 @@ export default async function handler(req, res) {
           const rawUrl = a.link || a.Url || a.url || '';
           const articleUrl = rawUrl
             ? (rawUrl.startsWith('http') ? rawUrl : 'https://www.bungie.net' + rawUrl)
-            : 'https://www.bungie.net/7/en/News';
+            : 'https://www.bungie.net/7/en/news';
 
           return {
             Subject: a.title || a.Title || a.subject || a.Subject || '',
@@ -93,7 +93,7 @@ export default async function handler(req, res) {
           const rawUrl = item.url || '';
           const articleUrl = rawUrl
             ? (rawUrl.startsWith('http') ? rawUrl : 'https://www.bungie.net' + rawUrl)
-            : 'https://www.bungie.net/7/en/News';
+            : 'https://www.bungie.net/7/en/news';
 
           return {
             Subject: item.subject || '',
@@ -140,7 +140,7 @@ export default async function handler(req, res) {
       items.push({
         Subject: get('title'),
         CreationDate: get('pubDate'),
-        Url: rawUrl ? (rawUrl.startsWith('http') ? rawUrl : 'https://www.bungie.net' + rawUrl) : 'https://www.bungie.net/7/en/News',
+        Url: rawUrl ? (rawUrl.startsWith('http') ? rawUrl : 'https://www.bungie.net' + rawUrl) : 'https://www.bungie.net/7/en/news',
         Image: image,
         Subtitle: get('description').replace(/<[^>]+>/g, '').slice(0, 150),
         Content: { properties: { Title: get('title') } }
