@@ -646,19 +646,22 @@ export default async function handler(req, res) {
       const mType = primary.membershipType;
       const mId   = primary.membershipId;
 
-      // 2. Profiel ophalen: component 102 = ProfileInventories (vault)
-      //    + 201 = CharacterInventories (items in character bag, niet equipped)
-      //    + 205 = CharacterEquipment (equipped items)
-      //    + 300 = ItemInstances (power level, damage type)
+      // 2. Profiel ophalen:
+      //    102 = ProfileInventories (vault)
+      //    201 = CharacterInventories (character bag)
+      //    300 = ItemInstances (power, damage type)
+      //    302 = ItemSockets (uitgeruste perks/mods per item)
+      //    304 = ItemStats (weapon stats: RPM, Range, etc.)
       const profile = await bFetch(
-        `/Destiny2/${mType}/Profile/${mId}/?components=102,201,205,300`,
+        `/Destiny2/${mType}/Profile/${mId}/?components=102,201,300,302,304`,
         token
       );
 
-      const vaultItems     = profile?.profileInventory?.data?.items ?? [];
-      const charInventory  = profile?.characterInventories?.data ?? {};
-      const charEquipment  = profile?.characterEquipment?.data ?? {};
-      const instanceData   = profile?.itemComponents?.instances?.data ?? {};
+      const vaultItems    = profile?.profileInventory?.data?.items ?? [];
+      const charInventory = profile?.characterInventories?.data ?? {};
+      const instanceData  = profile?.itemComponents?.instances?.data ?? {};
+      const socketsData   = profile?.itemComponents?.sockets?.data ?? {};
+      const statsData     = profile?.itemComponents?.stats?.data ?? {};
 
       // Vault bucket hash
       const VAULT_BUCKET = 138197802;
@@ -690,13 +693,23 @@ export default async function handler(req, res) {
 
       // Haal alle unieke itemHashes op
       const hashSet = new Set(rawItems.map(i => i.itemHash));
-      const hashes  = [...hashSet];
 
-      // 3. Manifest ophalen voor alle hashes (parallel, max 150 tegelijk om rate limit te vermijden)
+      // Voeg ook alle socket plug hashes toe zodat we perk/mod namen hebben
+      const plugHashSet = new Set();
+      for (const raw of rawItems) {
+        const sockets = socketsData[raw.itemInstanceId]?.sockets ?? [];
+        for (const s of sockets) {
+          if (s.plugHash) plugHashSet.add(s.plugHash);
+        }
+      }
+
+      const allHashes = [...new Set([...hashSet, ...plugHashSet])];
+
+      // 3. Manifest ophalen voor alle hashes in chunks van 80
       const defs = {};
-      const CHUNK = 100;
-      for (let i = 0; i < hashes.length; i += CHUNK) {
-        const chunk = hashes.slice(i, i + CHUNK);
+      const CHUNK = 80;
+      for (let i = 0; i < allHashes.length; i += CHUNK) {
+        const chunk = allHashes.slice(i, i + CHUNK);
         await Promise.allSettled(chunk.map(async hash => {
           try {
             const ctrl = new AbortController();
@@ -738,28 +751,159 @@ export default async function handler(req, res) {
         const damageType  = instance.damageType ?? def.defaultDamageType ?? 0;
         const bucketHash  = def.inventory?.bucketTypeHash ?? 0;
 
+        // ── Perks via sockets ──────────────────────────────────
+        const sockets     = socketsData[raw.itemInstanceId]?.sockets ?? [];
+        const perks        = [];
+        const intrinsicPerk = null;
+
+        // Perk categorieën die we willen tonen
+        // socketCategoryHash: 4241085061 = weapon perks, 2518956194 = armor perks,
+        //                     3956125808 = armor mods, 590099826 = weapon mods
+        // We lopen alle sockets langs en pakken alleen "echte" perks (geen cosmetics/mods)
+        const SKIP_CATEGORIES = new Set([
+          1742617626, // ghost projections
+          2048875504, // shader
+          3054711688, // ornament
+          1093090108, // transmat
+        ]);
+
+        let exoticPerk = null;
+        const regularPerks = [];
+        const intrinsics   = [];
+        const armorStats   = { energy: 0, mobility: 0, resilience: 0, recovery: 0, discipline: 0, intellect: 0, strength: 0 };
+
+        for (const socket of sockets) {
+          if (!socket.plugHash) continue;
+          const plugDef = defs[socket.plugHash];
+          if (!plugDef) continue;
+
+          const pName = plugDef.displayProperties?.name ?? '';
+          const pDesc = plugDef.displayProperties?.description ?? '';
+          const pIcon = plugDef.displayProperties?.icon ? 'https://www.bungie.net' + plugDef.displayProperties.icon : null;
+          const plugCat = plugDef.itemCategoryHashes ?? [];
+          const pType  = plugDef.plug?.plugCategoryIdentifier ?? '';
+
+          // Skip lege / cosmetic / tracker items
+          if (!pName || pName === 'Empty Mod Socket' || pName === 'Default Ornament') continue;
+          if (pType.includes('shader') || pType.includes('ornament') || pType.includes('transmat')) continue;
+          if (pType.includes('tracker') || pType.includes('masterwork.stat')) continue;
+
+          // Exotische perk (itemType 19 = intrinsic, of plugCategoryIdentifier bevat 'exotic')
+          if (plugDef.itemType === 19 || pType.includes('exotic_intrinsic') || pType.includes('intrinsics')) {
+            intrinsics.push({ name: pName, desc: pDesc, icon: pIcon, isIntrinsic: true });
+          } else if (pType.includes('frames') || pType.includes('origin')) {
+            intrinsics.push({ name: pName, desc: pDesc, icon: pIcon, isIntrinsic: true });
+          } else if (pType.startsWith('v400.plugs.weapons.masterworks') || pType.includes('masterwork')) {
+            // skip masterworks
+          } else if (
+            pType.includes('perks') || pType.includes('traits') ||
+            pType.startsWith('v400.plugs.armor') || pType.startsWith('v400.plugs.weapons') ||
+            pType.includes('mods.armor') || pType.includes('mods.weapons')
+          ) {
+            regularPerks.push({ name: pName, desc: pDesc, icon: pIcon });
+          }
+        }
+
+        // ── Weapon stats ────────────────────────────────────────
+        const itemStatMap  = statsData[raw.itemInstanceId]?.stats ?? {};
+        const WEAPON_STATS = {
+          4284893193: 'RPM',         // Rounds Per Minute
+          1480404414: 'Handling',
+          155624089:  'Stability',
+          943549884:  'Handling',
+          1345609583: 'Aim Assist',
+          2715839340: 'Recoil Dir',
+          1591432999: 'Accuracy',
+          1885944937: 'Zoom',
+          3614673599: 'Blast Radius',
+          2523465841: 'Velocity',
+          3036656661: 'Charge Time',
+          1240592695: 'Range',
+          209426660:  'Impact',
+          1931675084: 'Inventory',
+          3871231066: 'Magazine',
+          2996146975: 'Mobility',
+          392767087:  'Resilience',
+          1943323491: 'Recovery',
+          1735777505: 'Discipline',
+          144602215:  'Intellect',
+          4244567218: 'Strength',
+          1931675085: 'Reload Speed',
+          3555269338: 'Airborne Eff',
+          2714273498: 'Ammo Cap',
+        };
+
+        const weaponStats = [];
+        for (const [hashStr, stat] of Object.entries(itemStatMap)) {
+          const label = WEAPON_STATS[parseInt(hashStr)];
+          if (label && stat.value !== undefined) {
+            weaponStats.push({ label, value: stat.value });
+          }
+        }
+
+        // ── Armor stats (Energy) ─────────────────────────────────
+        const armorEnergy = instance?.primaryStat?.value ?? 0;
+        // Mobility/Resilience etc. vanuit stats component
+        const ARMOR_STAT_MAP = {
+          2996146975: 'Mobility',
+          392767087:  'Resilience',
+          1943323491: 'Recovery',
+          1735777505: 'Discipline',
+          144602215:  'Intellect',
+          4244567218: 'Strength',
+        };
+        const armorStatList = [];
+        for (const [hashStr, stat] of Object.entries(itemStatMap)) {
+          const label = ARMOR_STAT_MAP[parseInt(hashStr)];
+          if (label) armorStatList.push({ label, value: stat.value ?? 0 });
+        }
+        const armorTotal = armorStatList.reduce((s, x) => s + x.value, 0);
+
+        // ── Bucket → wapen categorie ─────────────────────────────
+        const BUCKET_NAMES = {
+          1498876634: 'Kinetic', 2465295065: 'Energy', 953998645: 'Power',
+          3448274439: 'Helmet', 3551918588: 'Gauntlets', 14239492: 'Chest',
+          20886954: 'Legs', 1585787867: 'Class Item',
+        };
+
         items.push({
-          itemHash:     raw.itemHash,
+          itemHash:       raw.itemHash,
           itemInstanceId: raw.itemInstanceId ?? null,
-          name:         def.displayProperties?.name ?? '—',
-          typeName:     def.itemTypeDisplayName ?? '',
-          icon:         def.displayProperties?.icon ? 'https://www.bungie.net' + def.displayProperties.icon : null,
-          watermark:    def.iconWatermark ? 'https://www.bungie.net' + def.iconWatermark : null,
+          name:           def.displayProperties?.name ?? '—',
+          typeName:       def.itemTypeDisplayName ?? '',
+          icon:           def.displayProperties?.icon ? 'https://www.bungie.net' + def.displayProperties.icon : null,
+          watermark:      def.iconWatermark ? 'https://www.bungie.net' + def.iconWatermark : null,
           tierType,
-          isExotic:     tierType === 6,
-          isLegendary:  tierType === 5,
-          itemType:     def.itemType,   // 3=weapon, 2=armor
-          isWeapon:     def.itemType === 3,
-          isArmor:      def.itemType === 2,
-          power:        instance.primaryStat?.value ?? 0,
+          isExotic:       tierType === 6,
+          isLegendary:    tierType === 5,
+          itemType:       def.itemType,
+          isWeapon:       def.itemType === 3,
+          isArmor:        def.itemType === 2,
+          power:          instance.primaryStat?.value ?? 0,
           damageType,
-          damageColor:  DAMAGE_COLORS[damageType] ?? null,
+          damageColor:    DAMAGE_COLORS[damageType] ?? null,
           bucketHash,
+          bucketName:     BUCKET_NAMES[bucketHash] ?? '',
+          // perks
+          intrinsics:     intrinsics.slice(0, 2),
+          perks:          regularPerks.slice(0, 6),
+          // stats
+          weaponStats,
+          armorStatList,
+          armorTotal,
+          armorEnergy,
         });
       }
 
-      // Sorteer: Exotic eerst, dan Legendary; binnen tier op power desc
+      // Sorteer: wapens (Kinetic > Energy > Power) dan armor, Exotic voor Legendary, power desc
+      const BUCKET_ORDER = {
+        1498876634: 1, 2465295065: 2, 953998645: 3,          // wapens
+        3448274439: 10, 3551918588: 11, 14239492: 12, 20886954: 13, 1585787867: 14, // armor
+      };
       items.sort((a, b) => {
+        const aBO = BUCKET_ORDER[a.bucketHash] ?? 99;
+        const bBO = BUCKET_ORDER[b.bucketHash] ?? 99;
+        if (aBO !== bBO) return aBO - bBO;
         if (b.tierType !== a.tierType) return b.tierType - a.tierType;
         return b.power - a.power;
       });
