@@ -393,6 +393,13 @@
     <div id="itemPopupContent"></div>
   </div>
 
+  <!-- ══ XUR / FEATURED WAPENS POPUP ══ -->
+  <div id="xurPopupOverlay" onclick="closeXurPopup()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);"></div>
+  <div id="xurPopup" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10000;width:min(420px,92vw);max-height:85vh;overflow-y:auto;background:#0d1020;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px;box-shadow:0 8px 48px rgba(0,0,0,0.7);">
+    <button onclick="closeXurPopup()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:rgba(255,255,255,0.4);font-size:1.2rem;cursor:pointer;line-height:1;">✕</button>
+    <div id="xurPopupContent"></div>
+  </div>
+
   <div class="toast" id="ghq-toast"></div>
 
   <script src="js/portraits.js"></script>
@@ -881,10 +888,16 @@
         html += `</div></div>`;
       }
 
-      document.getElementById('itemPopupContent').innerHTML = html;
-      document.getElementById('itemPopup').style.display = 'block';
-      document.getElementById('itemPopupOverlay').style.display = 'block';
+      document.getElementById('xurPopupContent').innerHTML = html;
+      document.getElementById('xurPopup').style.display = 'block';
+      document.getElementById('xurPopupOverlay').style.display = 'block';
       document.body.style.overflow = 'hidden';
+    }
+
+    function closeXurPopup() {
+      document.getElementById('xurPopup').style.display = 'none';
+      document.getElementById('xurPopupOverlay').style.display = 'none';
+      document.body.style.overflow = '';
     }
 
     // Countdown timer (live aftellen per seconde)
