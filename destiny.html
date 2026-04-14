@@ -250,7 +250,7 @@
           <div id="d2CharScreen" style="position:relative;border-radius:16px;overflow:visible;background:#090b12;min-height:680px;border:1px solid rgba(255,255,255,0.08);">
 
             <!-- ACHTERGROND kleur accent -->
-            <div id="charScreenColorOverlay" style="position:absolute;inset:0;opacity:0.06;pointer-events:none;z-index:0;transition:background 0.5s;"></div>
+            <div id="charScreenColorOverlay" style="position:absolute;inset:0;opacity:0;pointer-events:none;z-index:0;transition:background 0.5s;"></div>
 
             <!-- 3-KOLOM GRID: wapens | karakter | armor -->
             <div style="position:relative;z-index:2;display:grid;grid-template-columns:240px 1fr 240px;min-height:680px;">
@@ -1498,7 +1498,7 @@
 
       // ── KLASSE NAAM ──
       var cnEl = document.getElementById('d2-className');
-      if (cnEl) { cnEl.textContent = className; cnEl.style.color = theme.color; }
+      if (cnEl) { cnEl.textContent = className; cnEl.style.color = 'rgba(255,255,255,0.45)'; }
 
       // ── SUBCLASS ICOON + NAAM ──
       var subIconEl = document.getElementById('d2-subIcon');
