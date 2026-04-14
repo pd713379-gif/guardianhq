@@ -5,8 +5,8 @@
 // ============================================================
 window.GHQ_PORTRAITS = {
 
-  // Hunter_prismatic
-  'Hunter_prismatic': {
+  // prismatic_Hunter
+  'prismatic_Hunter': {
     accent:   '#c8a2e8',
     overlay:  'rgba(80,20,140,0.30)',
     fallback: 'radial-gradient(ellipse 80% 60% at 50% 80%, #6b2fa0 0%, #1a0838 50%, #060412 100%)',
