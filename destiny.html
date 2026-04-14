@@ -747,8 +747,9 @@
           renderActivities([]);
         }
 
-        // Featured Wapens (Xur)
+        // Featured Wapens (Xur) — eerst fallback tonen, dan live laden
         renderFeaturedWeapons(data.featuredWeapons);
+        loadLiveXurWeapons();
 
         // Laatste update tijd
         document.getElementById('statsLastUpdate').textContent =
@@ -757,6 +758,20 @@
       } catch(err) {
         console.warn('[live-stats] Fout:', err.message);
         document.getElementById('statsLastUpdate').textContent = 'Stats tijdelijk niet beschikbaar';
+      }
+    }
+
+    // ── LIVE XUR WAPENS LADEN ──
+    async function loadLiveXurWeapons() {
+      try {
+        const res = await fetch('/api/bungie-proxy?action=xurweapons');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.weapons && data.weapons.length > 0) {
+          renderFeaturedWeapons(data.weapons);
+        }
+      } catch(e) {
+        console.warn('[xur] Kon live Xur wapens niet laden:', e.message);
       }
     }
 
@@ -777,22 +792,23 @@
 
       grid.innerHTML = list.map(w => {
         const borderColor = w.isExotic ? 'rgba(212,168,67,0.5)' : 'rgba(155,114,207,0.4)';
-        const tierLabel   = w.isExotic ? '⭐ Exotic' : '💜 Legendary';
+        const tierLabel   = w.isExotic ? '\u2b50 Exotic' : '\ud83d\udc9c Legendary';
         const tierColor   = w.isExotic ? '#f5c842' : '#9b72cf';
         const dataW = escHtml(JSON.stringify(w));
+        const proxyIcon = w.icon ? '/api/bungie-proxy?action=img&url=' + encodeURIComponent(w.icon) : '';
 
-        return `<div class="w-card ${w.isExotic ? 'w-exotic' : 'w-legendary'}"
-          style="display:flex;align-items:center;gap:10px;padding:10px;cursor:pointer;border:1px solid ${borderColor};border-radius:12px;"
-          onclick="openFeaturedWeaponPopup(this)" data-weapon="${dataW}">
-          <div style="flex-shrink:0;width:52px;height:52px;border-radius:8px;overflow:hidden;border:2px solid ${borderColor};background:rgba(255,255,255,0.06);">
-            ${w.icon ? `<img src="${escHtml(w.icon)}" width="52" height="52" style="object-fit:cover;display:block;" referrerpolicy="no-referrer" onerror="this.style.display='none'">` : '<div style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">🔫</div>'}
-          </div>
-          <div style="flex:1;min-width:0;">
-            <div class="w-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(w.name)}</div>
-            <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:${tierColor};">${tierLabel}</div>
-            <div class="w-type">${escHtml(w.typeName)}</div>
-          </div>
-        </div>`;
+        return '<div class="w-card ' + (w.isExotic ? 'w-exotic' : 'w-legendary') + '"'
+          + ' style="display:flex;align-items:center;gap:10px;padding:10px;cursor:pointer;border:1px solid ' + borderColor + ';border-radius:12px;"'
+          + ' onclick="openFeaturedWeaponPopup(this)" data-weapon="' + dataW + '">'
+          + '<div style="flex-shrink:0;width:52px;height:52px;border-radius:8px;overflow:hidden;border:2px solid ' + borderColor + ';background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;">'
+          + '<img src="' + proxyIcon + '" width="52" height="52" class="w-icon-img" style="object-fit:cover;width:52px;height:52px;' + (proxyIcon ? '' : 'display:none;') + '" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">'
+          + '<span style="font-size:1.4rem;' + (proxyIcon ? 'display:none;' : '') + '">\ud83d\udd2b</span>'
+          + '</div>'
+          + '<div style="flex:1;min-width:0;">'
+          + '<div class="w-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(w.name) + '</div>'
+          + '<div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:' + tierColor + ';">' + tierLabel + '</div>'
+          + '<div class="w-type">' + escHtml(w.typeName) + '</div>'
+          + '</div></div>';
       }).join('');
     }
 
@@ -813,8 +829,17 @@
             if (w.name === 'Gjallarhorn' && icons.gjallarhorn)              iconUrl = icons.gjallarhorn;
             if (w.name === 'The Messenger' && icons.messenger)              iconUrl = icons.messenger;
             if (iconUrl) {
-              const img = card.querySelector('img');
-              if (img) img.src = '/api/bungie-proxy?action=img&url=' + encodeURIComponent(iconUrl);
+              const proxySrc = '/api/bungie-proxy?action=img&url=' + encodeURIComponent(iconUrl);
+              let img = card.querySelector('img.w-icon-img');
+              if (!img) {
+                img = card.querySelector('img');
+              }
+              if (img) {
+                img.src = proxySrc;
+                img.style.display = 'block';
+                const emoji = img.nextElementSibling;
+                if (emoji) emoji.style.display = 'none';
+              }
             }
           } catch {}
         });
