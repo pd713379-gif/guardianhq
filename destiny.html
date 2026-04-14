@@ -1439,7 +1439,10 @@
       var className = char.className || 'Hunter';
       var theme     = CLASS_THEMES[className] || CLASS_THEMES.Hunter;
       var subEl     = char.subclass || {};
-      var element   = (subEl.element || 'void').toLowerCase();
+      var _rawEl  = (subEl.element || "").toLowerCase();
+      var _nm     = (subEl.name || "").toLowerCase();
+      var _nmap   = {prismatic:"prismatic",arc:"arc",solar:"solar","void":"void",stasis:"stasis",strand:"strand","arc strider":"arc",stormcaller:"arc",striker:"arc",gunslinger:"solar",dawnblade:"solar",sunbreaker:"solar",nightstalker:"void",voidwalker:"void",sentinel:"void",revenant:"stasis",shadebinder:"stasis",behemoth:"stasis",threadrunner:"strand",broodweaver:"strand",berserker:"strand"};
+      var element = _rawEl || _nmap[_nm] || "void";
       var ec        = ELEM_COLORS[element] || ELEM_COLORS.void;
       var subSVG    = ELEM_SVGS[element]   || ELEM_SVGS.void;
 
