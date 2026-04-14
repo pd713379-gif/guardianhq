@@ -495,7 +495,28 @@ export default async function handler(req, res) {
         const scRaw  = items.find(i => i.bucketHash === SUBCLASS_BUCKET);
         const scHash = scRaw?.itemHash;
         const scDef  = defs[scHash];
-        const element = ELEMENT_MAP[scHash] ?? 'void';
+
+        // Element bepalen: eerst ELEMENT_MAP, daarna manifest naam, anders void
+        let element = ELEMENT_MAP[scHash];
+        if (!element && scDef) {
+          const scName = (scDef.displayProperties?.name ?? '').toLowerCase();
+          const NAME_EL = {
+            'prismatic':'prismatic','arc':'arc','solar':'solar','void':'void',
+            'stasis':'stasis','strand':'strand',
+            'arc strider':'arc','stormcaller':'arc','striker':'arc',
+            'gunslinger':'solar','dawnblade':'solar','sunbreaker':'solar',
+            'nightstalker':'void','voidwalker':'void','sentinel':'void',
+            'revenant':'stasis','shadebinder':'stasis','behemoth':'stasis',
+            'threadrunner':'strand','broodweaver':'strand','berserker':'strand',
+          };
+          for (const [key, val] of Object.entries(NAME_EL)) {
+            if (scName.includes(key)) { element = val; break; }
+          }
+        }
+        // Log de hash zodat je hem eventueel kunt toevoegen aan ELEMENT_MAP
+        console.log('[GHQ] subclass hash=' + scHash + ' name="' + (scDef?.displayProperties?.name ?? '') + '" => element=' + (element ?? '??'));
+        element = element ?? 'void';
+
         const subclass = {
           hash:    scHash,
           name:    SUBCLASS_NAMES[scHash] ?? scDef?.displayProperties?.name ?? 'Subclass',
