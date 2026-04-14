@@ -1234,7 +1234,15 @@
           ? `<img src="/api/bungie-proxy?action=img&url=${encodeURIComponent(item.icon)}" width="56" height="56" style="width:56px;height:56px;object-fit:cover;display:block;border-radius:6px;" loading="lazy" onerror="this.style.display='none'">`
           : `<div style="width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">${item.isWeapon ? '🔫' : '🛡️'}</div>`;
 
-        const dataItem = escHtml(JSON.stringify({ name: item.name, typeName: item.typeName, icon: item.icon, isExotic: item.isExotic, power: item.power, damageColor: item.damageColor }));
+        const dataItem = escHtml(JSON.stringify({
+          name: item.name, typeName: item.typeName, icon: item.icon,
+          isExotic: item.isExotic, isLegendary: item.isLegendary,
+          isWeapon: item.isWeapon, isArmor: item.isArmor,
+          power: item.power, damageType: item.damageType, damageColor: item.damageColor,
+          intrinsics: item.intrinsics ?? [], perks: item.perks ?? [],
+          weaponStats: item.weaponStats ?? [], armorStatList: item.armorStatList ?? [],
+          armorTotal: item.armorTotal ?? 0,
+        }));
 
         return `<div class="vault-item" title="${escHtml(item.name)}"
           style="position:relative;width:60px;height:60px;border-radius:8px;overflow:hidden;border:1.5px solid ${border};background:${bg};cursor:pointer;flex-shrink:0;"
@@ -1254,19 +1262,112 @@
 
       const tc     = item.isExotic ? '#CEAE33' : '#9b72cf';
       const border = item.isExotic ? 'rgba(206,174,51,0.5)' : 'rgba(155,114,207,0.4)';
-      const iconBg = item.isExotic ? 'linear-gradient(135deg,rgba(160,120,20,0.7),rgba(100,70,5,0.9))' : 'linear-gradient(135deg,rgba(50,30,70,0.7),rgba(25,15,45,0.9))';
+      const iconBg = item.isExotic
+        ? 'linear-gradient(135deg,rgba(160,120,20,0.7),rgba(100,70,5,0.9))'
+        : 'linear-gradient(135deg,rgba(50,30,70,0.7),rgba(25,15,45,0.9))';
 
-      let html = `<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:12px;">
-        <div style="flex-shrink:0;width:72px;height:72px;border-radius:10px;overflow:hidden;background:${iconBg};border:2px solid ${border};">
-          ${item.icon ? `<img src="/api/bungie-proxy?action=img&url=${encodeURIComponent(item.icon)}" width="72" height="72" style="width:72px;height:72px;object-fit:cover;display:block;">` : '<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:2rem;">🔫</div>'}
+      const DAMAGE_NAMES = { 2:'Arc', 3:'Solar', 4:'Void', 6:'Stasis', 7:'Strand' };
+
+      // ── Header ────────────────────────────────────────────
+      let html = `<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:14px;">
+        <div style="flex-shrink:0;width:72px;height:72px;border-radius:10px;overflow:hidden;background:${iconBg};border:2px solid ${border};position:relative;">
+          ${item.icon ? `<img src="/api/bungie-proxy?action=img&url=${encodeURIComponent(item.icon)}" width="72" height="72" style="width:72px;height:72px;object-fit:cover;display:block;">` : `<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:2rem;">${item.isWeapon ? '🔫' : '🛡️'}</div>`}
         </div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:1rem;font-weight:800;color:#fff;line-height:1.2;">${escHtml(item.name)}</div>
           <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${tc};margin-top:3px;">${item.isExotic ? 'Exotic' : 'Legendary'} · ${escHtml(item.typeName)}</div>
-          ${item.power > 0 ? `<div style="font-size:0.75rem;color:#f5c842;margin-top:6px;font-weight:700;">⚡ ${item.power} Power</div>` : ''}
-          ${item.damageColor ? `<div style="display:inline-flex;align-items:center;gap:5px;margin-top:5px;"><div style="width:8px;height:8px;border-radius:50%;background:${item.damageColor};"></div><span style="font-size:0.65rem;color:rgba(255,255,255,0.4);">Element</span></div>` : ''}
+          <div style="display:flex;gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap;">
+            ${item.power > 0 ? `<span style="font-size:0.78rem;color:#f5c842;font-weight:700;">⚡ ${item.power}</span>` : ''}
+            ${item.damageColor ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:0.72rem;color:${item.damageColor};font-weight:600;"><span style="width:7px;height:7px;border-radius:50%;background:${item.damageColor};display:inline-block;"></span>${DAMAGE_NAMES[item.damageType] ?? ''}</span>` : ''}
+          </div>
         </div>
       </div>`;
+
+      // ── WAPEN: stats ──────────────────────────────────────
+      if (item.isWeapon && item.weaponStats && item.weaponStats.length > 0) {
+        // Toon de belangrijkste stats (max 8)
+        const STAT_ORDER = ['RPM','Impact','Range','Stability','Handling','Reload Speed','Aim Assist','Magazine','Zoom','Blast Radius','Velocity','Charge Time','Airborne Eff'];
+        const sorted = [...item.weaponStats].sort((a,b) => {
+          const ai = STAT_ORDER.indexOf(a.label);
+          const bi = STAT_ORDER.indexOf(b.label);
+          return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+        }).slice(0, 8);
+
+        html += `<div style="margin-bottom:14px;">
+          <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.35);margin-bottom:8px;">Wapen Stats</div>`;
+        for (const s of sorted) {
+          const pct = Math.min(100, Math.round((s.value / 100) * 100));
+          html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+            <div style="width:90px;font-size:0.68rem;color:rgba(255,255,255,0.5);text-align:right;flex-shrink:0;">${escHtml(s.label)}</div>
+            <div style="flex:1;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;">
+              <div style="width:${pct}%;height:100%;background:${tc};border-radius:2px;"></div>
+            </div>
+            <div style="width:24px;font-size:0.68rem;color:#fff;font-weight:700;text-align:right;">${s.value}</div>
+          </div>`;
+        }
+        html += `</div>`;
+      }
+
+      // ── ARMOR: stats ──────────────────────────────────────
+      if (item.isArmor) {
+        const ARMOR_STAT_ORDER = ['Mobility','Resilience','Recovery','Discipline','Intellect','Strength'];
+        const statList = (item.armorStatList ?? []).sort((a,b) =>
+          ARMOR_STAT_ORDER.indexOf(a.label) - ARMOR_STAT_ORDER.indexOf(b.label)
+        );
+
+        if (statList.length > 0) {
+          html += `<div style="margin-bottom:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.35);">Armor Stats</div>
+              ${item.armorTotal > 0 ? `<div style="font-size:0.72rem;color:#f5c842;font-weight:700;">Totaal ${item.armorTotal}</div>` : ''}
+            </div>`;
+          for (const s of statList) {
+            const pct = Math.min(100, Math.round((s.value / 42) * 100));
+            html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+              <div style="width:80px;font-size:0.68rem;color:rgba(255,255,255,0.5);text-align:right;flex-shrink:0;">${escHtml(s.label)}</div>
+              <div style="flex:1;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;">
+                <div style="width:${pct}%;height:100%;background:${tc};border-radius:2px;"></div>
+              </div>
+              <div style="width:24px;font-size:0.68rem;color:#fff;font-weight:700;text-align:right;">${s.value}</div>
+            </div>`;
+          }
+          html += `</div>`;
+        }
+      }
+
+      // ── Intrinsic perk (frame/exotic) ─────────────────────
+      const intrinsics = item.intrinsics ?? [];
+      if (intrinsics.length > 0) {
+        html += `<div style="margin-bottom:12px;">
+          <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.35);margin-bottom:8px;">Intrinsic</div>`;
+        for (const p of intrinsics) {
+          html += `<div style="display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,0.04);border-radius:8px;padding:9px 10px;margin-bottom:6px;border-left:2px solid ${tc};">
+            ${p.icon ? `<img src="/api/bungie-proxy?action=img&url=${encodeURIComponent(p.icon)}" width="34" height="34" style="width:34px;height:34px;flex-shrink:0;border-radius:4px;object-fit:cover;" onerror="this.style.display='none'">` : ''}
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:0.76rem;font-weight:700;color:${tc};">${escHtml(p.name)}</div>
+              ${p.desc ? `<div style="font-size:0.65rem;color:rgba(255,255,255,0.45);line-height:1.45;margin-top:2px;">${escHtml(p.desc)}</div>` : ''}
+            </div>
+          </div>`;
+        }
+        html += `</div>`;
+      }
+
+      // ── Perks ─────────────────────────────────────────────
+      const perks = item.perks ?? [];
+      if (perks.length > 0) {
+        html += `<div>
+          <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.35);margin-bottom:8px;">Perks</div>`;
+        for (const p of perks) {
+          html += `<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;">
+            ${p.icon ? `<img src="/api/bungie-proxy?action=img&url=${encodeURIComponent(p.icon)}" width="32" height="32" style="width:32px;height:32px;flex-shrink:0;border-radius:50%;object-fit:cover;background:rgba(255,255,255,0.06);" onerror="this.style.display='none'">` : `<div style="width:32px;height:32px;flex-shrink:0;border-radius:50%;background:rgba(255,255,255,0.06);"></div>`}
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:0.76rem;font-weight:700;color:#fff;">${escHtml(p.name)}</div>
+              ${p.desc ? `<div style="font-size:0.65rem;color:rgba(255,255,255,0.4);line-height:1.45;margin-top:2px;">${escHtml(p.desc)}</div>` : ''}
+            </div>
+          </div>`;
+        }
+        html += `</div>`;
+      }
 
       document.getElementById('itemPopupContent').innerHTML = html;
       document.getElementById('itemPopup').style.display    = 'block';
