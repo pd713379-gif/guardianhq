@@ -4,15 +4,13 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') { res.setHeader('Content-Type', 'application/json'); return res.status(200).end(); }
+  res.setHeader('Content-Type', 'application/json');
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
   const API_KEY = process.env.BUNGIE_API_KEY;
-  if (!API_KEY) { res.setHeader('Content-Type','application/json'); return res.status(500).json({ error: 'BUNGIE_API_KEY ontbreekt.' }); }
+  if (!API_KEY) return res.status(500).json({ error: 'BUNGIE_API_KEY ontbreekt.' });
 
   const { action } = req.query;
-
-  // Stel Content-Type pas in nadat we weten dat het JSON is (img action geeft image terug)
-  if (action !== 'img') res.setHeader('Content-Type', 'application/json');
 
   // ── Helper ─────────────────────────────────────────────────
   async function bFetch(url, token) {
@@ -82,10 +80,7 @@ export default async function handler(req, res) {
     const icons = {};
     await Promise.allSettled(Object.entries(HASHES).map(async ([k, h]) => {
       try {
-        const ctrl = new AbortController();
-        const tid = setTimeout(() => ctrl.abort(), 4000);
-        const r = await fetch(`https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/${h}/`, { headers: { 'X-API-Key': API_KEY }, signal: ctrl.signal });
-        clearTimeout(tid);
+        const r = await fetch(`https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/${h}/`, { headers: { 'X-API-Key': API_KEY } });
         const d = await r.json();
         icons[k] = d?.Response?.displayProperties?.icon ? 'https://www.bungie.net' + d.Response.displayProperties.icon : null;
       } catch { icons[k] = null; }
@@ -175,24 +170,20 @@ export default async function handler(req, res) {
 
       // 4. Manifest ophalen — alle items + plugs tegelijk
       const defs = {};
-      const allToFetch = [...new Set([...allHashes, ...allPlugHashes])].slice(0, 60);
-      // Batch in groepen van 10 om Vercel timeout te vermijden
-      const BATCH = 10;
-      for (let i = 0; i < allToFetch.length; i += BATCH) {
-        await Promise.allSettled(allToFetch.slice(i, i + BATCH).map(async hash => {
-          try {
-            const ctrl = new AbortController();
-            const tid  = setTimeout(() => ctrl.abort(), 3500);
-            const r = await fetch(
-              `https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`,
-              { headers: { 'X-API-Key': API_KEY }, signal: ctrl.signal }
-            );
-            clearTimeout(tid);
-            const d = await r.json();
-            if (d?.Response) defs[hash] = d.Response;
-          } catch {}
-        }));
-      }
+      const allToFetch = [...new Set([...allHashes, ...allPlugHashes])];
+      await Promise.allSettled(allToFetch.map(async hash => {
+        try {
+          const ctrl = new AbortController();
+          const tid  = setTimeout(() => ctrl.abort(), 5000);
+          const r = await fetch(
+            `https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`,
+            { headers: { 'X-API-Key': API_KEY }, signal: ctrl.signal }
+          );
+          clearTimeout(tid);
+          const d = await r.json();
+          if (d?.Response) defs[hash] = d.Response;
+        } catch {}
+      }));
 
       // 5. Lookup tabellen
       const CLASS_NAMES   = { 0:'Titan', 1:'Hunter', 2:'Warlock' };
@@ -635,103 +626,6 @@ export default async function handler(req, res) {
 
     } catch(err) {
       console.error('[charactergear] FATAL:', err.message, err.stack);
-      return res.status(500).json({ error: err.message });
-    }
-  }
-
-  // ── XUR / FEATURED WAPENS — verwijderd, afgehandeld door bungie-stats.js ──
-
-  // ── ITEM DETAIL — stats + perks voor featured weapon popup ──
-  if (action === 'itemdetail') {
-    const hash = req.query.hash;
-    if (!hash) return res.status(400).json({ error: 'hash vereist' });
-
-    try {
-      const ctrl = new AbortController();
-      const tid = setTimeout(() => ctrl.abort(), 5000);
-      const r = await fetch(
-        `https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`,
-        { headers: { 'X-API-Key': API_KEY }, signal: ctrl.signal }
-      );
-      clearTimeout(tid);
-      const d = await r.json();
-      const def = d?.Response;
-      if (!def) return res.status(404).json({ error: 'Item niet gevonden' });
-
-      // Stats
-      const WEAPON_STAT_HASHES = {
-        4284893193:'Impact', 1240592695:'Range', 155624089:'Stability',
-        943549884:'Handling', 4188031367:'Reload Speed', 1591432999:'Accuracy',
-        2523465841:'Rounds/Min', 1030428403:'Blast Radius', 2762071195:'Velocity',
-        3614673599:'Charge Time', 447667954:'Draw Time', 925767036:'Ammo Capacity',
-        3871231066:'Magazine', 2961396640:'Zoom', 3597844532:'Aim Assistance',
-        1345609583:'Airborne Effectiveness', 3555269338:'Recoil Direction',
-        2396949875:'Swing Speed', 1842278070:'Guard Efficiency',
-        3736848092:'Guard Resistance', 3022301683:'Guard Endurance',
-      };
-      const statsBlock = def.stats?.stats ?? {};
-      const stats = [];
-      for (const [h, label] of Object.entries(WEAPON_STAT_HASHES)) {
-        const entry = statsBlock[h];
-        if (entry && entry.value > 0) stats.push({ label, value: entry.value });
-      }
-
-      // Perks via sockets (intrinsics + traits)
-      const perks = [];
-      const socketCategories = def.sockets?.socketCategories ?? [];
-      const socketEntries    = def.sockets?.socketEntries ?? [];
-      const PERK_CATEGORY_HASHES = new Set([4241085061, 2518356196]); // Intrinsics, Weapon Perks
-
-      const perkSocketIdxs = new Set();
-      for (const cat of socketCategories) {
-        if (PERK_CATEGORY_HASHES.has(cat.socketCategoryHash)) {
-          for (const idx of (cat.socketIndexes ?? [])) perkSocketIdxs.add(idx);
-        }
-      }
-
-      // Fallback: als geen categorie match, pak alle sockets met reusablePlugItems
-      const idxsToUse = perkSocketIdxs.size > 0
-        ? [...perkSocketIdxs]
-        : socketEntries.map((_, i) => i);
-
-      const perkHashes = [];
-      for (const idx of idxsToUse) {
-        const entry = socketEntries[idx];
-        if (!entry) continue;
-        const plugs = entry.reusablePlugItems ?? [];
-        if (plugs.length > 0) perkHashes.push(plugs[0].plugItemHash);
-        else if (entry.singleInitialItemHash) perkHashes.push(entry.singleInitialItemHash);
-      }
-
-      // Haal perk definities op
-      await Promise.allSettled(perkHashes.slice(0, 8).map(async plugHash => {
-        try {
-          const ctrl2 = new AbortController();
-          const tid2 = setTimeout(() => ctrl2.abort(), 3000);
-          const pr = await fetch(
-            `https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/${plugHash}/`,
-            { headers: { 'X-API-Key': API_KEY }, signal: ctrl2.signal }
-          );
-          clearTimeout(tid2);
-          const pd = await pr.json();
-          const pdef = pd?.Response;
-          if (!pdef) return;
-          const name = pdef.displayProperties?.name ?? '';
-          const icon = pdef.displayProperties?.icon ?? '';
-          const desc = pdef.displayProperties?.description ?? '';
-          const plugId = (pdef.plug?.plugCategoryIdentifier ?? '').toLowerCase();
-          if (!name || !icon) return;
-          if (name.startsWith('Empty') || name.startsWith('Default') || name.startsWith('Deprecated')) return;
-          // Skip barrels/magazines/scopes/guards — geen echte perks
-          const SKIP = ['barrel','magazine','scope','battery','guard','grip','stock','tube','shader','ornament','frame','tracker'];
-          if (SKIP.some(s => plugId.includes(s))) return;
-          perks.push({ name, icon: 'https://www.bungie.net' + icon, desc });
-        } catch {}
-      }));
-
-      res.setHeader('Cache-Control', 's-maxage=3600');
-      return res.status(200).json({ stats, perks });
-    } catch(err) {
       return res.status(500).json({ error: err.message });
     }
   }
