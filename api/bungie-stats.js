@@ -8,6 +8,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const API_KEY = process.env.BUNGIE_API_KEY;
+  if (!API_KEY) return res.status(500).json({ error: 'BUNGIE_API_KEY ontbreekt.' });
   const result = {};
 
   // ── 1. STEAM LIVE PLAYERS ──
@@ -232,52 +233,46 @@ export default async function handler(req, res) {
     // Zoek Xur's locatie via vendor endpoint (geen auth nodig voor publieke data)
     // We gebruiken een bekende character voor de vendor call
     // Eerst: haal public milestones op voor Xur locatie
-    const xurRes = await fetch(
-      `https://www.bungie.net/Platform/Destiny2/Vendors/?components=402`,
-      { headers: { 'X-API-Key': API_KEY } }
-    );
-    const xurData = await xurRes.json();
-    const xurSales = xurData?.Response?.sales?.data?.[XUR_HASH]?.saleItems ?? {};
+    // Xur vendor API vereist auth — gebruik bekende populaire wapen hashes als "featured"
+    // Dit zijn klassieke D2 wapens die spelers kennen. Echt live Xur data is alleen beschikbaar
+    // via de character-specifieke vendor endpoint (vereist OAuth token).
+    const FEATURED_HASHES = [
+      1363886209,  // Gjallarhorn (Exotic Rocket Launcher)
+      1912364120,  // Palindrome (Legendary Hand Cannon)
+      1815105249,  // Falling Guillotine (Legendary Sword)
+      3259167006,  // The Messenger (Legendary Pulse Rifle)
+      2314610827,  // Igneous Hammer (Legendary Hand Cannon)
+      3103325054,  // Retrofit Escapade (Legendary Machine Gun)
+    ];
 
-    if (Object.keys(xurSales).length > 0) {
-      // Haal item definities op voor Xur's items
-      const itemHashes = Object.values(xurSales)
-        .map(i => i.itemHash)
-        .filter(Boolean)
-        .slice(0, 8);
+    const featuredWeapons = [];
+    await Promise.allSettled(FEATURED_HASHES.map(async hash => {
+      try {
+        const ctrl = new AbortController();
+        const tid = setTimeout(() => ctrl.abort(), 4000);
+        const r = await fetch(
+          `https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`,
+          { headers: { 'X-API-Key': API_KEY }, signal: ctrl.signal }
+        );
+        clearTimeout(tid);
+        const d = await r.json();
+        const def = d?.Response;
+        if (!def) return;
+        const tierType = def.inventory?.tierType ?? 5;
+        featuredWeapons.push({
+          hash,
+          name:       def.displayProperties?.name ?? '—',
+          typeName:   def.itemTypeDisplayName ?? '',
+          flavorText: def.flavorText ?? '',
+          icon:       def.displayProperties?.icon ? 'https://www.bungie.net' + def.displayProperties.icon : null,
+          tierType,
+          isExotic:   tierType === 6,
+          power:      0,
+        });
+      } catch {}
+    }));
 
-      const featuredWeapons = [];
-      await Promise.allSettled(itemHashes.map(async hash => {
-        try {
-          const r = await fetch(
-            `https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`,
-            { headers: { 'X-API-Key': API_KEY } }
-          );
-          const d = await r.json();
-          const def = d?.Response;
-          if (!def) return;
-
-          // Alleen wapens (itemType 3)
-          if (def.itemType !== 3) return;
-
-          const tierType = def.inventory?.tierType ?? 5;
-          featuredWeapons.push({
-            hash,
-            name:       def.displayProperties?.name ?? '—',
-            typeName:   def.itemTypeDisplayName ?? '',
-            flavorText: def.flavorText ?? '',
-            icon:       def.displayProperties?.icon ? 'https://www.bungie.net' + def.displayProperties.icon : null,
-            tierType,
-            isExotic:   tierType === 6,
-            power:      0,
-          });
-        } catch {}
-      }));
-
-      result.featuredWeapons = featuredWeapons.length > 0 ? featuredWeapons : null;
-    } else {
-      result.featuredWeapons = null;
-    }
+    result.featuredWeapons = featuredWeapons.length > 0 ? featuredWeapons : null;
   } catch(e) {
     console.error('[xur]', e.message);
     result.featuredWeapons = null;
