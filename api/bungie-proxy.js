@@ -188,22 +188,35 @@ export default async function handler(req, res) {
       // 5. Lookup tabellen
       const CLASS_NAMES   = { 0:'Titan', 1:'Hunter', 2:'Warlock' };
       const ELEMENT_MAP   = {
-        2328211300:'arc',  3006627468:'arc',  1751782730:'arc',  2958378809:'arc',
+        // Arc
+        2328211300:'arc',  3006627468:'arc',  1751782730:'arc',  2958378809:'arc',  3168997075:'arc',
+        // Solar
         2240888816:'solar',3941205951:'solar',2550323932:'solar',
+        // Void
         2453351420:'void', 3887892656:'void', 2842471112:'void',
+        // Stasis
         873720784:'stasis',3291545503:'stasis',2842471113:'stasis',
+        // Strand
         2932390016:'strand',613647897:'strand',242419885:'strand',
-        3855807587:'prismatic',1216399026:'prismatic',3452049687:'prismatic',
-        4282591831:'prismatic',3168997075:'arc',
+        // Prismatic — alle bekende hashes (Hunter / Warlock / Titan + alternatieven)
+        3855807587:'prismatic',   // Prismatic Hunter
+        1216399026:'prismatic',   // Prismatic Warlock
+        3452049687:'prismatic',   // Prismatic Titan
+        4282591831:'prismatic',   // Prismatic (alternatief)
+        2321925588:'prismatic',   // Prismatic Hunter (seizoen variant)
+        2842471115:'prismatic',   // Prismatic Warlock (seizoen variant)
+        3855807588:'prismatic',   // Prismatic Titan  (seizoen variant)
       };
       const SUBCLASS_NAMES = {
         2328211300:'Arc Strider',  3006627468:'Stormcaller',       1751782730:'Striker',      2958378809:'Arc Striker',
+        3168997075:'Stormcaller',
         2240888816:'Gunslinger',   3941205951:'Dawnblade',          2550323932:'Sunbreaker',
         2453351420:'Nightstalker', 3887892656:'Voidwalker',         2842471112:'Sentinel',
-        873720784:'Revenant',      3291645503:'Shadebinder',        2842471113:'Behemoth',
+        873720784:'Revenant',      3291545503:'Shadebinder',        2842471113:'Behemoth',
         2932390016:'Threadrunner', 613647897:'Broodweaver',         242419885:'Berserker',
         3855807587:'Prismatic',    1216399026:'Prismatic',          3452049687:'Prismatic',
-        4282591831:'Prismatic',    3168997075:'Stormcaller',
+        4282591831:'Prismatic',    2321925588:'Prismatic',          2842471115:'Prismatic',
+        3855807588:'Prismatic',
       };
       const WEAPON_BUCKETS  = new Set([1498876634, 2465295065, 953998645]);
       const ARMOR_BUCKETS   = new Set([3448274439, 3551918588, 14239492, 20886954, 1585787867]);
