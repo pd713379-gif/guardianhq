@@ -188,35 +188,22 @@ export default async function handler(req, res) {
       // 5. Lookup tabellen
       const CLASS_NAMES   = { 0:'Titan', 1:'Hunter', 2:'Warlock' };
       const ELEMENT_MAP   = {
-        // Arc
-        2328211300:'arc',  3006627468:'arc',  1751782730:'arc',  2958378809:'arc',  3168997075:'arc',
-        // Solar
+        2328211300:'arc',  3006627468:'arc',  1751782730:'arc',  2958378809:'arc',
         2240888816:'solar',3941205951:'solar',2550323932:'solar',
-        // Void
         2453351420:'void', 3887892656:'void', 2842471112:'void',
-        // Stasis
         873720784:'stasis',3291545503:'stasis',2842471113:'stasis',
-        // Strand
         2932390016:'strand',613647897:'strand',242419885:'strand',
-        // Prismatic — alle bekende hashes (Hunter / Warlock / Titan + alternatieven)
-        3855807587:'prismatic',   // Prismatic Hunter
-        1216399026:'prismatic',   // Prismatic Warlock
-        3452049687:'prismatic',   // Prismatic Titan
-        4282591831:'prismatic',   // Prismatic (alternatief)
-        2321925588:'prismatic',   // Prismatic Hunter (seizoen variant)
-        2842471115:'prismatic',   // Prismatic Warlock (seizoen variant)
-        3855807588:'prismatic',   // Prismatic Titan  (seizoen variant)
+        3855807587:'prismatic',1216399026:'prismatic',3452049687:'prismatic',
+        4282591831:'prismatic',3168997075:'arc',
       };
       const SUBCLASS_NAMES = {
         2328211300:'Arc Strider',  3006627468:'Stormcaller',       1751782730:'Striker',      2958378809:'Arc Striker',
-        3168997075:'Stormcaller',
         2240888816:'Gunslinger',   3941205951:'Dawnblade',          2550323932:'Sunbreaker',
         2453351420:'Nightstalker', 3887892656:'Voidwalker',         2842471112:'Sentinel',
-        873720784:'Revenant',      3291545503:'Shadebinder',        2842471113:'Behemoth',
+        873720784:'Revenant',      3291645503:'Shadebinder',        2842471113:'Behemoth',
         2932390016:'Threadrunner', 613647897:'Broodweaver',         242419885:'Berserker',
         3855807587:'Prismatic',    1216399026:'Prismatic',          3452049687:'Prismatic',
-        4282591831:'Prismatic',    2321925588:'Prismatic',          2842471115:'Prismatic',
-        3855807588:'Prismatic',
+        4282591831:'Prismatic',    3168997075:'Stormcaller',
       };
       const WEAPON_BUCKETS  = new Set([1498876634, 2465295065, 953998645]);
       const ARMOR_BUCKETS   = new Set([3448274439, 3551918588, 14239492, 20886954, 1585787867]);
@@ -495,28 +482,7 @@ export default async function handler(req, res) {
         const scRaw  = items.find(i => i.bucketHash === SUBCLASS_BUCKET);
         const scHash = scRaw?.itemHash;
         const scDef  = defs[scHash];
-
-        // Element bepalen: eerst ELEMENT_MAP, daarna manifest naam, anders void
-        let element = ELEMENT_MAP[scHash];
-        if (!element && scDef) {
-          const scName = (scDef.displayProperties?.name ?? '').toLowerCase();
-          const NAME_EL = {
-            'prismatic':'prismatic','arc':'arc','solar':'solar','void':'void',
-            'stasis':'stasis','strand':'strand',
-            'arc strider':'arc','stormcaller':'arc','striker':'arc',
-            'gunslinger':'solar','dawnblade':'solar','sunbreaker':'solar',
-            'nightstalker':'void','voidwalker':'void','sentinel':'void',
-            'revenant':'stasis','shadebinder':'stasis','behemoth':'stasis',
-            'threadrunner':'strand','broodweaver':'strand','berserker':'strand',
-          };
-          for (const [key, val] of Object.entries(NAME_EL)) {
-            if (scName.includes(key)) { element = val; break; }
-          }
-        }
-        // Log de hash zodat je hem eventueel kunt toevoegen aan ELEMENT_MAP
-        console.log('[GHQ] subclass hash=' + scHash + ' name="' + (scDef?.displayProperties?.name ?? '') + '" => element=' + (element ?? '??'));
-        element = element ?? 'void';
-
+        const element = ELEMENT_MAP[scHash] ?? 'void';
         const subclass = {
           hash:    scHash,
           name:    SUBCLASS_NAMES[scHash] ?? scDef?.displayProperties?.name ?? 'Subclass',
@@ -660,6 +626,151 @@ export default async function handler(req, res) {
 
     } catch(err) {
       console.error('[charactergear] FATAL:', err.message, err.stack);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // ── VAULT ITEMS ─────────────────────────────────────────────
+  if (action === 'vault') {
+    const token = (req.headers['authorization'] || '').replace('Bearer ', '').trim();
+    if (!token) return res.status(401).json({ error: 'Token vereist' });
+
+    try {
+      // 1. Membership ophalen
+      const user = await bFetch('/User/GetMembershipsForCurrentUser/', token);
+      const mems = user?.destinyMemberships ?? [];
+      let primary = mems[0];
+      for (const m of mems) { if (m.crossSaveOverride === m.membershipType) { primary = m; break; } }
+      if (!primary) return res.status(404).json({ error: 'Geen Destiny membership' });
+
+      const mType = primary.membershipType;
+      const mId   = primary.membershipId;
+
+      // 2. Profiel ophalen: component 102 = ProfileInventories (vault)
+      //    + 201 = CharacterInventories (items in character bag, niet equipped)
+      //    + 205 = CharacterEquipment (equipped items)
+      //    + 300 = ItemInstances (power level, damage type)
+      const profile = await bFetch(
+        `/Destiny2/${mType}/Profile/${mId}/?components=102,201,205,300`,
+        token
+      );
+
+      const vaultItems     = profile?.profileInventory?.data?.items ?? [];
+      const charInventory  = profile?.characterInventories?.data ?? {};
+      const charEquipment  = profile?.characterEquipment?.data ?? {};
+      const instanceData   = profile?.itemComponents?.instances?.data ?? {};
+
+      // Vault bucket hash
+      const VAULT_BUCKET = 138197802;
+
+      // Weapon + armor bucket hashes
+      const ITEM_BUCKETS = new Set([
+        1498876634, 2465295065, 953998645,                         // wapens
+        3448274439, 3551918588, 14239492, 20886954, 1585787867,    // armor
+      ]);
+
+      // Verzamel alle vault items
+      const rawItems = [];
+
+      // Vault items (bucket 138197802 = algemene vault)
+      for (const item of vaultItems) {
+        if (item.bucketHash === VAULT_BUCKET) {
+          rawItems.push({ ...item, source: 'vault' });
+        }
+      }
+
+      // Character bag items (niet equipped, wel in wapen/armor buckets)
+      for (const [, charInv] of Object.entries(charInventory)) {
+        for (const item of (charInv.items ?? [])) {
+          if (ITEM_BUCKETS.has(item.bucketHash)) {
+            rawItems.push({ ...item, source: 'character' });
+          }
+        }
+      }
+
+      // Haal alle unieke itemHashes op
+      const hashSet = new Set(rawItems.map(i => i.itemHash));
+      const hashes  = [...hashSet];
+
+      // 3. Manifest ophalen voor alle hashes (parallel, max 150 tegelijk om rate limit te vermijden)
+      const defs = {};
+      const CHUNK = 100;
+      for (let i = 0; i < hashes.length; i += CHUNK) {
+        const chunk = hashes.slice(i, i + CHUNK);
+        await Promise.allSettled(chunk.map(async hash => {
+          try {
+            const ctrl = new AbortController();
+            const tid  = setTimeout(() => ctrl.abort(), 6000);
+            const r = await fetch(
+              `https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`,
+              { headers: { 'X-API-Key': API_KEY }, signal: ctrl.signal }
+            );
+            clearTimeout(tid);
+            const d = await r.json();
+            if (d?.Response) defs[hash] = d.Response;
+          } catch {}
+        }));
+      }
+
+      // 4. Items verrijken met manifest data
+      const DAMAGE_COLORS = {
+        1: null,           // Kinetic
+        2: '#79c8f0',      // Arc
+        3: '#f0a830',      // Solar
+        4: '#b574de',      // Void
+        6: '#4ec3e0',      // Stasis
+        7: '#31c48d',      // Strand
+      };
+
+      const items = [];
+      for (const raw of rawItems) {
+        const def = defs[raw.itemHash];
+        if (!def) continue;
+
+        // Alleen wapens (itemType 3) en armor (itemType 2)
+        if (def.itemType !== 3 && def.itemType !== 2) continue;
+
+        const tierType    = def.inventory?.tierType ?? 0;
+        // Alleen Exotic (6), Legendary (5), Rare (4)
+        if (tierType < 4) continue;
+
+        const instance    = instanceData[raw.itemInstanceId] ?? {};
+        const damageType  = instance.damageType ?? def.defaultDamageType ?? 0;
+        const bucketHash  = def.inventory?.bucketTypeHash ?? 0;
+
+        items.push({
+          itemHash:     raw.itemHash,
+          itemInstanceId: raw.itemInstanceId ?? null,
+          name:         def.displayProperties?.name ?? '—',
+          typeName:     def.itemTypeDisplayName ?? '',
+          icon:         def.displayProperties?.icon ? 'https://www.bungie.net' + def.displayProperties.icon : null,
+          watermark:    def.iconWatermark ? 'https://www.bungie.net' + def.iconWatermark : null,
+          tierType,
+          isExotic:     tierType === 6,
+          isLegendary:  tierType === 5,
+          itemType:     def.itemType,   // 3=weapon, 2=armor
+          isWeapon:     def.itemType === 3,
+          isArmor:      def.itemType === 2,
+          power:        instance.primaryStat?.value ?? 0,
+          damageType,
+          damageColor:  DAMAGE_COLORS[damageType] ?? null,
+          bucketHash,
+        });
+      }
+
+      // Sorteer: Exotic eerst, dan Legendary; binnen tier op power desc
+      items.sort((a, b) => {
+        if (b.tierType !== a.tierType) return b.tierType - a.tierType;
+        return b.power - a.power;
+      });
+
+      console.log('[vault] totaal items:', items.length, '| vault raw:', rawItems.length);
+
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+      return res.status(200).json({ items, total: items.length });
+
+    } catch(err) {
+      console.error('[vault] FATAL:', err.message);
       return res.status(500).json({ error: err.message });
     }
   }
