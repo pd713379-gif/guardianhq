@@ -166,7 +166,7 @@
 
           <!-- Wapens -->
           <div class="d-card glass">
-            <div class="d-card-label">🔫 Featured Wapens <span id="xurLabel" style="font-size:0.7rem;color:var(--text3);font-weight:400">· Xur deze week</span></div>
+            <div class="d-card-label">🔫 Featured Wapens <span style="font-size:0.7rem;color:var(--text3);font-weight:400">· Xur deze week</span></div>
             <div id="featuredWeaponsGrid" class="weapon-grid">
               <div style="color:var(--text3);font-size:0.8rem;padding:8px">Laden...</div>
             </div>
@@ -699,10 +699,7 @@
 
     async function loadLiveStats() {
       try {
-        // Stuur Bungie token mee zodat live Xur data opgehaald kan worden
-        const token = (typeof getValidToken === 'function') ? await getValidToken() : null;
-        const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
-        const res  = await fetch('/api/bungie-stats', { headers });
+        const res  = await fetch('/api/bungie-stats');
         const data = await res.json();
 
         // Steam spelers
@@ -752,8 +749,6 @@
 
         // Featured Wapens — geladen via bungie-stats
         renderFeaturedWeapons(data.featuredWeapons);
-        const xurLbl = document.getElementById('xurLabel');
-        if (xurLbl) xurLbl.textContent = data.xurIsLive ? '· Xur live data' : '· Populaire wapens';
 
         // Laatste update tijd
         document.getElementById('statsLastUpdate').textContent =
@@ -803,7 +798,7 @@
     }
 
     // loadFeaturedWeaponIcons verwijderd — icoontjes komen via bungie-stats
-    async function openFeaturedWeaponPopup(el) {
+    function openFeaturedWeaponPopup(el) {
       const raw = el.getAttribute('data-weapon');
       if (!raw) return;
       let w;
@@ -814,80 +809,60 @@
       const borderColor = w.isExotic ? 'rgba(212,168,67,0.5)' : 'rgba(155,114,207,0.4)';
       const iconBg      = w.isExotic ? 'linear-gradient(135deg,rgba(160,120,20,0.7),rgba(100,70,5,0.9))' : 'linear-gradient(135deg,rgba(50,30,70,0.7),rgba(25,15,45,0.9))';
 
-      // Toon popup meteen met basis info + loading indicator
-      const popupContent = document.getElementById('itemPopupContent');
-      popupContent.innerHTML = `
-        <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;">
-          <div style="flex-shrink:0;width:72px;height:72px;border-radius:10px;overflow:hidden;background:${iconBg};border:2px solid ${borderColor};">
-            ${w.icon ? `<img src="${escHtml(w.icon)}" width="72" height="72" style="width:72px;height:72px;object-fit:cover;display:block;" referrerpolicy="no-referrer">` : '<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:2rem;">🔫</div>'}
-          </div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:1rem;font-weight:800;color:#fff;line-height:1.2;">${escHtml(w.name)}</div>
-            <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${tierColor};margin-top:3px;">${tierLabel}${w.typeName ? ' · ' + escHtml(w.typeName) : ''}</div>
-            ${w.flavorText ? `<div style="font-size:0.68rem;color:rgba(255,255,255,0.35);margin-top:6px;font-style:italic;line-height:1.4;">${escHtml(w.flavorText)}</div>` : ''}
-          </div>
+      let html = `<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;">
+        <div style="flex-shrink:0;width:72px;height:72px;border-radius:10px;overflow:hidden;background:${iconBg};border:2px solid ${borderColor};">
+          ${w.icon ? `<img src="${escHtml(w.icon)}" width="72" height="72" style="width:72px;height:72px;object-fit:cover;display:block;" referrerpolicy="no-referrer">` : '<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:2rem;">🔫</div>'}
         </div>
-        <div id="featuredPopupExtra" style="text-align:center;padding:16px;color:rgba(255,255,255,0.3);font-size:0.72rem;">Laden...</div>`;
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:1rem;font-weight:800;color:#fff;line-height:1.2;">${escHtml(w.name)}</div>
+          <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${tierColor};margin-top:3px;">${tierLabel}${w.typeName ? ' · ' + escHtml(w.typeName) : ''}</div>
+          ${w.flavorText ? `<div style="font-size:0.68rem;color:rgba(255,255,255,0.35);margin-top:6px;font-style:italic;line-height:1.4;">${escHtml(w.flavorText)}</div>` : ''}
+        </div>
+      </div>`;
 
+      // Stats
+      if (w.stats && w.stats.length) {
+        html += `<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;margin-bottom:14px;">
+          <div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:8px;">Wapen Stats</div>
+          <div style="display:flex;flex-direction:column;gap:5px;">`;
+        w.stats.forEach(s => {
+          const pct = Math.min(s.value, 100);
+          const barColor = pct >= 70 ? '#4caf82' : pct >= 40 ? '#4f8fff' : '#9b72cf';
+          html += `<div style="display:flex;align-items:center;gap:8px;">
+            <div style="font-size:0.67rem;color:rgba(255,255,255,0.4);width:90px;flex-shrink:0;">${escHtml(s.label)}</div>
+            <div style="flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,0.07);overflow:hidden;">
+              <div style="width:${pct}%;height:100%;background:${barColor};border-radius:2px;"></div>
+            </div>
+            <div style="font-size:0.67rem;color:#fff;width:22px;text-align:right;">${s.value}</div>
+          </div>`;
+        });
+        html += `</div></div>`;
+      }
+
+      // Perks
+      if (w.perks && w.perks.length) {
+        html += `<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;">
+          <div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:10px;">Perks</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">`;
+        w.perks.forEach(p => {
+          html += `<div style="display:flex;align-items:flex-start;gap:10px;">
+            <div style="flex-shrink:0;width:34px;height:34px;border-radius:50%;overflow:hidden;background:rgba(155,114,207,0.15);border:1px solid rgba(155,114,207,0.4);">
+              ${p.icon ? `<img src="${escHtml(p.icon)}" width="34" height="34" style="width:34px;height:34px;object-fit:cover;display:block;" referrerpolicy="no-referrer">` : ''}
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:0.76rem;font-weight:700;color:#fff;">${escHtml(p.name)}</div>
+              ${p.desc ? `<div style="font-size:0.65rem;color:rgba(255,255,255,0.4);line-height:1.45;margin-top:2px;">${escHtml(p.desc)}</div>` : ''}
+            </div>
+          </div>`;
+        });
+        html += `</div></div>`;
+      }
+
+      document.getElementById('itemPopupContent').innerHTML = html;
       document.getElementById('itemPopup').style.display = 'block';
       document.getElementById('itemPopupOverlay').style.display = 'block';
       document.body.style.overflow = 'hidden';
-
-      // Haal stats + perks op via manifest
-      if (!w.hash) return;
-      try {
-        const res = await fetch('/api/bungie-proxy?action=itemdetail&hash=' + w.hash);
-        if (!res.ok) { document.getElementById('featuredPopupExtra').textContent = ''; return; }
-        const detail = await res.json();
-
-        let extra = '';
-
-        // Stats
-        if (detail.stats && detail.stats.length) {
-          extra += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;margin-bottom:14px;">'
-            + '<div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:8px;">Wapen Stats</div>'
-            + '<div style="display:flex;flex-direction:column;gap:5px;">';
-          detail.stats.forEach(s => {
-            const pct = Math.min(s.value, 100);
-            const barColor = pct >= 70 ? '#4caf82' : pct >= 40 ? '#4f8fff' : '#9b72cf';
-            extra += `<div style="display:flex;align-items:center;gap:8px;">
-              <div style="font-size:0.67rem;color:rgba(255,255,255,0.4);width:90px;flex-shrink:0;">${escHtml(s.label)}</div>
-              <div style="flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,0.07);overflow:hidden;">
-                <div style="width:${pct}%;height:100%;background:${barColor};border-radius:2px;"></div>
-              </div>
-              <div style="font-size:0.67rem;color:#fff;width:28px;text-align:right;">${s.value}</div>
-            </div>`;
-          });
-          extra += '</div></div>';
-        }
-
-        // Perks
-        if (detail.perks && detail.perks.length) {
-          extra += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;">'
-            + '<div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:10px;">Perks</div>'
-            + '<div style="display:flex;flex-direction:column;gap:10px;">';
-          detail.perks.forEach(p => {
-            extra += `<div style="display:flex;align-items:flex-start;gap:10px;">
-              <div style="flex-shrink:0;width:34px;height:34px;border-radius:50%;overflow:hidden;background:rgba(155,114,207,0.15);border:1px solid rgba(155,114,207,0.4);">
-                ${p.icon ? `<img src="${escHtml(p.icon)}" width="34" height="34" style="width:34px;height:34px;object-fit:cover;display:block;" referrerpolicy="no-referrer">` : ''}
-              </div>
-              <div style="flex:1;min-width:0;">
-                <div style="font-size:0.76rem;font-weight:700;color:#fff;">${escHtml(p.name)}</div>
-                ${p.desc ? `<div style="font-size:0.65rem;color:rgba(255,255,255,0.4);line-height:1.45;margin-top:2px;">${escHtml(p.desc)}</div>` : ''}
-              </div>
-            </div>`;
-          });
-          extra += '</div></div>';
-        }
-
-        const extraEl = document.getElementById('featuredPopupExtra');
-        if (extraEl) extraEl.outerHTML = extra || '';
-      } catch(e) {
-        const extraEl = document.getElementById('featuredPopupExtra');
-        if (extraEl) extraEl.textContent = '';
-      }
     }
-
 
     // Countdown timer (live aftellen per seconde)
     function startCountdown(elId, targetMs) {
