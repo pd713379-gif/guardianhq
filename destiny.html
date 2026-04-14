@@ -747,9 +747,8 @@
           renderActivities([]);
         }
 
-        // Featured Wapens (Xur) — eerst fallback tonen, dan live laden
+        // Featured Wapens — geladen via bungie-stats
         renderFeaturedWeapons(data.featuredWeapons);
-        loadLiveXurWeapons();
 
         // Laatste update tijd
         document.getElementById('statsLastUpdate').textContent =
@@ -758,20 +757,6 @@
       } catch(err) {
         console.warn('[live-stats] Fout:', err.message);
         document.getElementById('statsLastUpdate').textContent = 'Stats tijdelijk niet beschikbaar';
-      }
-    }
-
-    // ── LIVE XUR WAPENS LADEN ──
-    async function loadLiveXurWeapons() {
-      try {
-        const res = await fetch('/api/bungie-proxy?action=xurweapons');
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data.weapons && data.weapons.length > 0) {
-          renderFeaturedWeapons(data.weapons);
-        }
-      } catch(e) {
-        console.warn('[xur] Kon live Xur wapens niet laden:', e.message);
       }
     }
 
@@ -795,7 +780,7 @@
         const tierLabel   = w.isExotic ? '\u2b50 Exotic' : '\ud83d\udc9c Legendary';
         const tierColor   = w.isExotic ? '#f5c842' : '#9b72cf';
         const dataW = escHtml(JSON.stringify(w));
-        const proxyIcon = w.icon ? '/api/bungie-proxy?action=img&url=' + encodeURIComponent(w.icon) : '';
+        const proxyIcon = w.icon || '';
 
         return '<div class="w-card ' + (w.isExotic ? 'w-exotic' : 'w-legendary') + '"'
           + ' style="display:flex;align-items:center;gap:10px;padding:10px;cursor:pointer;border:1px solid ' + borderColor + ';border-radius:12px;"'
@@ -812,40 +797,7 @@
       }).join('');
     }
 
-    async function loadFeaturedWeaponIcons() {
-      try {
-        const res = await fetch('/api/bungie-proxy?action=weaponicons');
-        if (!res.ok) return;
-        const icons = await res.json();
-        const grid = document.getElementById('featuredWeaponsGrid');
-        if (!grid) return;
-        const cards = grid.querySelectorAll('[data-weapon]');
-        cards.forEach(card => {
-          try {
-            const w = JSON.parse(card.getAttribute('data-weapon').replace(/&quot;/g,'"'));
-            let iconUrl = null;
-            if (w.name === 'Falling Guillotine' && icons.fallingGuillotine) iconUrl = icons.fallingGuillotine;
-            if (w.name === 'Palindrome' && icons.palindrome)                iconUrl = icons.palindrome;
-            if (w.name === 'Gjallarhorn' && icons.gjallarhorn)              iconUrl = icons.gjallarhorn;
-            if (w.name === 'The Messenger' && icons.messenger)              iconUrl = icons.messenger;
-            if (iconUrl) {
-              const proxySrc = '/api/bungie-proxy?action=img&url=' + encodeURIComponent(iconUrl);
-              let img = card.querySelector('img.w-icon-img');
-              if (!img) {
-                img = card.querySelector('img');
-              }
-              if (img) {
-                img.src = proxySrc;
-                img.style.display = 'block';
-                const emoji = img.nextElementSibling;
-                if (emoji) emoji.style.display = 'none';
-              }
-            }
-          } catch {}
-        });
-      } catch {}
-    }
-    loadFeaturedWeaponIcons();
+    // loadFeaturedWeaponIcons verwijderd — icoontjes komen via bungie-stats
     function openFeaturedWeaponPopup(el) {
       const raw = el.getAttribute('data-weapon');
       if (!raw) return;
@@ -1100,37 +1052,7 @@
       },
     ];
 
-    // Haal echte weapon icons op via server proxy
-    async function fetchRealWeaponIcons() {
-      try {
-        const res  = await fetch('/api/bungie-proxy?action=weaponicons');
-        if (!res.ok) return;
-        const icons = await res.json();
-
-        // Koppel de iconen aan de juiste wapens
-        const MAP = {
-          palindrome:        0,
-          igneous:           1,
-          retrofit:          2,
-          apex:              3,
-          fallingGuillotine: 4,
-          wishEnder:         5,
-          likelySuspect:     6,
-        };
-        let changed = false;
-        for (const [key, idx] of Object.entries(MAP)) {
-          if (icons[key]) {
-            WISHLIST_WEAPONS[idx].icon = icons[key];
-            changed = true;
-          }
-        }
-        if (changed) loadWishlistIcons();
-      } catch(e) {
-        console.warn('Weapon icons laden mislukt:', e.message);
-        // Stilletjes falen — statische fallback URLs blijven actief
-      }
-    }
-    fetchRealWeaponIcons();
+    // Wishlist icons zijn al statisch ingesteld in WISHLIST_WEAPONS — geen proxy nodig
 
     function loadWishlistIcons() {
       const container = document.getElementById('wishlistContainer');
