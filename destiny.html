@@ -166,7 +166,7 @@
 
           <!-- Wapens -->
           <div class="d-card glass">
-            <div class="d-card-label">🔫 Featured Wapens <span style="font-size:0.7rem;color:var(--text3);font-weight:400">· Xur deze week</span></div>
+            <div class="d-card-label">🔫 Featured Wapens <span id="xurLabel" style="font-size:0.7rem;color:var(--text3);font-weight:400">· Xur deze week</span></div>
             <div id="featuredWeaponsGrid" class="weapon-grid">
               <div style="color:var(--text3);font-size:0.8rem;padding:8px">Laden...</div>
             </div>
@@ -699,7 +699,10 @@
 
     async function loadLiveStats() {
       try {
-        const res  = await fetch('/api/bungie-stats');
+        // Stuur Bungie token mee zodat live Xur data opgehaald kan worden
+        const token = (typeof getValidToken === 'function') ? await getValidToken() : null;
+        const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
+        const res  = await fetch('/api/bungie-stats', { headers });
         const data = await res.json();
 
         // Steam spelers
@@ -749,6 +752,8 @@
 
         // Featured Wapens — geladen via bungie-stats
         renderFeaturedWeapons(data.featuredWeapons);
+        const xurLbl = document.getElementById('xurLabel');
+        if (xurLbl) xurLbl.textContent = data.xurIsLive ? '· Xur live data' : '· Populaire wapens';
 
         // Laatste update tijd
         document.getElementById('statsLastUpdate').textContent =
