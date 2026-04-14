@@ -441,25 +441,14 @@
 
         const container = document.getElementById('newsContainer');
         container.innerHTML = data.results.slice(0, 6).map(item => {
-          const date  = formatNewsDate(item.CreationDate);
-          const title = item.Subject || (item.Content && item.Content.properties && item.Content.properties.Title) || 'Geen titel';
-          // URL komt al volledig terug van de API
-          const url   = item.Url || 'https://www.bungie.net/7/en/News';
-          const img   = item.Image || '';
-          const sub   = item.Subtitle || '';
-
-          const imgHtml = img
-            ? `<img src="${img}" alt="" style="width:100%;height:80px;object-fit:cover;border-radius:4px;margin-bottom:6px;display:block;" loading="lazy" onerror="this.style.display='none'">`
-            : '';
-          const subHtml = sub
-            ? `<div class="news-sub" style="font-size:0.72rem;color:var(--text3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${sub}</div>`
-            : '';
-
+          const date = formatNewsDate(item.CreationDate);
+          const title = item.Content && item.Content.properties && item.Content.properties.Title
+            ? item.Content.properties.Title
+            : item.Subject || 'Geen titel';
+          const url = item.Url ? 'https://www.bungie.net' + item.Url : 'https://www.bungie.net/7/en/News';
           return `<div class="news-item" onclick="window.open('${url}','_blank')" style="cursor:pointer">
-            ${imgHtml}
             <div class="news-time">${date}</div>
             <div class="news-headline">${title}</div>
-            ${subHtml}
           </div>`;
         }).join('');
       } catch(err) {
