@@ -356,17 +356,23 @@
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:1rem">
           <div>
             <div style="font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:4px">Vault Overzicht</div>
-            <div style="font-size:0.875rem;color:var(--text2)"><span class="val-gold" style="font-weight:700" id="vaultCount">30</span> items opgeslagen</div>
+            <div style="font-size:0.875rem;color:var(--text2)">
+              <span class="val-gold" style="font-weight:700" id="vaultCount">—</span> items opgeslagen
+              <span id="vaultFilterCount" style="color:var(--text3);margin-left:6px"></span>
+            </div>
           </div>
+          <input id="vaultSearch" type="text" placeholder="🔍 Zoek op naam..." oninput="applyVaultFilter()"
+            style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:7px 12px;color:#fff;font-size:0.82rem;width:200px;outline:none;">
         </div>
         <div class="vault-filters">
-          <button class="vf-btn active" onclick="filterVault(this,'all')">Alles</button>
-          <button class="vf-btn" onclick="filterVault(this,'weapons')">🔫 Wapens</button>
-          <button class="vf-btn" onclick="filterVault(this,'armor')">🛡️ Armor</button>
-          <button class="vf-btn" onclick="filterVault(this,'exotic')">⭐ Exotic</button>
-          <button class="vf-btn" onclick="filterVault(this,'legendary')">💜 Legendary</button>
+          <button class="vf-btn active" data-filter="all"      onclick="setVaultFilter(this,'all')">Alles</button>
+          <button class="vf-btn"        data-filter="weapons"  onclick="setVaultFilter(this,'weapons')">🔫 Wapens</button>
+          <button class="vf-btn"        data-filter="armor"    onclick="setVaultFilter(this,'armor')">🛡️ Armor</button>
+          <button class="vf-btn"        data-filter="exotic"   onclick="setVaultFilter(this,'exotic')">⭐ Exotic</button>
+          <button class="vf-btn"        data-filter="legendary" onclick="setVaultFilter(this,'legendary')">💜 Legendary</button>
         </div>
-        <div class="d-card glass">
+        <div class="d-card glass" style="min-height:200px">
+          <div id="vaultState" style="color:var(--text3);font-size:0.85rem;padding:16px;text-align:center;display:none"></div>
           <div class="vault-grid" id="vaultGrid"></div>
         </div>
       </div>
@@ -1134,12 +1140,147 @@
       `).join('');
     }
 
+    // ── VAULT LADEN ────────────────────────────────────────────
+    let _vaultItems     = [];       // alle items van API
+    let _vaultFilter    = 'all';    // actief filter
+    let _vaultLoaded    = false;    // voorkom dubbel laden
+
+    async function loadVault() {
+      const state = document.getElementById('vaultState');
+      const grid  = document.getElementById('vaultGrid');
+      if (!grid) return;
+
+      if (_vaultLoaded) { applyVaultFilter(); return; }
+
+      state.style.display = 'block';
+      state.textContent   = '⏳ Vault laden...';
+      grid.innerHTML      = '';
+
+      try {
+        const token = await getValidToken();
+        if (!token) {
+          state.textContent = '🔒 Koppel eerst je Bungie account om je vault te zien.';
+          return;
+        }
+
+        const res  = await fetch('/api/bungie-proxy?action=vault', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          state.textContent = '⚠️ Fout: ' + (err.error || res.status);
+          return;
+        }
+
+        const data = await res.json();
+        _vaultItems  = data.items ?? [];
+        _vaultLoaded = true;
+
+        document.getElementById('vaultCount').textContent = _vaultItems.length;
+        state.style.display = 'none';
+        applyVaultFilter();
+
+      } catch(e) {
+        state.style.display = 'block';
+        state.textContent   = '⚠️ Kan vault niet laden: ' + e.message;
+      }
+    }
+
+    function setVaultFilter(btn, filter) {
+      document.querySelectorAll('.vf-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      _vaultFilter = filter;
+      applyVaultFilter();
+    }
+
+    // Oude filterVault — blijft werken als fallback
+    function filterVault(btn, filter) { setVaultFilter(btn, filter); }
+
+    function applyVaultFilter() {
+      const grid    = document.getElementById('vaultGrid');
+      const search  = (document.getElementById('vaultSearch')?.value ?? '').toLowerCase().trim();
+      const counter = document.getElementById('vaultFilterCount');
+      if (!grid) return;
+
+      let filtered = _vaultItems;
+
+      // Type filter
+      if (_vaultFilter === 'weapons')  filtered = filtered.filter(i => i.isWeapon);
+      if (_vaultFilter === 'armor')    filtered = filtered.filter(i => i.isArmor);
+      if (_vaultFilter === 'exotic')   filtered = filtered.filter(i => i.isExotic);
+      if (_vaultFilter === 'legendary') filtered = filtered.filter(i => i.isLegendary);
+
+      // Zoek filter
+      if (search) filtered = filtered.filter(i => i.name.toLowerCase().includes(search));
+
+      counter.textContent = filtered.length !== _vaultItems.length ? `(${filtered.length} getoond)` : '';
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div style="color:var(--text3);font-size:0.85rem;padding:16px;text-align:center">Geen items gevonden.</div>';
+        return;
+      }
+
+      grid.innerHTML = filtered.map(item => {
+        const tc     = item.isExotic ? '#CEAE33' : item.isLegendary ? '#9b72cf' : '#4d79a4';
+        const border = item.isExotic ? 'rgba(206,174,51,0.5)' : item.isLegendary ? 'rgba(155,114,207,0.4)' : 'rgba(77,121,164,0.3)';
+        const bg     = item.isExotic ? 'rgba(206,174,51,0.08)' : 'rgba(255,255,255,0.03)';
+        const powerBadge = item.power > 0 ? `<div style="position:absolute;bottom:2px;right:3px;font-size:0.52rem;font-weight:800;color:#f5c842;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,0.9);">⚡${item.power}</div>` : '';
+        const typeDot = item.isWeapon
+          ? (item.damageColor ? `<div style="position:absolute;top:3px;left:3px;width:6px;height:6px;border-radius:50%;background:${item.damageColor};box-shadow:0 0 4px ${item.damageColor};"></div>` : '')
+          : `<div style="position:absolute;top:3px;left:3px;width:6px;height:6px;border-radius:50%;background:#9b72cf;opacity:0.7;"></div>`;
+
+        const iconHtml = item.icon
+          ? `<img src="/api/bungie-proxy?action=img&url=${encodeURIComponent(item.icon)}" width="56" height="56" style="width:56px;height:56px;object-fit:cover;display:block;border-radius:6px;" loading="lazy" onerror="this.style.display='none'">`
+          : `<div style="width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">${item.isWeapon ? '🔫' : '🛡️'}</div>`;
+
+        const dataItem = escHtml(JSON.stringify({ name: item.name, typeName: item.typeName, icon: item.icon, isExotic: item.isExotic, power: item.power, damageColor: item.damageColor }));
+
+        return `<div class="vault-item" title="${escHtml(item.name)}"
+          style="position:relative;width:60px;height:60px;border-radius:8px;overflow:hidden;border:1.5px solid ${border};background:${bg};cursor:pointer;flex-shrink:0;"
+          onclick="openVaultItemPopup(this)" data-item="${dataItem}">
+          ${iconHtml}
+          ${typeDot}
+          ${powerBadge}
+        </div>`;
+      }).join('');
+    }
+
+    function openVaultItemPopup(el) {
+      const raw = el.getAttribute('data-item');
+      if (!raw) return;
+      let item;
+      try { item = JSON.parse(raw.replace(/&quot;/g, '"').replace(/&#39;/g, "'")); } catch { return; }
+
+      const tc     = item.isExotic ? '#CEAE33' : '#9b72cf';
+      const border = item.isExotic ? 'rgba(206,174,51,0.5)' : 'rgba(155,114,207,0.4)';
+      const iconBg = item.isExotic ? 'linear-gradient(135deg,rgba(160,120,20,0.7),rgba(100,70,5,0.9))' : 'linear-gradient(135deg,rgba(50,30,70,0.7),rgba(25,15,45,0.9))';
+
+      let html = `<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:12px;">
+        <div style="flex-shrink:0;width:72px;height:72px;border-radius:10px;overflow:hidden;background:${iconBg};border:2px solid ${border};">
+          ${item.icon ? `<img src="/api/bungie-proxy?action=img&url=${encodeURIComponent(item.icon)}" width="72" height="72" style="width:72px;height:72px;object-fit:cover;display:block;">` : '<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:2rem;">🔫</div>'}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:1rem;font-weight:800;color:#fff;line-height:1.2;">${escHtml(item.name)}</div>
+          <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${tc};margin-top:3px;">${item.isExotic ? 'Exotic' : 'Legendary'} · ${escHtml(item.typeName)}</div>
+          ${item.power > 0 ? `<div style="font-size:0.75rem;color:#f5c842;margin-top:6px;font-weight:700;">⚡ ${item.power} Power</div>` : ''}
+          ${item.damageColor ? `<div style="display:inline-flex;align-items:center;gap:5px;margin-top:5px;"><div style="width:8px;height:8px;border-radius:50%;background:${item.damageColor};"></div><span style="font-size:0.65rem;color:rgba(255,255,255,0.4);">Element</span></div>` : ''}
+        </div>
+      </div>`;
+
+      document.getElementById('itemPopupContent').innerHTML = html;
+      document.getElementById('itemPopup').style.display    = 'block';
+      document.getElementById('itemPopupOverlay').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+
     // Laad wishlist iconen wanneer tab geselecteerd wordt
     const origSwitchTab = window.switchTab;
     window.switchTab = function(tab) {
       if (typeof origSwitchTab === 'function') origSwitchTab(tab);
       if (tab === 'wishlist') loadWishlistIcons();
-      if (tab === 'dim') initDimTab();
+      if (tab === 'dim')   initDimTab();
+      if (tab === 'vault') loadVault();
     };
     if (document.getElementById('pane-wishlist')?.classList.contains('active')) {
       loadWishlistIcons();
@@ -1439,10 +1580,7 @@
       var className = char.className || 'Hunter';
       var theme     = CLASS_THEMES[className] || CLASS_THEMES.Hunter;
       var subEl     = char.subclass || {};
-      var _rawEl  = (subEl.element || "").toLowerCase();
-      var _nm     = (subEl.name || "").toLowerCase();
-      var _nmap   = {prismatic:"prismatic",arc:"arc",solar:"solar","void":"void",stasis:"stasis",strand:"strand","arc strider":"arc",stormcaller:"arc",striker:"arc",gunslinger:"solar",dawnblade:"solar",sunbreaker:"solar",nightstalker:"void",voidwalker:"void",sentinel:"void",revenant:"stasis",shadebinder:"stasis",behemoth:"stasis",threadrunner:"strand",broodweaver:"strand",berserker:"strand"};
-      var element = _rawEl || _nmap[_nm] || "void";
+      var element   = (subEl.element || 'void').toLowerCase();
       var ec        = ELEM_COLORS[element] || ELEM_COLORS.void;
       var subSVG    = ELEM_SVGS[element]   || ELEM_SVGS.void;
 
