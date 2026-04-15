@@ -240,7 +240,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 1.5rem}
 .live-dot::before{content:'';width:5px;height:5px;border-radius:50%;background:#e8622a;animation:blink 1.5s infinite}
 
 /* TABS */
-.d-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:1.5rem;overflow-x:auto}
+.d-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:1.5rem;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}.d-tabs::-webkit-scrollbar{display:none}
 .d-tab{
   padding:10px 20px;font-size:0.85rem;font-weight:600;color:var(--text3);
   cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;
