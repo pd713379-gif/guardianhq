@@ -353,27 +353,51 @@
 
       <!-- ── VAULT ── -->
       <div class="d-pane" id="pane-vault">
+        <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:1rem">
           <div>
             <div style="font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:4px">Vault Overzicht</div>
             <div style="font-size:0.875rem;color:var(--text2)">
-              <span class="val-gold" style="font-weight:700" id="vaultCount">—</span> items opgeslagen
+              <span class="val-gold" style="font-weight:700" id="vaultCount">—</span> items
               <span id="vaultFilterCount" style="color:var(--text3);margin-left:6px"></span>
             </div>
           </div>
           <input id="vaultSearch" type="text" placeholder="🔍 Zoek op naam..." oninput="applyVaultFilter()"
             style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:7px 12px;color:#fff;font-size:0.82rem;width:200px;outline:none;">
         </div>
-        <div class="vault-filters">
-          <button class="vf-btn active" data-filter="all"      onclick="setVaultFilter(this,'all')">Alles</button>
-          <button class="vf-btn"        data-filter="weapons"  onclick="setVaultFilter(this,'weapons')">🔫 Wapens</button>
-          <button class="vf-btn"        data-filter="armor"    onclick="setVaultFilter(this,'armor')">🛡️ Armor</button>
-          <button class="vf-btn"        data-filter="exotic"   onclick="setVaultFilter(this,'exotic')">⭐ Exotic</button>
-          <button class="vf-btn"        data-filter="legendary" onclick="setVaultFilter(this,'legendary')">💜 Legendary</button>
+
+        <!-- Hoofd filter: Alles / Wapens / Armor per klasse -->
+        <div class="vault-filters" id="vaultMainFilters">
+          <button class="vf-btn active" data-main="all"            onclick="setVaultMain(this,'all')">Alles</button>
+          <button class="vf-btn"        data-main="weapons"        onclick="setVaultMain(this,'weapons')">🔫 Wapens</button>
+          <button class="vf-btn"        data-main="armor-hunter"   onclick="setVaultMain(this,'armor-hunter')">🏹 Hunter Armor</button>
+          <button class="vf-btn"        data-main="armor-warlock"  onclick="setVaultMain(this,'armor-warlock')">🔮 Warlock Armor</button>
+          <button class="vf-btn"        data-main="armor-titan"    onclick="setVaultMain(this,'armor-titan')">🛡️ Titan Armor</button>
         </div>
-        <div class="d-card glass" style="min-height:200px">
+
+        <!-- Sub filter wapens: Kinetic / Energy / Power -->
+        <div class="vault-filters" id="vaultWeaponFilters" style="display:none;margin-top:6px;">
+          <button class="vf-btn active" data-sub="all"     onclick="setVaultSub(this,'all')">Alle Slots</button>
+          <button class="vf-btn"        data-sub="kinetic" onclick="setVaultSub(this,'kinetic')">⚪ Kinetic</button>
+          <button class="vf-btn"        data-sub="energy"  onclick="setVaultSub(this,'energy')">🔵 Energy</button>
+          <button class="vf-btn"        data-sub="power"   onclick="setVaultSub(this,'power')">🟡 Power</button>
+        </div>
+
+        <!-- Sub filter armor: slot type -->
+        <div class="vault-filters" id="vaultArmorFilters" style="display:none;margin-top:6px;">
+          <button class="vf-btn active" data-sub="all"      onclick="setVaultSub(this,'all')">Alle Slots</button>
+          <button class="vf-btn"        data-sub="helmet"   onclick="setVaultSub(this,'helmet')">⛑️ Helmet</button>
+          <button class="vf-btn"        data-sub="gauntlets" onclick="setVaultSub(this,'gauntlets')">🥊 Gauntlets</button>
+          <button class="vf-btn"        data-sub="chest"    onclick="setVaultSub(this,'chest')">👕 Chest</button>
+          <button class="vf-btn"        data-sub="legs"     onclick="setVaultSub(this,'legs')">👖 Legs</button>
+          <button class="vf-btn"        data-sub="classitem" onclick="setVaultSub(this,'classitem')">🎗️ Class Item</button>
+          <button class="vf-btn"        data-sub="exotic"   onclick="setVaultSub(this,'exotic')">⭐ Exotic</button>
+          <button class="vf-btn"        data-sub="artifice" onclick="setVaultSub(this,'artifice')" title="Master Dungeon armor met extra mod slot">🔱 Artifice</button>
+        </div>
+
+        <div class="d-card glass" style="min-height:200px;margin-top:10px;">
           <div id="vaultState" style="color:var(--text3);font-size:0.85rem;padding:16px;text-align:center;display:none"></div>
-          <div class="vault-grid" id="vaultGrid"></div>
+          <div id="vaultGrid"></div>
         </div>
       </div>
 
@@ -441,25 +465,14 @@
 
         const container = document.getElementById('newsContainer');
         container.innerHTML = data.results.slice(0, 6).map(item => {
-          const date  = formatNewsDate(item.CreationDate);
-          const title = item.Subject || (item.Content && item.Content.properties && item.Content.properties.Title) || 'Geen titel';
-          // URL komt al volledig terug van de API
-          const url   = item.Url || 'https://www.bungie.net/7/en/News';
-          const img   = item.Image || '';
-          const sub   = item.Subtitle || '';
-
-          const imgHtml = img
-            ? `<img src="${img}" alt="" style="width:100%;height:80px;object-fit:cover;border-radius:4px;margin-bottom:6px;display:block;" loading="lazy" onerror="this.style.display='none'">`
-            : '';
-          const subHtml = sub
-            ? `<div class="news-sub" style="font-size:0.72rem;color:var(--text3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${sub}</div>`
-            : '';
-
+          const date = formatNewsDate(item.CreationDate);
+          const title = item.Content && item.Content.properties && item.Content.properties.Title
+            ? item.Content.properties.Title
+            : item.Subject || 'Geen titel';
+          const url = item.Url ? 'https://www.bungie.net' + item.Url : 'https://www.bungie.net/7/en/News';
           return `<div class="news-item" onclick="window.open('${url}','_blank')" style="cursor:pointer">
-            ${imgHtml}
             <div class="news-time">${date}</div>
             <div class="news-headline">${title}</div>
-            ${subHtml}
           </div>`;
         }).join('');
       } catch(err) {
@@ -1198,15 +1211,53 @@
       }
     }
 
-    function setVaultFilter(btn, filter) {
-      document.querySelectorAll('.vf-btn').forEach(b => b.classList.remove('active'));
+    // ── Vault filter state ─────────────────────────────────────
+    let _vaultMain = 'all';   // all | weapons | armor-hunter | armor-warlock | armor-titan
+    let _vaultSub  = 'all';   // all | kinetic | energy | power | helmet | gauntlets | chest | legs | classitem | exotic | artifice
+
+    function setVaultMain(btn, main) {
+      document.querySelectorAll('#vaultMainFilters .vf-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      _vaultFilter = filter;
+      _vaultMain = main;
+      _vaultSub  = 'all';
+
+      // Sub filter zichtbaarheid
+      const wf = document.getElementById('vaultWeaponFilters');
+      const af = document.getElementById('vaultArmorFilters');
+      wf.style.display = main === 'weapons' ? 'flex' : 'none';
+      af.style.display = main.startsWith('armor') ? 'flex' : 'none';
+
+      // Reset sub filter active state
+      document.querySelectorAll('#vaultWeaponFilters .vf-btn, #vaultArmorFilters .vf-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.sub === 'all');
+      });
+
       applyVaultFilter();
     }
 
-    // Oude filterVault — blijft werken als fallback
-    function filterVault(btn, filter) { setVaultFilter(btn, filter); }
+    function setVaultSub(btn, sub) {
+      const parent = btn.closest('.vault-filters');
+      parent.querySelectorAll('.vf-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      _vaultSub = sub;
+      applyVaultFilter();
+    }
+
+    // Legacy fallback
+    function setVaultFilter(btn, f) { setVaultMain(btn, f); }
+    function filterVault(btn, f)    { setVaultMain(btn, f); }
+
+    // Bucket hash → slot key
+    const BUCKET_SLOT = {
+      1498876634: 'kinetic', 2465295065: 'energy', 953998645: 'power',
+      3448274439: 'helmet',  3551918588: 'gauntlets', 14239492: 'chest',
+      20886954:   'legs',    1585787867: 'classitem',
+    };
+    const SLOT_LABEL = {
+      kinetic: 'Kinetic', energy: 'Energy', power: 'Power / Heavy',
+      helmet: 'Helmet', gauntlets: 'Gauntlets', chest: 'Chest Armor',
+      legs: 'Leg Armor', classitem: 'Class Item', exotic: 'Exotic Armor', artifice: 'Artifice Armor',
+    };
 
     function applyVaultFilter() {
       const grid    = document.getElementById('vaultGrid');
@@ -1214,55 +1265,117 @@
       const counter = document.getElementById('vaultFilterCount');
       if (!grid) return;
 
+      // Stap 1: hoofd filter
       let filtered = _vaultItems;
+      if (_vaultMain === 'weapons') {
+        filtered = filtered.filter(i => i.isWeapon);
+      } else if (_vaultMain === 'armor-hunter') {
+        filtered = filtered.filter(i => i.isArmor && (i.classType === 1 || i.classType === 3));
+      } else if (_vaultMain === 'armor-warlock') {
+        filtered = filtered.filter(i => i.isArmor && (i.classType === 2 || i.classType === 3));
+      } else if (_vaultMain === 'armor-titan') {
+        filtered = filtered.filter(i => i.isArmor && (i.classType === 0 || i.classType === 3));
+      }
 
-      // Type filter
-      if (_vaultFilter === 'weapons')  filtered = filtered.filter(i => i.isWeapon);
-      if (_vaultFilter === 'armor')    filtered = filtered.filter(i => i.isArmor);
-      if (_vaultFilter === 'exotic')   filtered = filtered.filter(i => i.isExotic);
-      if (_vaultFilter === 'legendary') filtered = filtered.filter(i => i.isLegendary);
+      // Stap 2: sub filter
+      if (_vaultSub !== 'all') {
+        if (_vaultSub === 'exotic')   filtered = filtered.filter(i => i.isExotic);
+        else if (_vaultSub === 'artifice') filtered = filtered.filter(i => i.isArtifice);
+        else filtered = filtered.filter(i => BUCKET_SLOT[i.bucketHash] === _vaultSub);
+      }
 
-      // Zoek filter
+      // Stap 3: zoek filter
       if (search) filtered = filtered.filter(i => i.name.toLowerCase().includes(search));
 
-      counter.textContent = filtered.length !== _vaultItems.length ? `(${filtered.length} getoond)` : '';
+      counter.textContent = `(${filtered.length})`;
 
       if (filtered.length === 0) {
-        grid.innerHTML = '<div style="color:var(--text3);font-size:0.85rem;padding:16px;text-align:center">Geen items gevonden.</div>';
+        grid.innerHTML = '<div style="color:var(--text3);font-size:0.85rem;padding:24px;text-align:center">Geen items gevonden.</div>';
         return;
       }
 
-      grid.innerHTML = filtered.map(item => {
-        const tc     = item.isExotic ? '#CEAE33' : item.isLegendary ? '#9b72cf' : '#4d79a4';
-        const border = item.isExotic ? 'rgba(206,174,51,0.5)' : item.isLegendary ? 'rgba(155,114,207,0.4)' : 'rgba(77,121,164,0.3)';
-        const bg     = item.isExotic ? 'rgba(206,174,51,0.08)' : 'rgba(255,255,255,0.03)';
-        const powerBadge = item.power > 0 ? `<div style="position:absolute;bottom:2px;right:3px;font-size:0.52rem;font-weight:800;color:#f5c842;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,0.9);">⚡${item.power}</div>` : '';
-        const typeDot = item.isWeapon
-          ? (item.damageColor ? `<div style="position:absolute;top:3px;left:3px;width:6px;height:6px;border-radius:50%;background:${item.damageColor};box-shadow:0 0 4px ${item.damageColor};"></div>` : '')
-          : `<div style="position:absolute;top:3px;left:3px;width:6px;height:6px;border-radius:50%;background:#9b72cf;opacity:0.7;"></div>`;
+      // Stap 4: groepeer per slot
+      const groups = {};
+      // Bepaal welke slots we willen tonen in welke volgorde
+      let slotOrder;
+      if (_vaultMain === 'weapons') {
+        slotOrder = ['kinetic','energy','power'];
+      } else if (_vaultMain.startsWith('armor')) {
+        if (_vaultSub === 'exotic')   slotOrder = ['exotic'];
+        else if (_vaultSub === 'artifice') slotOrder = ['artifice'];
+        else if (_vaultSub !== 'all') slotOrder = [_vaultSub];
+        else slotOrder = ['helmet','gauntlets','chest','legs','classitem'];
+      } else {
+        // Alles: wapens dan armor per klasse
+        slotOrder = ['kinetic','energy','power','helmet','gauntlets','chest','legs','classitem'];
+      }
 
-        const iconHtml = item.icon
-          ? `<img src="/api/bungie-proxy?action=img&url=${encodeURIComponent(item.icon)}" width="56" height="56" style="width:56px;height:56px;object-fit:cover;display:block;border-radius:6px;" loading="lazy" onerror="this.style.display='none'">`
-          : `<div style="width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">${item.isWeapon ? '🔫' : '🛡️'}</div>`;
+      for (const slot of slotOrder) groups[slot] = [];
 
-        const dataItem = escHtml(JSON.stringify({
-          name: item.name, typeName: item.typeName, icon: item.icon,
-          isExotic: item.isExotic, isLegendary: item.isLegendary,
-          isWeapon: item.isWeapon, isArmor: item.isArmor,
-          power: item.power, damageType: item.damageType, damageColor: item.damageColor,
-          intrinsics: item.intrinsics ?? [], perks: item.perks ?? [],
-          weaponStats: item.weaponStats ?? [], armorStatList: item.armorStatList ?? [],
-          armorTotal: item.armorTotal ?? 0,
-        }));
+      for (const item of filtered) {
+        const slot = BUCKET_SLOT[item.bucketHash] ?? 'other';
+        if (_vaultSub === 'exotic')   { groups['exotic']?.push(item); }
+        else if (_vaultSub === 'artifice') { groups['artifice']?.push(item); }
+        else if (groups[slot])        { groups[slot].push(item); }
+        else if (_vaultMain === 'all') {
+          // Alles view: armor die niet in slotOrder zit
+          if (!groups['other']) groups['other'] = [];
+          groups['other'].push(item);
+        }
+      }
 
-        return `<div class="vault-item" title="${escHtml(item.name)}"
-          style="position:relative;width:60px;height:60px;border-radius:8px;overflow:hidden;border:1.5px solid ${border};background:${bg};cursor:pointer;flex-shrink:0;"
-          onclick="openVaultItemPopup(this)" data-item="${dataItem}">
-          ${iconHtml}
-          ${typeDot}
-          ${powerBadge}
-        </div>`;
-      }).join('');
+      // Stap 5: render per groep
+      let html = '';
+      for (const slot of Object.keys(groups)) {
+        const groupItems = groups[slot];
+        if (!groupItems || groupItems.length === 0) continue;
+
+        const label = SLOT_LABEL[slot] ?? slot;
+        html += `<div style="margin-bottom:18px;">
+          <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.35);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid rgba(255,255,255,0.06);">
+            ${label} <span style="color:rgba(255,255,255,0.2);font-weight:400;margin-left:4px;">${groupItems.length}</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">`;
+
+        for (const item of groupItems) {
+          const tc     = item.isExotic ? '#CEAE33' : item.isLegendary ? '#9b72cf' : '#4d79a4';
+          const border = item.isExotic ? 'rgba(206,174,51,0.6)' : item.isLegendary ? 'rgba(155,114,207,0.5)' : 'rgba(77,121,164,0.3)';
+          const bg     = item.isExotic ? 'rgba(206,174,51,0.1)' : 'rgba(255,255,255,0.03)';
+          const powerBadge = item.power > 0
+            ? `<div style="position:absolute;bottom:2px;right:3px;font-size:0.5rem;font-weight:800;color:#f5c842;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,0.9);">⚡${item.power}</div>`
+            : '';
+          const artifBadge = item.isArtifice
+            ? `<div style="position:absolute;top:2px;right:2px;font-size:0.55rem;line-height:1;" title="Artifice Armor">🔱</div>`
+            : '';
+          const typeDot = item.isWeapon
+            ? (item.damageColor ? `<div style="position:absolute;top:3px;left:3px;width:6px;height:6px;border-radius:50%;background:${item.damageColor};box-shadow:0 0 4px ${item.damageColor};"></div>` : '')
+            : '';
+          const iconHtml = item.icon
+            ? `<img src="/api/bungie-proxy?action=img&url=${encodeURIComponent(item.icon)}" width="56" height="56" style="width:56px;height:56px;object-fit:cover;display:block;" loading="lazy" onerror="this.style.display='none'">`
+            : `<div style="width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">${item.isWeapon ? '🔫' : '🛡️'}</div>`;
+
+          const dataItem = escHtml(JSON.stringify({
+            name: item.name, typeName: item.typeName, icon: item.icon,
+            isExotic: item.isExotic, isLegendary: item.isLegendary,
+            isWeapon: item.isWeapon, isArmor: item.isArmor, isArtifice: item.isArtifice,
+            power: item.power, damageType: item.damageType, damageColor: item.damageColor,
+            className: item.className,
+            intrinsics: item.intrinsics ?? [], perks: item.perks ?? [],
+            weaponStats: item.weaponStats ?? [], armorStatList: item.armorStatList ?? [],
+            armorTotal: item.armorTotal ?? 0,
+          }));
+
+          html += `<div title="${escHtml(item.name)}"
+            style="position:relative;width:58px;height:58px;border-radius:8px;overflow:hidden;border:1.5px solid ${border};background:${bg};cursor:pointer;flex-shrink:0;transition:transform 0.15s,border-color 0.15s;"
+            onmouseenter="this.style.transform='scale(1.08)';this.style.borderColor='${tc}'"
+            onmouseleave="this.style.transform='scale(1)';this.style.borderColor='${border}'"
+            onclick="openVaultItemPopup(this)" data-item="${dataItem}">
+            ${iconHtml}${typeDot}${powerBadge}${artifBadge}
+          </div>`;
+        }
+        html += `</div></div>`;
+      }
+      grid.innerHTML = html;
     }
 
     function openVaultItemPopup(el) {
@@ -1286,7 +1399,7 @@
         </div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:1rem;font-weight:800;color:#fff;line-height:1.2;">${escHtml(item.name)}</div>
-          <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${tc};margin-top:3px;">${item.isExotic ? 'Exotic' : 'Legendary'} · ${escHtml(item.typeName)}</div>
+          <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${tc};margin-top:3px;">${item.isExotic ? 'Exotic' : 'Legendary'} · ${escHtml(item.typeName)}${item.isArtifice ? ' · 🔱 Artifice' : ''}${item.className && item.className !== 'Any' ? ' · ' + item.className : ''}</div>
           <div style="display:flex;gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap;">
             ${item.power > 0 ? `<span style="font-size:0.78rem;color:#f5c842;font-weight:700;">⚡ ${item.power}</span>` : ''}
             ${item.damageColor ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:0.72rem;color:${item.damageColor};font-weight:600;"><span style="width:7px;height:7px;border-radius:50%;background:${item.damageColor};display:inline-block;"></span>${DAMAGE_NAMES[item.damageType] ?? ''}</span>` : ''}
@@ -1431,7 +1544,7 @@
     }
 
     // ── AUTO-REFRESH INSTELLING (seconden) ──────────────────
-    const ITEM_MANAGER_REFRESH_SEC = 20;
+    const ITEM_MANAGER_REFRESH_SEC = 30;
     let _autoRefreshTimer = null;
 
     function startItemManagerAutoRefresh() {
