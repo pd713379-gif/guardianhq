@@ -866,6 +866,26 @@ export default async function handler(req, res) {
           20886954: 'Legs', 1585787867: 'Class Item',
         };
 
+        // classType: 0=Titan, 1=Hunter, 2=Warlock, 3=Unknown/All
+        const classType = def.classType ?? 3;
+        const CLASS_NAMES = { 0: 'Titan', 1: 'Hunter', 2: 'Warlock', 3: 'Any' };
+
+        // Artifice armor detectie: heeft een extra mod socket (plugCategoryIdentifier bevat 'artificer')
+        let isArtifice = false;
+        for (const socket of sockets) {
+          const plugDef = defs[socket.plugHash];
+          const pType = plugDef?.plug?.plugCategoryIdentifier ?? '';
+          if (pType.includes('artificer') || pType.includes('artifice')) {
+            isArtifice = true;
+            break;
+          }
+          // Ook checken op socketTypeHash voor artifice socket
+          if (socket.socketType && (socket.socketType === 1516993267)) {
+            isArtifice = true;
+            break;
+          }
+        }
+
         items.push({
           itemHash:       raw.itemHash,
           itemInstanceId: raw.itemInstanceId ?? null,
@@ -884,6 +904,9 @@ export default async function handler(req, res) {
           damageColor:    DAMAGE_COLORS[damageType] ?? null,
           bucketHash,
           bucketName:     BUCKET_NAMES[bucketHash] ?? '',
+          classType,
+          className:      CLASS_NAMES[classType] ?? 'Any',
+          isArtifice,
           // perks
           intrinsics:     intrinsics.slice(0, 2),
           perks:          regularPerks.slice(0, 6),
