@@ -1,14 +1,14 @@
 // ============================================================
-// GUARDIANHQ — api/bungie-news.js (STABLE VERSION)
-// Gebruikt Bungie JSON endpoint (GEEN RSS parsing meer)
-// Met caching + fallback
+// GUARDIANHQ — api/bungie-news.js (FINAL STABLE)
+// 100% JSON (GEEN RSS)
+// Fallback + caching + timeout
 // ============================================================
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
 
-  // Slimme cache (sneller + minder API issues)
+  // Edge caching (sneller + stabieler)
   res.setHeader(
     'Cache-Control',
     's-maxage=60, stale-while-revalidate=120'
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'BUNGIE_API_KEY ontbreekt.' });
   }
 
-  // ✅ NIEUWE STABIELE ENDPOINTS (JSON)
+  // ✅ CORRECTE ENDPOINTS
   const endpoints = [
     'https://www.bungie.net/Platform/Content/GetContentByTagAndType/destiny2/NewsArticles/0/0/10?lc=en',
     'https://www.bungie.net/Platform/Content/GetContentByTagAndType/news/NewsArticles/0/0/10?lc=en'
@@ -31,12 +31,19 @@ export default async function handler(req, res) {
     try {
       console.log('[bungie-news] Probeer:', url);
 
+      // ⏱️ timeout (voorkomt hangen)
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+
       const r = await fetch(url, {
         headers: {
           'X-API-Key': API_KEY,
-          'User-Agent': 'GuardianHQ/2.0'
-        }
+          'User-Agent': 'GuardianHQ/3.0'
+        },
+        signal: controller.signal
       });
+
+      clearTimeout(timeout);
 
       if (!r.ok) {
         console.warn('[bungie-news] HTTP fout:', r.status);
@@ -53,11 +60,11 @@ export default async function handler(req, res) {
       const data = json.Response?.results || [];
 
       if (!data.length) {
-        console.warn('[bungie-news] Geen results, volgende endpoint...');
+        console.warn('[bungie-news] Geen data, volgende endpoint...');
         continue;
       }
 
-      // 🔄 Map naar jouw frontend format
+      // 🔄 Map naar frontend formaat
       const items = data.map(x => ({
         Subject: x.properties?.Title || '',
         CreationDate: x.properties?.ReleaseDate || '',
@@ -71,7 +78,7 @@ export default async function handler(req, res) {
         Content: x
       }));
 
-      console.log('[bungie-news] Items:', items.length);
+      console.log('[bungie-news] SUCCESS:', items.length, 'items');
 
       return res.status(200).json({
         results: items,
@@ -84,6 +91,7 @@ export default async function handler(req, res) {
     }
   }
 
+  // ❌ Alles faalde
   return res.status(200).json({
     results: [],
     error: 'Geen nieuws beschikbaar (alle endpoints faalden)'
