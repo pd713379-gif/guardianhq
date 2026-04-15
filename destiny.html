@@ -466,17 +466,19 @@
     // ── NIEUWS ──
     async function loadBungieNews() {
       try {
-        // cache-bust zodat Vercel geen oude versie serveert
-        const res  = await fetch('/api/bungie-news?t=' + Date.now());
+        const res  = await fetch('/api/bungie-news');
         const data = await res.json();
         if (!data.results || !data.results.length) throw new Error('Geen nieuws');
 
         const container = document.getElementById('newsContainer');
         container.innerHTML = data.results.slice(0, 6).map(item => {
-          const date  = formatNewsDate(item.CreationDate);
-          const title = item.Subject || (item.Content && item.Content.properties && item.Content.properties.Title) || 'Geen titel';
-          // item.Url komt al volledig terug van de API (https://...)
-          const url   = item.Url || 'https://www.bungie.net/7/en/News';
+          const date = formatNewsDate(item.CreationDate);
+          const title = item.Content && item.Content.properties && item.Content.properties.Title
+            ? item.Content.properties.Title
+            : item.Subject || 'Geen titel';
+          const url = item.Url
+            ? (item.Url.startsWith('http') ? item.Url : 'https://www.bungie.net' + item.Url)
+            : 'https://www.bungie.net/7/en/News';
           return `<div class="news-item" onclick="window.open('${url}','_blank')" style="cursor:pointer">
             <div class="news-time">${date}</div>
             <div class="news-headline">${title}</div>
