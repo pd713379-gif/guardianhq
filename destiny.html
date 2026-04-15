@@ -430,6 +430,13 @@
     <div id="xurPopupContent"></div>
   </div>
 
+  <!-- ══ WISHLIST WAPEN POPUP ══ -->
+  <div id="wishlistPopupOverlay" onclick="closeWishlistPopup()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);"></div>
+  <div id="wishlistPopup" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10000;width:min(460px,94vw);max-height:88vh;overflow-y:auto;background:linear-gradient(160deg,#0e1224,#0a0d18);border:1px solid rgba(255,255,255,0.1);border-radius:18px;padding:22px;box-shadow:0 12px 60px rgba(0,0,0,0.8);">
+    <button onclick="closeWishlistPopup()" style="position:absolute;top:13px;right:15px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:7px;color:rgba(255,255,255,0.5);font-size:1rem;cursor:pointer;line-height:1;padding:4px 8px;transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">✕</button>
+    <div id="wishlistPopupContent"></div>
+  </div>
+
   <div class="toast" id="ghq-toast"></div>
 
   <script src="js/portraits.js"></script>
@@ -1047,50 +1054,106 @@
 
     loadBungieCard();
 
-    // ── WISHLIST MET ECHTE BUNGIE ICONEN (directe CDN URLs, geen API key nodig) ──
-    // Hash → icon mapping van de Bungie manifest voor deze wapens
+    // ── COMMUNITY WISHLIST — correcte wapen data met god rolls ──
     const WISHLIST_WEAPONS = [
       {
-        // The Palindrome — Hand Cannon (Nightfall reward)
         icon: 'https://www.bungie.net/common/destiny2_content/icons/5e25b9ef3f669e053b428945a31ca8b7.jpg',
-        name: 'The Palindrome', perks: 'Rapid Hit · Explosive Payload · Range MW',
-        tag: 'PvP God Roll', tagClass: 'badge-event', tier: 'legendary'
+        name: 'The Palindrome', type: 'Hand Cannon', element: 'arc', rpm: 140, ammo: 'Primary',
+        tier: 'legendary', source: 'Nightfall: The Ordeal',
+        perks: 'Rapid Hit · Explosive Payload',
+        tag: 'PvP God Roll', tagClass: 'badge-event',
+        godRolls: {
+          pvp: { col1: ['Rapid Hit','Perpetual Motion'], col2: ['Explosive Payload','Opening Shot'], mw: 'Range MW', note: 'Opening Shot vergroot Aim Assist & Range bij de eerste schot. Rapid Hit stacks voor sneller herladen na headshots.' },
+          pve: { col1: ['Rapid Hit','Outlaw'],           col2: ['Explosive Payload','Rampage'],      mw: 'Reload Speed MW', note: 'Rampage stacks tot ×3 voor +33% schade. Explosive Payload vergroot de impact en zet vijanden knock-back.' },
+        },
+        intrinsic: 'Adaptive Frame — Betrouwbaar vuurwapen met uitgebalanceerde stats.',
+        flavor: 'Het spiegelt je intentie — als je mist, heb je jezelf alleen maar.'
       },
       {
-        // Igneous Hammer — Hand Cannon (Trials of Osiris) — verified light.gg
         icon: 'https://www.bungie.net/common/destiny2_content/icons/f3d1fd691fc0edb0eac9fe8bb4228dab.jpg',
-        name: 'Igneous Hammer', perks: 'Perpetual Motion · Explosive Payload',
-        tag: 'PvP', tagClass: 'badge-event', tier: 'legendary'
+        name: 'Igneous Hammer', type: 'Hand Cannon', element: 'solar', rpm: 120, ammo: 'Primary',
+        tier: 'legendary', source: 'Trials of Osiris',
+        perks: 'Perpetual Motion · Explosive Payload',
+        tag: 'PvP', tagClass: 'badge-event',
+        godRolls: {
+          pvp: { col1: ['Perpetual Motion','Keep Away'], col2: ['Explosive Payload','Opening Shot'], mw: 'Range MW', note: 'Keep Away geeft +10 Range, +10 Reload en Aim Assist als geen vijanden dichtbij zijn — standaard conditie in Trials.' },
+        },
+        intrinsic: 'Precision Frame — Verticale recoil, makkelijk te controleren bij duels.',
+        flavor: 'Gesmeed in de hitte van de eeuwige Arena.'
       },
       {
-        // Retrofit Escapade — Machine Gun — verified light.gg
         icon: 'https://www.bungie.net/common/destiny2_content/icons/55c8844c3cc6bb736d391c72643a83c1.jpg',
-        name: 'Retrofit Escapade', perks: 'Envious Assassin · Target Lock · Reload MW',
-        tag: 'PvE', tagClass: 'badge-live', tier: 'legendary'
+        name: 'Retrofit Escapade', type: 'Machine Gun', element: 'arc', rpm: 900, ammo: 'Heavy',
+        tier: 'legendary', source: 'Season of the Plunder (Ketchcrash / Expedition)',
+        perks: 'Envious Assassin · Target Lock',
+        tag: 'PvE God Roll', tagClass: 'badge-live',
+        godRolls: {
+          pve: { col1: ['Envious Assassin','Feeding Frenzy'], col2: ['Target Lock','Rampage'], mw: 'Reload Speed MW', note: 'Envious Assassin overflows je magazijn tot 2× capaciteit na kills met andere wapens. Target Lock = +33% schade op hetzelfde doel. Monster voor boss DPS.' },
+        },
+        intrinsic: 'Adaptive Frame — Betrouwbare vuursnelheid en handling.',
+        flavor: 'Elke vlucht eindigt. Elke jacht ook.'
       },
       {
-        // Apex Predator — Rocket Launcher (Last Wish Raid) — verified light.gg
         icon: 'https://www.bungie.net/common/destiny2_content/icons/e3b1d924bc8185384e79e0b8418231e5.jpg',
-        name: 'Apex Predator', perks: 'Auto-Loading Holster · Bait and Switch',
-        tag: 'Raid', tagClass: 'badge-hot', tier: 'legendary'
+        name: 'Apex Predator', type: 'Rocket Launcher', element: 'solar', rpm: 15, ammo: 'Heavy',
+        tier: 'legendary', source: 'Last Wish (Raid — Riven encounter)',
+        perks: 'Auto-Loading Holster · Bait and Switch',
+        tag: 'Raid God Roll', tagClass: 'badge-hot',
+        godRolls: {
+          pve: { col1: ['Auto-Loading Holster','Reconstruction'], col2: ['Bait and Switch','Explosive Light'], mw: 'Velocity MW', note: 'Bait and Switch geeft +35% damage gedurende 10s als je alle 3 wapens in één burst gebruikt. Beste Rocket voor Raid DPS rotaties.' },
+        },
+        intrinsic: 'Aggressive Frame — Hoge schade per schot, stevige recoil.',
+        flavor: 'Uit de diepten van de Dreaming City — voor hen die lang genoeg leven.'
       },
       {
-        // Falling Guillotine — Sword — verified light.gg
         icon: 'https://www.bungie.net/common/destiny2_content/icons/6c78c79fc2994a981955ad52aa0ed045.jpg',
-        name: 'Falling Guillotine', perks: 'Relentless Strikes · Whirlwind Blade',
-        tag: 'PvE', tagClass: 'badge-live', tier: 'legendary'
+        name: 'Falling Guillotine', type: 'Sword', element: 'void', rpm: 60, ammo: 'Heavy',
+        tier: 'legendary', source: 'Season of Arrivals drops / Exotic Engrams',
+        perks: 'Relentless Strikes · Whirlwind Blade',
+        tag: 'PvE God Roll', tagClass: 'badge-live',
+        godRolls: {
+          pve: { col1: ['Relentless Strikes','Tireless Blade'], col2: ['Whirlwind Blade','Surrounded'], mw: 'Energy Cost MW', note: 'Whirlwind Blade is de sterkste Sword perk: +10% schade per stack, maximaal ×5 voor +50% totale schade. Relentless Strikes houdt Sword Energy bij.' },
+        },
+        intrinsic: 'Vortex Frame — Heavy aanval is een snel spin-aanval.',
+        flavor: 'Elke executie is een ritueel. Elke slag een gebed.'
       },
       {
-        // Wish-Ender — Exotic Bow — verified light.gg
         icon: 'https://www.bungie.net/common/destiny2_content/icons/3ff48eb8a0bb52de29904ecc7fcd1219.jpg',
-        name: 'Wish-Ender', perks: 'Broadhead · Archer\'s Tempo · Always Exotic',
-        tag: 'Exotic', tagClass: 'badge-event', tier: 'exotic'
+        name: 'Wish-Ender', type: 'Combat Bow', element: 'kinetic', rpm: 60, ammo: 'Primary',
+        tier: 'exotic', source: 'Monument to Lost Lights (Exotic Kiosk — Tower)',
+        perks: 'Broadhead · Queen\'s Wrath',
+        tag: 'Exotic', tagClass: 'badge-event',
+        godRolls: {
+          pve: { col1: ['Broadhead (Exotic Perk)'], col2: ['Queen\'s Wrath (Catalyst)'], mw: 'Draw Time MW', note: 'Broadhead laat pijlen door vijanden penetreren — ideaal tegen geclusterde vijanden. Catalyst: zie vijanden door muren als je je boog voltrekt.' },
+        },
+        intrinsic: 'Broadhead — Pijlen penetreren vijanden en beschadigen alles in het traject.',
+        flavor: 'Gemaakt van drie wensen die nooit uitgesproken werden. Het zoekt nog steeds zijn doel.'
       },
       {
-        // Likely Suspect — Fusion Rifle — verified light.gg
         icon: 'https://www.bungie.net/common/destiny2_content/icons/053052f62c31340e8a9630cf70b67845.jpg',
-        name: 'Likely Suspect', perks: 'Reservoir Burst · Chill Clip · Boss Spec',
-        tag: 'PvE', tagClass: 'badge-live', tier: 'legendary'
+        name: 'Likely Suspect', type: 'Fusion Rifle', element: 'void', rpm: 540, ammo: 'Energy',
+        tier: 'legendary', source: 'Witch Queen Campaign / Throne World world drops',
+        perks: 'Reservoir Burst · Chill Clip',
+        tag: 'PvE God Roll', tagClass: 'badge-live',
+        godRolls: {
+          pve: { col1: ['Feeding Frenzy','Perpetual Motion'], col2: ['Reservoir Burst','Chill Clip'], mw: 'Charge Time MW', note: 'Reservoir Burst: explosieve bolt bij vol magazijn. Chill Clip Slows en bevriest vijanden bij half-volle burst. Uitzonderlijk voor Void-subclasses.' },
+          pvp: { col1: ['Under Pressure','Perpetual Motion'], col2: ['Backup Plan','High-Impact Reserves'], mw: 'Charge Time MW', note: 'Backup Plan verlaagt charge time na wapenwisseling — ideaal voor peek-shooting in 3v3 modi.' },
+        },
+        intrinsic: 'High-Impact Frame — Langzame lading maar hoge schade per bolt.',
+        flavor: 'Als de aanklager en de misdadiger dezelfde persoon zijn, wie oordeelt dan?'
+      },
+      {
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/4f38c8c8819e2bfcc2a8f8c97e8abb99.jpg',
+        name: 'The Immortal', type: 'Submachine Gun', element: 'void', rpm: 900, ammo: 'Primary',
+        tier: 'legendary', source: 'Trials of Osiris (Season of the Deep)',
+        perks: 'Target Lock · Kill Clip',
+        tag: 'PvP God Roll', tagClass: 'badge-event',
+        godRolls: {
+          pvp: { col1: ['Perpetual Motion','Keep Away'], col2: ['Target Lock','Kill Clip'], mw: 'Stability MW', note: 'Target Lock is geoptimaliseerd voor SMGs: hoe langer je burst op één doel, hoe meer schade. Domineert CQC in Trials.' },
+          pve: { col1: ['Subsistence','Feeding Frenzy'], col2: ['Target Lock','Rampage'], mw: 'Reload Speed MW', note: 'Subsistence vult het magazijn bij kills; Target Lock maakt het meer dodelijk op Champions en bosses.' },
+        },
+        intrinsic: 'Aggressive Frame — Hoge schade per bullet, stevige kickback.',
+        flavor: 'Alleen de winnaar leeft lang genoeg om de Trials te vertellen.'
       },
     ];
 
@@ -1133,35 +1196,181 @@
       const tierBorder = { exotic: 'rgba(212,168,67,0.5)', legendary: 'rgba(155,114,207,0.4)' };
       const tierLabel  = { exotic: '⭐ Exotic', legendary: '💜 Legendary' };
 
+      const ELEM_COLOR = { arc:'#79c8f0', solar:'#f0a830', void:'#b574de', stasis:'#4ec3e0', strand:'#31c48d', kinetic:'rgba(255,255,255,0.5)', thermal:'#f0a830' };
+
       container.innerHTML = `
         <div style="margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.07);">
           <div style="font-size:0.75rem;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;font-weight:600;">
-            ${WISHLIST_WEAPONS.length} aanbevolen wapens · God Rolls samengesteld door de community
+            ${WISHLIST_WEAPONS.length} aanbevolen wapens · Klik voor god rolls
           </div>
         </div>` +
-        WISHLIST_WEAPONS.map((w, i) => `
-        <div class="wish-item" style="${i > 0 ? 'border-top:1px solid rgba(255,255,255,0.05);margin-top:10px;padding-top:10px;' : ''}">
-          <div style="width:52px;height:52px;border-radius:10px;overflow:hidden;
+        WISHLIST_WEAPONS.map((w, i) => {
+          const ec = ELEM_COLOR[w.element] || 'rgba(255,255,255,0.5)';
+          const dataW = escHtml(JSON.stringify(w));
+          return `
+        <div class="wish-item" onclick="openWishlistPopup(this)" data-weapon="${dataW}"
+          style="cursor:pointer;border-radius:12px;padding:10px;transition:background 0.15s;${i > 0 ? 'border-top:1px solid rgba(255,255,255,0.05);margin-top:6px;padding-top:10px;' : ''}"
+          onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background=''">
+          <div style="width:54px;height:54px;border-radius:10px;overflow:hidden;
                background:rgba(255,255,255,0.06);
                display:flex;align-items:center;justify-content:center;flex-shrink:0;
                border:2px solid ${tierBorder[w.tier] ?? 'rgba(255,255,255,0.1)'};
-               box-shadow:0 0 12px ${w.tier === 'exotic' ? 'rgba(212,168,67,0.2)' : 'rgba(155,114,207,0.15)'};">
+               box-shadow:0 0 14px ${w.tier === 'exotic' ? 'rgba(212,168,67,0.25)' : 'rgba(155,114,207,0.18)'};">
             <img src="${escHtml(w.icon)}" alt="${escHtml(w.name)}"
-                 style="width:52px;height:52px;object-fit:cover;"
+                 style="width:54px;height:54px;object-fit:cover;"
                  referrerpolicy="no-referrer"
                  onerror="this.style.display='none';this.parentElement.innerHTML='🔫'">
           </div>
           <div style="flex:1;min-width:0;">
-            <div class="wish-name" style="display:flex;align-items:center;gap:6px;">
+            <div class="wish-name" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
               ${escHtml(w.name)}
-              <span style="font-size:0.65rem;color:${w.tier === 'exotic' ? 'var(--gold2)' : 'rgba(155,114,207,0.9)'};
-                font-weight:600;letter-spacing:0.04em;">${tierLabel[w.tier] ?? ''}</span>
+              <span style="font-size:0.63rem;color:${w.tier === 'exotic' ? 'var(--gold2)' : 'rgba(155,114,207,0.9)'};
+                font-weight:700;letter-spacing:0.04em;">${tierLabel[w.tier] ?? ''}</span>
+              <span style="font-size:0.6rem;color:rgba(255,255,255,0.25);font-weight:500;">${escHtml(w.type ?? '')} · ${escHtml(w.rpm ? w.rpm + ' RPM' : '')}</span>
             </div>
-            <div class="wish-perks">${escHtml(w.perks)}</div>
+            <div style="display:flex;align-items:center;gap:5px;margin-top:3px;">
+              <span style="width:7px;height:7px;border-radius:50%;background:${ec};display:inline-block;box-shadow:0 0 5px ${ec};flex-shrink:0;"></span>
+              <div class="wish-perks">${escHtml(w.perks)}</div>
+            </div>
+            <div style="font-size:0.62rem;color:rgba(255,255,255,0.22);margin-top:2px;">📍 ${escHtml(w.source ?? '')}</div>
           </div>
-          <span class="act-badge ${w.tagClass}" style="white-space:nowrap;align-self:flex-start;">${escHtml(w.tag)}</span>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+            <span class="act-badge ${w.tagClass}" style="white-space:nowrap;">${escHtml(w.tag)}</span>
+            <span style="font-size:0.6rem;color:rgba(255,255,255,0.28);letter-spacing:0.03em;">God Roll ↗</span>
+          </div>
+        </div>`;
+        }).join('');
+    }
+
+    // ── WISHLIST POPUP OPENEN ──
+    function openWishlistPopup(el) {
+      const raw = el.getAttribute('data-weapon');
+      if (!raw) return;
+      let w;
+      try { w = JSON.parse(raw.replace(/&quot;/g,'"').replace(/&#39;/g,"'")); } catch { return; }
+
+      const tierColor   = w.tier === 'exotic' ? '#f5c842' : 'rgba(155,114,207,0.95)';
+      const borderColor = w.tier === 'exotic' ? 'rgba(212,168,67,0.5)' : 'rgba(155,114,207,0.4)';
+      const iconBg      = w.tier === 'exotic' ? 'linear-gradient(135deg,rgba(160,120,20,0.8),rgba(100,70,5,0.95))' : 'linear-gradient(135deg,rgba(40,25,65,0.8),rgba(20,12,40,0.95))';
+      const ELEM_COLOR  = { arc:'#79c8f0', solar:'#f0a830', void:'#b574de', stasis:'#4ec3e0', strand:'#31c48d', kinetic:'rgba(220,220,220,0.7)', thermal:'#f0a830' };
+      const ec          = ELEM_COLOR[w.element] || '#fff';
+      const tierLabel   = w.tier === 'exotic' ? 'Exotic' : 'Legendary';
+
+      // ── Header ──
+      let html = `<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:18px;">
+        <div style="flex-shrink:0;width:76px;height:76px;border-radius:12px;overflow:hidden;background:${iconBg};border:2px solid ${borderColor};box-shadow:0 0 20px ${w.tier==='exotic'?'rgba(212,168,67,0.3)':'rgba(155,114,207,0.2)'};">
+          <img src="${escHtml(w.icon)}" width="76" height="76" style="width:76px;height:76px;object-fit:cover;display:block;" referrerpolicy="no-referrer" onerror="this.style.display='none'">
         </div>
-      `).join('');
+        <div style="flex:1;min-width:0;padding-top:2px;">
+          <div style="font-size:1.05rem;font-weight:800;color:#fff;line-height:1.2;letter-spacing:0.01em;">${escHtml(w.name)}</div>
+          <div style="font-size:0.63rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${tierColor};margin-top:3px;">${tierLabel} · ${escHtml(w.type??'')}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;">
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:0.7rem;color:${ec};font-weight:600;">
+              <span style="width:7px;height:7px;border-radius:50%;background:${ec};box-shadow:0 0 5px ${ec};"></span>
+              ${escHtml((w.element||'').charAt(0).toUpperCase()+(w.element||'').slice(1))}
+            </span>
+            ${w.rpm ? `<span style="font-size:0.68rem;color:rgba(255,255,255,0.35);">⚡ ${w.rpm} RPM</span>` : ''}
+            ${w.ammo ? `<span style="font-size:0.68rem;color:rgba(255,255,255,0.35);">◆ ${escHtml(w.ammo)} Ammo</span>` : ''}
+          </div>
+          <div style="font-size:0.62rem;color:rgba(255,255,255,0.28);margin-top:4px;">📍 ${escHtml(w.source??'')}</div>
+        </div>
+      </div>`;
+
+      // ── Intrinsic ──
+      if (w.intrinsic) {
+        html += `<div style="background:rgba(255,255,255,0.04);border-left:2px solid ${tierColor};border-radius:0 8px 8px 0;padding:8px 12px;margin-bottom:14px;">
+          <div style="font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${tierColor};margin-bottom:3px;">Intrinsic Frame</div>
+          <div style="font-size:0.72rem;color:rgba(255,255,255,0.65);line-height:1.45;">${escHtml(w.intrinsic)}</div>
+        </div>`;
+      }
+
+      // ── God Rolls ──
+      const rolls = w.godRolls || {};
+      const rollKeys = Object.keys(rolls);
+      if (rollKeys.length > 0) {
+        html += `<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:14px;margin-bottom:4px;">
+          <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.3);margin-bottom:10px;">⚙ God Rolls</div>`;
+
+        rollKeys.forEach(mode => {
+          const roll = rolls[mode];
+          const modeLabel = mode === 'pve' ? '🛡️ PvE' : mode === 'pvp' ? '⚔️ PvP' : mode.toUpperCase();
+          const modeColor = mode === 'pve' ? '#4caf82' : mode === 'pvp' ? '#e8622a' : '#4f8fff';
+          const modeBg    = mode === 'pve' ? 'rgba(76,175,130,0.08)' : mode === 'pvp' ? 'rgba(232,98,42,0.08)' : 'rgba(79,143,255,0.08)';
+
+          html += `<div style="background:${modeBg};border:1px solid ${modeColor}28;border-radius:10px;padding:12px;margin-bottom:10px;">
+            <div style="font-size:0.65rem;font-weight:800;color:${modeColor};margin-bottom:10px;text-transform:uppercase;letter-spacing:0.07em;">${modeLabel}</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">`;
+
+          // Kolom 1
+          const c1 = roll.col1 || [];
+          if (c1.length) {
+            html += `<div>
+              <div style="font-size:0.58rem;color:rgba(255,255,255,0.3);font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;">Kolom 1</div>`;
+            c1.forEach(p => {
+              html += `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(255,255,255,0.05);border-radius:6px;margin-bottom:4px;">
+                <span style="width:5px;height:5px;border-radius:50%;background:${modeColor};flex-shrink:0;"></span>
+                <span style="font-size:0.72rem;font-weight:600;color:#fff;">${escHtml(p)}</span>
+              </div>`;
+            });
+            html += `</div>`;
+          }
+
+          // Kolom 2
+          const c2 = roll.col2 || [];
+          if (c2.length) {
+            html += `<div>
+              <div style="font-size:0.58rem;color:rgba(255,255,255,0.3);font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;">Kolom 2</div>`;
+            c2.forEach(p => {
+              html += `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(255,255,255,0.05);border-radius:6px;margin-bottom:4px;">
+                <span style="width:5px;height:5px;border-radius:50%;background:${modeColor};flex-shrink:0;"></span>
+                <span style="font-size:0.72rem;font-weight:600;color:#fff;">${escHtml(p)}</span>
+              </div>`;
+            });
+            html += `</div>`;
+          }
+
+          html += `</div>`; // end grid
+
+          // Masterwork
+          if (roll.mw) {
+            html += `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(255,200,66,0.08);border:1px solid rgba(255,200,66,0.2);border-radius:6px;margin-bottom:8px;">
+              <span style="font-size:0.7rem;">⭐</span>
+              <span style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#f5c842;">Masterwork:</span>
+              <span style="font-size:0.72rem;color:rgba(255,200,66,0.85);">${escHtml(roll.mw)}</span>
+            </div>`;
+          }
+
+          // Tip
+          if (roll.note) {
+            html += `<div style="font-size:0.66rem;color:rgba(255,255,255,0.45);line-height:1.5;border-top:1px solid rgba(255,255,255,0.06);padding-top:8px;">
+              💡 ${escHtml(roll.note)}
+            </div>`;
+          }
+
+          html += `</div>`; // end roll card
+        });
+
+        html += `</div>`; // end god rolls section
+      }
+
+      // ── Flavor text ──
+      if (w.flavor) {
+        html += `<div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:12px;margin-top:4px;">
+          <div style="font-size:0.66rem;color:rgba(255,255,255,0.28);font-style:italic;line-height:1.55;">"${escHtml(w.flavor)}"</div>
+        </div>`;
+      }
+
+      document.getElementById('wishlistPopupContent').innerHTML = html;
+      document.getElementById('wishlistPopup').style.display = 'block';
+      document.getElementById('wishlistPopupOverlay').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+
+    // ── WISHLIST POPUP SLUITEN ──
+    function closeWishlistPopup() {
+      document.getElementById('wishlistPopup').style.display = 'none';
+      document.getElementById('wishlistPopupOverlay').style.display = 'none';
+      document.body.style.overflow = '';
     }
 
     // ── VAULT LADEN ────────────────────────────────────────────
