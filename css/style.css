@@ -323,17 +323,21 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 1.5rem}
   position:relative;
 }
 .dim-header-banner{display:block;}
-.dim-banner-img{
-  width:100%;height:220px;object-fit:cover;object-position:center 30%;
-  display:block;border-radius:20px;
-  filter:brightness(0.75);
+.dim-banner-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 20px;
+  filter: brightness(0.75);
 }
-.dim-banner-overlay{
-  position:absolute;inset:0;
-  background:linear-gradient(to right, rgba(5,6,18,0.65) 0%, rgba(5,6,18,0.2) 50%, rgba(5,6,18,0.65) 100%);
-  border-radius:20px;
-  display:flex;align-items:flex-end;
-  padding:1.5rem 2rem;
+.dim-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(5,6,18,0.65) 0%, rgba(5,6,18,0.2) 50%, rgba(5,6,18,0.65) 100%);
+  border-radius: 20px;
+  display: flex;
+  align-items: flex-end;
+  padding: 1.5rem 2rem;
 }
 .dim-banner-content{
   display:flex;align-items:flex-end;justify-content:space-between;
