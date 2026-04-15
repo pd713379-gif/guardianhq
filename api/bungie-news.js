@@ -1,17 +1,14 @@
 // ============================================================
 // GUARDIANHQ — api/bungie-news.js
-// Vercel Serverless Function
-//
-// Gebruikt de OFFICIËLE nieuwe Bungie RSS endpoint:
-//   GET /Platform/Content/Rss/NewsArticles/{pageToken}/
-//   ?categoryfilter=destiny2  ← alleen Destiny 2 nieuws
-//
-// Deze endpoint geeft een RSS XML string terug (niet JSON).
-// We parsen de XML en sturen JSON terug naar de frontend.
+// Vercel Serverless Function — Bungie NewsArticles RSS
+// GEEN edge-cache — altijd verse data van Bungie
 // ============================================================
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
+  // Geen cache op Vercel edge — altijd verse data
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const API_KEY = process.env.BUNGIE_API_KEY;
@@ -19,13 +16,14 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'BUNGIE_API_KEY ontbreekt.' });
   }
 
-  // Probeer eerst met categoryfilter=destiny2, dan zonder filter (alles)
-  const urlsToTry = [
+  // Probeer endpoints in volgorde
+  const endpoints = [
     'https://www.bungie.net/Platform/Content/Rss/NewsArticles/0/?categoryfilter=destiny2&includebody=false',
     'https://www.bungie.net/Platform/Content/Rss/NewsArticles/0/?includebody=false',
+    'https://www.bungie.net/en/Rss/NewsByCategory?category=news&currentpage=1&itemsperpage=10',
   ];
 
-  for (const url of urlsToTry) {
+  for (const url of endpoints) {
     try {
       console.log('[bungie-news] Probeer:', url);
 
@@ -33,111 +31,99 @@ export default async function handler(req, res) {
         headers: {
           'X-API-Key': API_KEY,
           'User-Agent': 'GuardianHQ/1.0',
-          'Accept': 'application/json, application/rss+xml, text/xml, */*'
+          'Accept': 'application/json, application/rss+xml, text/xml, */*',
+          // Voorkom dat Bungie zelf ook een gecachte response stuurt
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
         }
       });
 
-      const raw = await r.text();
-      console.log('[bungie-news] Status:', r.status, '| Eerste 200 tekens:', raw.slice(0, 200));
-
-      if (!r.ok) continue;
-
-      // De response kan JSON zijn (met RSS string erin) of pure XML
-      let xmlText = '';
-
-      if (raw.trim().startsWith('{')) {
-        // JSON wrapper — de RSS zit als string in Response veld
-        try {
-          const json = JSON.parse(raw);
-          if (json.ErrorCode && json.ErrorCode !== 1) {
-            console.warn('[bungie-news] Bungie ErrorCode:', json.ErrorCode, json.Message);
-            continue;
-          }
-          // Response is een string met RSS XML erin
-          xmlText = typeof json.Response === 'string' ? json.Response : JSON.stringify(json.Response);
-        } catch (e) {
-          console.warn('[bungie-news] JSON parse fout:', e.message);
-          continue;
-        }
-      } else if (raw.trim().startsWith('<')) {
-        // Pure XML/RSS
-        xmlText = raw;
-      } else {
-        console.warn('[bungie-news] Onbekend formaat, sla over');
+      if (!r.ok) {
+        console.warn('[bungie-news]', url, '→ HTTP', r.status);
         continue;
       }
 
-      // Parse de RSS XML
-      const items = parseRssItems(xmlText);
-      console.log('[bungie-news] Geparseerde items:', items.length);
+      const raw = await r.text();
+      console.log('[bungie-news] Preview:', raw.slice(0, 300));
+
+      let items = [];
+
+      if (raw.trim().startsWith('{')) {
+        // JSON wrapper van Bungie Platform API
+        const json = JSON.parse(raw);
+        if (json.ErrorCode && json.ErrorCode !== 1) {
+          console.warn('[bungie-news] Bungie fout:', json.ErrorCode, json.Message);
+          continue;
+        }
+        // Response is een string met RSS XML erin
+        const xmlStr = typeof json.Response === 'string' ? json.Response : '';
+        if (xmlStr) items = parseRss(xmlStr);
+      } else if (raw.trim().startsWith('<')) {
+        // Directe RSS/XML
+        items = parseRss(raw);
+      }
+
+      console.log('[bungie-news] Items gevonden:', items.length, 'via', url);
 
       if (items.length > 0) {
-        res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=60');
-        return res.status(200).json({ results: items, source: url });
+        return res.status(200).json({
+          results: items,
+          source: url,
+          fetchedAt: new Date().toISOString()
+        });
       }
 
     } catch (err) {
-      console.warn('[bungie-news] Fout bij', url, ':', err.message);
+      console.error('[bungie-news] Fout bij', url, ':', err.message);
     }
   }
 
-  // Alle pogingen mislukt — stuur lege lijst
-  console.error('[bungie-news] Alle endpoints mislukt');
-  return res.status(200).json({ results: [], source: 'none', error: 'Geen nieuws beschikbaar' });
+  return res.status(200).json({ results: [], error: 'Geen nieuws beschikbaar' });
 }
 
-// ── RSS XML parser ─────────────────────────────────────────
-function parseRssItems(xml) {
+function parseRss(xml) {
   const items = [];
+  const blocks = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
 
-  // Haal alle <item> blokken op
-  const itemMatches = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
-
-  for (const match of itemMatches) {
-    const block = match[1];
-
-    // Helper: haal waarde op uit XML tag (met of zonder CDATA)
-    const get = (tag) => {
+  for (const m of blocks) {
+    const b = m[1];
+    const get = tag => {
       const re = new RegExp(
         '<' + tag + '[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/' + tag + '>|' +
         '<' + tag + '[^>]*>([\\s\\S]*?)<\\/' + tag + '>',
         'i'
       );
-      const m = block.match(re);
-      return m ? (m[1] ?? m[2] ?? '').trim() : '';
+      const match = b.match(re);
+      return match ? (match[1] ?? match[2] ?? '').trim() : '';
     };
 
     const title = get('title');
     if (!title) continue;
 
-    // URL: <link> tag in RSS staat soms tussen andere tags, haal hem goed op
+    // Link ophalen — staat soms als tekst node
     let rawUrl = get('link');
-    // Soms staat link als tekst node na </title> zonder echte tag
     if (!rawUrl) {
-      const linkMatch = block.match(/<link>(.*?)<\/link>/i) || block.match(/<link\s*\/?>([^<]+)/i);
-      rawUrl = linkMatch ? linkMatch[1].trim() : '';
+      const lm = b.match(/<link\s*\/?>(.*?)<\/?link>/i) || b.match(/<link[^>]*>([^<]+)/i);
+      rawUrl = lm ? lm[1].trim() : '';
     }
-    const articleUrl = rawUrl
+    const url = rawUrl
       ? (rawUrl.startsWith('http') ? rawUrl : 'https://www.bungie.net' + rawUrl)
       : 'https://www.bungie.net/7/en/News';
 
-    // Afbeelding uit enclosure of media:content
-    const enclosure = block.match(/<enclosure[^>]+url="([^"]+)"/i);
-    const mediaUrl  = block.match(/<media:content[^>]+url="([^"]+)"/i);
-    const image     = (enclosure?.[1]) || (mediaUrl?.[1]) || '';
+    const enc = b.match(/<enclosure[^>]+url="([^"]+)"/i);
+    const med = b.match(/<media:content[^>]+url="([^"]+)"/i);
+    const image = enc?.[1] || med?.[1] || '';
 
-    // Beschrijving/subtitel (HTML strippen)
-    const desc = get('description').replace(/<[^>]+>/g, '').trim().slice(0, 150);
+    const desc = get('description').replace(/<[^>]+>/g, '').replace(/&[^;]+;/g, ' ').trim().slice(0, 150);
 
     items.push({
-      Subject:      title,
+      Subject: title,
       CreationDate: get('pubDate'),
-      Url:          articleUrl,
-      Image:        image,
-      Subtitle:     desc,
+      Url: url,
+      Image: image,
+      Subtitle: desc,
       Content: { properties: { Title: title } }
     });
   }
-
   return items;
 }
