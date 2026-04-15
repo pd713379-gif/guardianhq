@@ -108,7 +108,7 @@ function parseRss(xml) {
     }
     const url = rawUrl
       ? (rawUrl.startsWith('http') ? rawUrl : 'https://www.bungie.net' + rawUrl)
-      : 'https://www.bungie.net/7/en/News';
+      : 'https://www.bungie.net/7/en/rss/News';
 
     const enc = b.match(/<enclosure[^>]+url="([^"]+)"/i);
     const med = b.match(/<media:content[^>]+url="([^"]+)"/i);
