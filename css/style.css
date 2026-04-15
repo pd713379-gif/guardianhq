@@ -318,10 +318,29 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 1.5rem}
 
 /* DIM */
 .dim-header{
-  background:linear-gradient(135deg,rgba(155,114,207,0.12),rgba(79,143,255,0.08));
-  border:1px solid rgba(155,114,207,0.2);border-radius:20px;padding:2rem;
-  display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;margin-bottom:1.5rem;
+  border:1px solid rgba(155,114,207,0.2);border-radius:20px;
+  margin-bottom:1.5rem;overflow:hidden;padding:0;
+  position:relative;
 }
+.dim-header-banner{display:block;}
+.dim-banner-img{
+  width:100%;height:220px;object-fit:cover;object-position:center 30%;
+  display:block;border-radius:20px;
+  filter:brightness(0.75);
+}
+.dim-banner-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to right, rgba(5,6,18,0.65) 0%, rgba(5,6,18,0.2) 50%, rgba(5,6,18,0.65) 100%);
+  border-radius:20px;
+  display:flex;align-items:flex-end;
+  padding:1.5rem 2rem;
+}
+.dim-banner-content{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  width:100%;gap:1.5rem;flex-wrap:wrap;
+}
+.dim-banner-text h2{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:4px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.8);}
+.dim-banner-text p{color:rgba(255,255,255,0.75);font-size:0.875rem;line-height:1.5;text-shadow:0 1px 4px rgba(0,0,0,0.8);max-width:520px;}
 .dim-logo{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#9b72cf,#4f8fff);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:900;color:#fff;font-family:'Space Grotesk',sans-serif;flex-shrink:0}
 .dim-header-info h2{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:4px}
 .dim-header-info p{color:var(--text2);font-size:0.875rem;line-height:1.5}
@@ -439,6 +458,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 1.5rem}
   .nav-links{display:none}
   .hero-stats{gap:1.5rem}
   .dim-open-btn{margin-left:0;width:100%;justify-content:center}
-  .dim-header{flex-direction:column;align-items:flex-start}
+  .dim-banner-img{height:160px;}
+  .dim-banner-overlay{padding:1rem 1.25rem;}
+  .dim-banner-content{flex-direction:column;align-items:flex-start;gap:0.75rem;}
   .cta-banner{flex-direction:column}
 }
