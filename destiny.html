@@ -433,9 +433,9 @@
   </div>
 
   <!-- ══ VAULT ITEM DETAIL POPUP ══ -->
-  <div id="vaultItemPopupOverlay" onclick="closeVaultItemPopup()" style="display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.55);"></div>
-  <div id="vaultItemPopup" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10002;width:min(420px,92vw);max-height:85vh;overflow-y:auto;background:#0d1020;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px;box-shadow:0 8px 48px rgba(0,0,0,0.7);">
-    <button onclick="closeVaultItemPopup()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:rgba(255,255,255,0.4);font-size:1.2rem;cursor:pointer;line-height:1;">✕</button>
+  <div id="vaultItemPopupOverlay" onclick="closeVaultItemPopup()" style="display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);"></div>
+  <div id="vaultItemPopup" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10002;width:min(400px,92vw);max-height:88vh;overflow-y:auto;background:linear-gradient(160deg,#0e1128 0%,#0a0d1e 60%,#080b18 100%);border:1.5px solid rgba(155,114,207,0.45);border-radius:18px;padding:22px 20px 20px;box-shadow:0 12px 60px rgba(0,0,0,0.85),0 0 32px rgba(155,114,207,0.18);scrollbar-width:thin;scrollbar-color:rgba(155,114,207,0.3) transparent;">
+    <button onclick="closeVaultItemPopup()" style="position:absolute;top:13px;right:15px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.5);font-size:1rem;cursor:pointer;line-height:1;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background 0.2s,color 0.2s;" onmouseenter="this.style.background='rgba(255,255,255,0.14)';this.style.color='#fff'" onmouseleave="this.style.background='rgba(255,255,255,0.06)';this.style.color='rgba(255,255,255,0.5)'">✕</button>
     <div id="vaultItemPopupContent"></div>
   </div>
 
@@ -1613,12 +1613,26 @@
       if (!raw) return;
       var item;
       try { item = JSON.parse(raw.replace(/&#39;/g,"'").replace(/&quot;/g,'"')); } catch(e) { return; }
+
+      // Tier-gebaseerde kleur voor border + glow
+      var popup = document.getElementById('vaultItemPopup');
+      if (item.isExotic) {
+        popup.style.borderColor = 'rgba(206,174,51,0.65)';
+        popup.style.boxShadow   = '0 12px 60px rgba(0,0,0,0.9), 0 0 40px rgba(206,174,51,0.22)';
+        popup.style.background  = 'linear-gradient(160deg,#130f05 0%,#0c0901 60%,#080600 100%)';
+      } else {
+        popup.style.borderColor = 'rgba(155,114,207,0.55)';
+        popup.style.boxShadow   = '0 12px 60px rgba(0,0,0,0.9), 0 0 40px rgba(155,114,207,0.18)';
+        popup.style.background  = 'linear-gradient(160deg,#0e1128 0%,#0a0d1e 60%,#080b18 100%)';
+      }
+
       // Bouw HTML via dezelfde helper als Item Manager popup
       var html = buildItemPopupHTML(item);
       document.getElementById('vaultItemPopupContent').innerHTML = html;
-      document.getElementById('vaultItemPopup').style.display = 'block';
+      popup.style.display = 'block';
       document.getElementById('vaultItemPopupOverlay').style.display = 'block';
       document.body.style.overflow = 'hidden';
+      popup.scrollTop = 0;
     }
 
     function closeVaultItemPopup() {
@@ -2560,26 +2574,34 @@
       if (item.bucketName && !item.slotName) subtitleParts.push(item.bucketName.toUpperCase());
 
       // Icon achtergrond kleur: exotic = goud, legendary = paars
-      var iconBorderColor = exotic ? 'rgba(206,174,51,0.8)' : 'rgba(155,114,207,0.7)';
+      var iconBorderColor = exotic ? 'rgba(206,174,51,0.85)' : 'rgba(155,114,207,0.75)';
+      var iconGlow        = exotic ? 'rgba(206,174,51,0.28)' : 'rgba(155,114,207,0.22)';
       var iconBg = exotic
         ? 'linear-gradient(135deg,#7a5c0a,#3d2a00)'
         : 'linear-gradient(135deg,#2a1a4a,#160d2e)';
 
+      // Damage type info
+      var DMGNAMES  = { 2:'Arc', 3:'Solar', 4:'Void', 6:'Stasis', 7:'Strand' };
+      var DMGCOLORS = { 2:'#79c8f0', 3:'#f0a830', 4:'#b574de', 6:'#4ec3e0', 7:'#31c48d' };
+      var dmgColor  = item.damageColor || DMGCOLORS[item.damageType] || null;
+      var dmgName   = DMGNAMES[item.damageType] || '';
+
       // ── HEADER ──
       var html = ''
-        + '<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:18px;">'
-        +   '<div style="flex-shrink:0;width:68px;height:68px;border-radius:8px;overflow:hidden;background:' + iconBg + ';border:2px solid ' + iconBorderColor + ';">'
+        + '<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;">'
+        +   '<div style="flex-shrink:0;width:72px;height:72px;border-radius:10px;overflow:hidden;background:' + iconBg + ';border:2px solid ' + iconBorderColor + ';box-shadow:0 0 18px ' + iconGlow + ';">'
         +     (item.icon
-                ? '<img src="' + item.icon + '" width="68" height="68" style="width:68px;height:68px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
-                : '<div style="width:68px;height:68px;display:flex;align-items:center;justify-content:center;font-size:2rem;">' + (isArmor ? '🛡️' : '🔫') + '</div>')
+                ? '<img src="' + item.icon + '" width="72" height="72" style="width:72px;height:72px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
+                : '<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:2.2rem;">' + (isArmor ? '🛡️' : '🔫') + '</div>')
         +   '</div>'
-        +   '<div style="flex:1;min-width:0;padding-top:2px;">'
-        +     '<div style="font-size:1.05rem;font-weight:800;color:#fff;line-height:1.2;letter-spacing:0.01em;">' + esc(item.name || '—') + '</div>'
-        +     '<div style="font-size:0.6rem;font-weight:700;letter-spacing:0.12em;color:' + tierColor + ';margin-top:4px;">' + subtitleParts.join(' · ') + '</div>'
-        +     '<div style="font-size:0.95rem;font-weight:800;color:#f5d020;margin-top:5px;display:flex;align-items:center;gap:4px;">'
-        +       '<span style="font-size:0.85rem;">⚡</span><span>' + (item.power || '—') + '</span>'
+        +   '<div style="flex:1;min-width:0;padding-top:3px;">'
+        +     '<div style="font-size:1.08rem;font-weight:800;color:#fff;line-height:1.2;letter-spacing:0.01em;">' + esc(item.name || '—') + '</div>'
+        +     '<div style="font-size:0.6rem;font-weight:700;letter-spacing:0.11em;color:' + tierColor + ';margin-top:5px;text-transform:uppercase;">' + subtitleParts.join(' · ') + '</div>'
+        +     '<div style="display:flex;align-items:center;gap:10px;margin-top:7px;flex-wrap:wrap;">'
+        +       (item.power > 0 ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:0.85rem;font-weight:800;color:#f5d020;"><span>⚡</span>' + item.power + '</span>' : '')
+        +       (dmgColor ? '<span style="display:inline-flex;align-items:center;gap:5px;font-size:0.73rem;font-weight:600;color:' + dmgColor + ';"><span style="width:8px;height:8px;border-radius:50%;background:' + dmgColor + ';box-shadow:0 0 5px ' + dmgColor + ';flex-shrink:0;display:inline-block;"></span>' + dmgName + '</span>' : '')
         +     '</div>'
-        +     (item.flavorText ? '<div style="font-size:0.65rem;color:rgba(255,255,255,0.32);margin-top:5px;font-style:italic;line-height:1.45;">' + esc(item.flavorText) + '</div>' : '')
+        +     (item.flavorText ? '<div style="font-size:0.62rem;color:rgba(255,255,255,0.3);margin-top:8px;font-style:italic;line-height:1.5;">' + esc(item.flavorText) + '</div>' : '')
         +   '</div>'
         + '</div>';
 
