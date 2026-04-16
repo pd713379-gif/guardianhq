@@ -432,6 +432,13 @@
     <div id="itemPopupContent"></div>
   </div>
 
+  <!-- ══ VAULT ITEM DETAIL POPUP ══ -->
+  <div id="vaultItemPopupOverlay" onclick="closeVaultItemPopup()" style="display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.55);"></div>
+  <div id="vaultItemPopup" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10002;width:min(420px,92vw);max-height:85vh;overflow-y:auto;background:#0d1020;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px;box-shadow:0 8px 48px rgba(0,0,0,0.7);">
+    <button onclick="closeVaultItemPopup()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:rgba(255,255,255,0.4);font-size:1.2rem;cursor:pointer;line-height:1;">✕</button>
+    <div id="vaultItemPopupContent"></div>
+  </div>
+
   <!-- ══ XUR / FEATURED WAPENS POPUP ══ -->
   <div id="xurPopupOverlay" onclick="closeXurPopup()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);"></div>
   <div id="xurPopup" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10000;width:min(420px,92vw);max-height:85vh;overflow-y:auto;background:#0d1020;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px;box-shadow:0 8px 48px rgba(0,0,0,0.7);">
@@ -1579,9 +1586,11 @@
             isExotic: item.isExotic, isLegendary: item.isLegendary,
             isWeapon: item.isWeapon, isArmor: item.isArmor, isArtifice: item.isArtifice,
             power: item.power, damageType: item.damageType, damageColor: item.damageColor,
-            className: item.className,
+            className: item.className, bucketName: item.bucketName ?? '',
             intrinsics: item.intrinsics ?? [], perks: item.perks ?? [],
-            weaponStats: item.weaponStats ?? [], armorStatList: item.armorStatList ?? [],
+            mods: item.mods ?? [], cosmetics: item.cosmetics ?? [],
+            stats: item.weaponStats ?? [],
+            armorStatList: item.armorStatList ?? [],
             armorTotal: item.armorTotal ?? 0,
           }));
 
@@ -1598,8 +1607,25 @@
       grid.innerHTML = html;
     }
 
-    // Vault popup gebruikt hetzelfde design als openItemPopup
-    function openVaultItemPopup(el) { openItemPopup(el); }
+    // Vault popup: eigen overlay + popup zodat Item Manager popup niet overlapt
+    function openVaultItemPopup(el) {
+      var raw = el.getAttribute('data-item');
+      if (!raw) return;
+      var item;
+      try { item = JSON.parse(raw.replace(/&#39;/g,"'").replace(/&quot;/g,'"')); } catch(e) { return; }
+      // Bouw HTML via dezelfde helper als Item Manager popup
+      var html = buildItemPopupHTML(item);
+      document.getElementById('vaultItemPopupContent').innerHTML = html;
+      document.getElementById('vaultItemPopup').style.display = 'block';
+      document.getElementById('vaultItemPopupOverlay').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeVaultItemPopup() {
+      document.getElementById('vaultItemPopup').style.display = 'none';
+      document.getElementById('vaultItemPopupOverlay').style.display = 'none';
+      document.body.style.overflow = '';
+    }
 
     function openVaultItemPopup_UNUSED(el) {
       const raw = el.getAttribute('data-item');
@@ -2518,11 +2544,7 @@
     // Wapen: Header → PERKS → WAPEN STATS
     // Armor: Header → PERKS → ARMOR MODS → COSMETICS → ARMOR STATS (grid)
     // ══════════════════════════════════════════════════════════
-    function openItemPopup(el) {
-      var raw = el.getAttribute('data-item');
-      if (!raw) return;
-      var item;
-      try { item = JSON.parse(raw.replace(/&#39;/g,"'").replace(/&quot;/g,'"')); } catch(e) { return; }
+    function buildItemPopupHTML(item) {
 
       var exotic   = item.isExotic;
       var isArmor  = !!item.isArmor;
@@ -2567,11 +2589,18 @@
       }
 
       // ── PERKS ──
+      // Vault items hebben ook item.intrinsics (frame/origin perks) — voeg samen
+      var allPerksRaw = [].concat(item.intrinsics || [], item.perks || []);
       // Dedupliceer: verwijder perks die dezelfde naam hebben als een mod
       var modNameSet = new Set((item.mods||[]).filter(Boolean).map(function(m){ return (m.name||'').toLowerCase().trim(); }));
-      var perks = (item.perks||[]).filter(function(p){
+      var seen = new Set();
+      var perks = allPerksRaw.filter(function(p){
         if (!p || !p.name) return false;
-        return !modNameSet.has(p.name.toLowerCase().trim());
+        var key = p.name.toLowerCase().trim();
+        if (modNameSet.has(key)) return false;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
       });
 
       if (perks.length > 0) {
@@ -2628,7 +2657,7 @@
 
       // ── WAPEN STATS (onderaan, zoals screenshot 1) ──
       if (isWeapon && item.stats && item.stats.length) {
-        var STAT_ORDER = ['RPM','Impact','Range','Stability','Handling','Reload Speed','Aim Assist','Magazine','Inventory','Zoom','Blast Radius','Velocity','Charge Time','Airborne Eff','Recoil Dir','Airborne Effectiveness'];
+        var STAT_ORDER = ['RPM','Impact','Range','Stability','Handling','Reload Speed','Aim Assist','Zoom','Blast Radius','Velocity','Charge Time','Draw Time','Swing Speed','Guard Efficiency','Guard Resistance','Guard Endurance','Shield Duration','Charge Rate','Magazine','Inventory','Ammo Cap','Airborne Eff','Recoil Dir'];
         var orderedStats = item.stats.slice().sort(function(a,b){
           var ai = STAT_ORDER.indexOf(a.label); var bi = STAT_ORDER.indexOf(b.label);
           return (ai<0?99:ai) - (bi<0?99:bi);
@@ -2716,6 +2745,15 @@
           + '</div>';
       }
 
+      return html;
+    }
+
+    function openItemPopup(el) {
+      var raw = el.getAttribute('data-item');
+      if (!raw) return;
+      var item;
+      try { item = JSON.parse(raw.replace(/&#39;/g,"'").replace(/&quot;/g,'"')); } catch(e) { return; }
+      var html = buildItemPopupHTML(item);
       document.getElementById('itemPopupContent').innerHTML = html;
       document.getElementById('itemPopup').style.display = 'block';
       document.getElementById('itemPopupOverlay').style.display = 'block';
