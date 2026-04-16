@@ -116,7 +116,10 @@ export default async function handler(req, res) {
       const socketsData  = profile?.itemComponents?.sockets?.data ?? {};
       // Component 305 geeft per item alle socket states inclusief plugHash
       const plugStatesData = profile?.itemComponents?.plugStates?.data ?? {};
-      const statsData    = profile?.characterStats?.data ?? {};
+      // Component 304 = item-level stats (armor stats per item), accessed via itemComponents.stats
+      const statsData    = profile?.itemComponents?.stats?.data ?? {};
+      // Component 202 = character-level total stats (for character sheet)
+      const charStatsData = profile?.characterStats?.data ?? {};
 
       // DEBUG: log wat Bungie teruggeeft voor stats (zie Vercel logs)
       console.log('[stats-debug] profile keys:', Object.keys(profile ?? {}));
@@ -501,15 +504,16 @@ export default async function handler(req, res) {
           if (name.startsWith('Empty') || name.startsWith('Default') || name.startsWith('Deprecated')) continue;
           // Skip alles dat een mod is (enhancements.*)
           if (plugId.startsWith('enhancements.')) continue;
-          // Skip cosmetics
-          if (plugId.includes('shader') || plugId.includes('ornament') || plugId.includes('transmat')) continue;
+          // Skip cosmetics: shaders, ornaments, armor skins, plug_one (universal ornaments)
+          if (plugId.includes('shader') || plugId.includes('ornament') || plugId.includes('transmat')
+              || plugId.includes('armor_skins') || plugId.includes('armor_plug_one')
+              || plugId.includes('plug_one')) continue;
           // Skip masterworks en trackers
           if (plugId.includes('masterwork') || plugId.includes('tracker')) continue;
           // Skip weapon/armor mod categories — die zijn mods, geen perks
           if (plugId.includes('mods.armor') || plugId.includes('mods.weapons')) continue;
           // Alleen echte intrinsic armor perks (set bonuses, exotic perks)
-          // Deze hebben plugCategoryIdentifier die 'armor_perks' of 'intrinsic' bevat
-          // of zijn van itemType 19 (intrinsic)
+          // itemType 19 = intrinsic, of plugCategoryIdentifier bevat 'armor_perks' of 'intrinsic'
           const isIntrinsic = plugId.includes('armor_perks') || plugId.includes('intrinsic')
             || plugDef.itemType === 19;
           if (!isIntrinsic) continue;
@@ -632,8 +636,8 @@ export default async function handler(req, res) {
 
         // Primair: stats uit char object (component 200) — altijd beschikbaar
         const charRawStats = char.stats ?? {};
-        // Fallback: component 304 als char.stats leeg is
-        const c304RawStats = statsData[charId]?.stats ?? {};
+        // Fallback: component 202 als char.stats leeg is
+        const c304RawStats = charStatsData[charId]?.stats ?? {};
 
         const stats = {};
         for (const [hash, key] of Object.entries(STAT_HASHES)) {
@@ -858,42 +862,41 @@ export default async function handler(req, res) {
           const pName = plugDef.displayProperties?.name ?? '';
           const pDesc = plugDef.displayProperties?.description ?? '';
           const pIcon = plugDef.displayProperties?.icon ? 'https://www.bungie.net' + plugDef.displayProperties.icon : null;
-          const plugCat = plugDef.itemCategoryHashes ?? [];
-          const pType  = plugDef.plug?.plugCategoryIdentifier ?? '';
+          const pType = plugDef.plug?.plugCategoryIdentifier ?? '';
 
-          // Skip lege / tracker items (shaders/ornaments worden hieronder als cosmetics verzameld)
-          if (!pName || pName === 'Empty Mod Socket' || pName === 'Default Ornament') continue;
-          if (pType.includes('transmat')) continue;
-          if (pType.includes('tracker') || pType.includes('masterwork.stat')) continue;
+          // Skip lege/default/tracker/masterwork items
+          if (!pName) continue;
+          const isBlank = pName.startsWith('Empty') || pName.startsWith('Default') || pName.startsWith('Deprecated');
+          if (pType.includes('tracker') || pType.includes('masterwork') || pType.includes('transmat')) continue;
 
-          // Exotische perk (itemType 19 = intrinsic, of plugCategoryIdentifier bevat 'exotic')
-          if (plugDef.itemType === 19 || pType.includes('exotic_intrinsic') || pType.includes('intrinsics')) {
+          // 1. Cosmetics: shaders en ornaments (EERSTE check, vóór perk checks)
+          if (pType.includes('shader') || pType.includes('ornament')) {
+            if (!isBlank && pIcon) vaultCosmetics.push({ name: pName, icon: pIcon });
+            continue;
+          }
+
+          if (isBlank) continue;
+
+          // 2. Armor/weapon mods (enhancements.*)
+          if (pType.startsWith('enhancements.') || pType.includes('mods.armor') || pType.includes('mods.weapons')) {
+            if (pIcon) vaultMods.push({ name: pName, icon: pIcon });
+            continue;
+          }
+
+          // 3. Intrinsic perks: exotic trait, frame, origin perk
+          if (plugDef.itemType === 19 || pType.includes('exotic_intrinsic') || pType.includes('intrinsics')
+              || pType.includes('frames') || pType.includes('origin')) {
             intrinsics.push({ name: pName, desc: pDesc, icon: pIcon, isIntrinsic: true });
-          } else if (pType.includes('frames') || pType.includes('origin')) {
-            intrinsics.push({ name: pName, desc: pDesc, icon: pIcon, isIntrinsic: true });
-          } else if (pType.startsWith('v400.plugs.weapons.masterworks') || pType.includes('masterwork')) {
-            // skip masterworks
-          } else if (
-            pType.includes('perks') || pType.includes('traits') ||
-            pType.startsWith('v400.plugs.weapons') ||
-            (pType.startsWith('v400.plugs.armor') && !pType.includes('mods'))
-          ) {
-            // Armor "set bonus" perks hebben plugCategoryIdentifier met 'armor_perks_intrinsic'
-            // of hebben een perkCount in hun displayProperties
-            const isSetBonus = pType.includes('intrinsic') || pType.includes('set_bonus') || pType.includes('armor_perks');
-            regularPerks.push({ name: pName, desc: pDesc, icon: pIcon, isSetBonus });
-          } else if (pType.includes('mods.armor') || pType.startsWith('enhancements.armor') || pType.startsWith('enhancements.weapons')) {
-            // Armor/weapon mods — verzamel voor popup display
-            if (pName && pIcon && !pName.startsWith('Empty') && !pName.startsWith('Default') && !pName.startsWith('Deprecated')) {
-              vaultMods.push({ name: pName, icon: pIcon });
-            } else {
-              vaultMods.push(null);
-            }
-          } else if (pType.includes('shader') || pType.includes('ornament')) {
-            // Cosmetics
-            if (pName && pIcon && !pName.startsWith('Default') && !pName.startsWith('Empty')) {
-              vaultCosmetics.push({ name: pName, icon: pIcon });
-            }
+            continue;
+          }
+
+          // 4. Regular perks/traits (weapon traits, armor set-bonus perks)
+          if (pType.includes('perks') || pType.includes('traits')
+              || pType.startsWith('v400.plugs.weapons.mods.traits')
+              || pType.startsWith('v400.plugs.weapons.mods.barrels')
+              || pType.startsWith('v400.plugs.weapons.mods.magazines')
+              || (pType.startsWith('v400.plugs.armor') && !pType.includes('mods'))) {
+            regularPerks.push({ name: pName, desc: pDesc, icon: pIcon });
           }
         }
 
