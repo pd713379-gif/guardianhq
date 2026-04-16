@@ -362,24 +362,31 @@ export default async function handler(req, res) {
         const def = defs[itemHash] ?? {};
         const statsBlock = def.stats?.stats ?? {};
         const WEAPON_STAT_HASHES = {
-          4284893193: 'Impact',
+          4284893193: 'RPM',
+          209426660:  'Impact',
           1240592695: 'Range',
           155624089:  'Stability',
           943549884:  'Handling',
+          1480404414: 'Handling',
           4188031367: 'Reload Speed',
+          1931675085: 'Reload Speed',
           1591432999: 'Accuracy',
-          2523465841: 'Rounds/Min',
-          1030428403: 'Blast Radius',
-          2762071195: 'Velocity',
-          3614673599: 'Charge Time',
-          447667954:  'Draw Time',
-          925767036:  'Ammo Capacity',
-          3871231066: 'Magazine',
+          1885944937: 'Zoom',
           2961396640: 'Zoom',
-          1931675084: 'Inventory Size',
-          3597844532: 'Aim Assistance',
-          1345609583: 'Airborne Effectiveness',
-          3555269338: 'Recoil Direction',
+          1030428403: 'Blast Radius',
+          3614673599: 'Blast Radius',
+          2762071195: 'Velocity',
+          2523465841: 'Velocity',
+          3036656661: 'Charge Time',
+          447667954:  'Draw Time',
+          925767036:  'Ammo Cap',
+          2714273498: 'Ammo Cap',
+          3871231066: 'Magazine',
+          1931675084: 'Inventory',
+          3597844532: 'Aim Assist',
+          1345609583: 'Aim Assist',
+          3555269338: 'Recoil Dir',
+          2715839340: 'Recoil Dir',
           2714457168: 'Shield Duration',
           1842278070: 'Guard Efficiency',
           3736848092: 'Guard Resistance',
@@ -839,6 +846,8 @@ export default async function handler(req, res) {
         let exoticPerk = null;
         const regularPerks = [];
         const intrinsics   = [];
+        const vaultMods    = [];
+        const vaultCosmetics = [];
         const armorStats   = { energy: 0, mobility: 0, resilience: 0, recovery: 0, discipline: 0, intellect: 0, strength: 0 };
 
         for (const socket of sockets) {
@@ -852,9 +861,9 @@ export default async function handler(req, res) {
           const plugCat = plugDef.itemCategoryHashes ?? [];
           const pType  = plugDef.plug?.plugCategoryIdentifier ?? '';
 
-          // Skip lege / cosmetic / tracker items
+          // Skip lege / tracker items (shaders/ornaments worden hieronder als cosmetics verzameld)
           if (!pName || pName === 'Empty Mod Socket' || pName === 'Default Ornament') continue;
-          if (pType.includes('shader') || pType.includes('ornament') || pType.includes('transmat')) continue;
+          if (pType.includes('transmat')) continue;
           if (pType.includes('tracker') || pType.includes('masterwork.stat')) continue;
 
           // Exotische perk (itemType 19 = intrinsic, of plugCategoryIdentifier bevat 'exotic')
@@ -873,21 +882,30 @@ export default async function handler(req, res) {
             // of hebben een perkCount in hun displayProperties
             const isSetBonus = pType.includes('intrinsic') || pType.includes('set_bonus') || pType.includes('armor_perks');
             regularPerks.push({ name: pName, desc: pDesc, icon: pIcon, isSetBonus });
-          } else if (pType.includes('mods.armor') || pType.includes('mods.weapons')) {
-            // Armor/weapon mods — apart bijhouden, NIET als perks tonen
-            // (worden al via getArmorMods opgehaald voor het item slot)
+          } else if (pType.includes('mods.armor') || pType.startsWith('enhancements.armor') || pType.startsWith('enhancements.weapons')) {
+            // Armor/weapon mods — verzamel voor popup display
+            if (pName && pIcon && !pName.startsWith('Empty') && !pName.startsWith('Default') && !pName.startsWith('Deprecated')) {
+              vaultMods.push({ name: pName, icon: pIcon });
+            } else {
+              vaultMods.push(null);
+            }
+          } else if (pType.includes('shader') || pType.includes('ornament')) {
+            // Cosmetics
+            if (pName && pIcon && !pName.startsWith('Default') && !pName.startsWith('Empty')) {
+              vaultCosmetics.push({ name: pName, icon: pIcon });
+            }
           }
         }
 
         // ── Weapon stats ────────────────────────────────────────
         const itemStatMap  = statsData[raw.itemInstanceId]?.stats ?? {};
         const WEAPON_STATS = {
-          4284893193: 'RPM',         // Rounds Per Minute
+          4284893193: 'RPM',
           1480404414: 'Handling',
           155624089:  'Stability',
           943549884:  'Handling',
           1345609583: 'Aim Assist',
-          2715839340: 'Recoil Dir',
+          3555269338: 'Recoil Dir',
           1591432999: 'Accuracy',
           1885944937: 'Zoom',
           3614673599: 'Blast Radius',
@@ -897,15 +915,16 @@ export default async function handler(req, res) {
           209426660:  'Impact',
           1931675084: 'Inventory',
           3871231066: 'Magazine',
-          2996146975: 'Mobility',
-          392767087:  'Resilience',
-          1943323491: 'Recovery',
-          1735777505: 'Discipline',
-          144602215:  'Intellect',
-          4244567218: 'Strength',
           1931675085: 'Reload Speed',
           3555269338: 'Airborne Eff',
           2714273498: 'Ammo Cap',
+          447667954:  'Draw Time',
+          2714457168: 'Shield Duration',
+          1842278070: 'Guard Efficiency',
+          3736848092: 'Guard Resistance',
+          1305347063: 'Charge Rate',
+          3022301683: 'Guard Endurance',
+          2396949875: 'Swing Speed',
         };
 
         const weaponStats = [];
@@ -985,6 +1004,8 @@ export default async function handler(req, res) {
           // perks
           intrinsics:     intrinsics.slice(0, 2),
           perks:          regularPerks.slice(0, 6),
+          mods:           vaultMods.filter(Boolean),
+          cosmetics:      vaultCosmetics,
           // stats
           weaponStats,
           armorStatList,
