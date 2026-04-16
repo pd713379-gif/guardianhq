@@ -473,6 +473,44 @@ export default async function handler(req, res) {
         return perks;
       }
 
+      // Haal ALLEEN echte armor intrinsic/set-bonus perks op (niet de mods)
+      // Echte armor perks: plugCategoryIdentifier is 'v400.plugs.armor.mods.armor_perks_intrinsic'
+      // of bevat 'armor_perks' maar NIET 'enhancements' (dat zijn mods)
+      function getArmorIntrinsicPerks(itemInstanceId) {
+        const sockets = socketsData[itemInstanceId]?.sockets ?? [];
+        const perks   = [];
+        const seen    = new Set();
+        for (const socket of sockets) {
+          const hash = socket.plugHash;
+          if (!hash || seen.has(hash)) continue;
+          seen.add(hash);
+          const plugDef = defs[hash];
+          if (!plugDef) continue;
+          const name   = plugDef.displayProperties?.name ?? '';
+          const icon   = plugDef.displayProperties?.icon ?? '';
+          const desc   = plugDef.displayProperties?.description ?? '';
+          const plugId = (plugDef.plug?.plugCategoryIdentifier ?? '').toLowerCase();
+          if (!name || !icon) continue;
+          if (name.startsWith('Empty') || name.startsWith('Default') || name.startsWith('Deprecated')) continue;
+          // Skip alles dat een mod is (enhancements.*)
+          if (plugId.startsWith('enhancements.')) continue;
+          // Skip cosmetics
+          if (plugId.includes('shader') || plugId.includes('ornament') || plugId.includes('transmat')) continue;
+          // Skip masterworks en trackers
+          if (plugId.includes('masterwork') || plugId.includes('tracker')) continue;
+          // Skip weapon/armor mod categories — die zijn mods, geen perks
+          if (plugId.includes('mods.armor') || plugId.includes('mods.weapons')) continue;
+          // Alleen echte intrinsic armor perks (set bonuses, exotic perks)
+          // Deze hebben plugCategoryIdentifier die 'armor_perks' of 'intrinsic' bevat
+          // of zijn van itemType 19 (intrinsic)
+          const isIntrinsic = plugId.includes('armor_perks') || plugId.includes('intrinsic')
+            || plugDef.itemType === 19;
+          if (!isIntrinsic) continue;
+          perks.push({ name, icon: 'https://www.bungie.net' + icon, desc });
+        }
+        return perks;
+      }
+
       // 6. Bouw karakters op
       const characters = [];
       for (const [charId, char] of Object.entries(charsData)) {
@@ -524,7 +562,33 @@ export default async function handler(req, res) {
           const screenshot = def.screenshot ? 'https://www.bungie.net' + def.screenshot : null;
           const icon = def.displayProperties?.icon ? 'https://www.bungie.net' + def.displayProperties.icon : null;
           const iconWatermark = def.iconWatermark ? 'https://www.bungie.net' + def.iconWatermark : null;
-          const armorPerks = getCollectiblePerks(i.itemInstanceId);
+          // Echte intrinsic set-bonus perks (Reflex Action, Hotshot, etc.) — GEEN mods
+          const armorPerks = getArmorIntrinsicPerks(i.itemInstanceId);
+
+          // Armor stats per item (Mobility/Resilience/etc.)
+          const itemStatMap2 = statsData[i.itemInstanceId]?.stats ?? {};
+          const ARMOR_STAT_MAP2 = {
+            2996146975: 'Mobility', 392767087: 'Resilience', 1943323491: 'Recovery',
+            1735777505: 'Discipline', 144602215: 'Intellect', 4244567218: 'Strength',
+          };
+          const armorStatList2 = [];
+          for (const [hashStr, stat] of Object.entries(itemStatMap2)) {
+            const label = ARMOR_STAT_MAP2[parseInt(hashStr)];
+            if (label) armorStatList2.push({ label, value: stat.value ?? 0 });
+          }
+          const armorTotal2 = armorStatList2.reduce((s, x) => s + x.value, 0);
+
+          // Artifice detectie
+          const socketsForArtifice = socketsData[i.itemInstanceId]?.sockets ?? [];
+          let isArtifice2 = false;
+          for (const socket of socketsForArtifice) {
+            const plugDef2 = defs[socket.plugHash];
+            const pType2 = plugDef2?.plug?.plugCategoryIdentifier ?? '';
+            if (pType2.includes('artificer') || pType2.includes('artifice') || socket.socketType === 1516993267) {
+              isArtifice2 = true; break;
+            }
+          }
+
           return {
             bucketHash: i.bucketHash,
             slotName:   SLOT_NAMES[i.bucketHash] ?? 'Armor',
@@ -535,10 +599,15 @@ export default async function handler(req, res) {
             flavorText: def.flavorText ?? '',
             tierType,
             isExotic:   tierType === 6,
+            isArmor:    true,
+            isWeapon:   false,
+            isArtifice: isArtifice2,
             power:      ins.primaryStat?.value ?? 0,
             mods,
             cosmetics,
             perks:      armorPerks,
+            armorStatList: armorStatList2,
+            armorTotal: armorTotal2,
           };
         });
 
@@ -797,10 +866,16 @@ export default async function handler(req, res) {
             // skip masterworks
           } else if (
             pType.includes('perks') || pType.includes('traits') ||
-            pType.startsWith('v400.plugs.armor') || pType.startsWith('v400.plugs.weapons') ||
-            pType.includes('mods.armor') || pType.includes('mods.weapons')
+            pType.startsWith('v400.plugs.weapons') ||
+            (pType.startsWith('v400.plugs.armor') && !pType.includes('mods'))
           ) {
-            regularPerks.push({ name: pName, desc: pDesc, icon: pIcon });
+            // Armor "set bonus" perks hebben plugCategoryIdentifier met 'armor_perks_intrinsic'
+            // of hebben een perkCount in hun displayProperties
+            const isSetBonus = pType.includes('intrinsic') || pType.includes('set_bonus') || pType.includes('armor_perks');
+            regularPerks.push({ name: pName, desc: pDesc, icon: pIcon, isSetBonus });
+          } else if (pType.includes('mods.armor') || pType.includes('mods.weapons')) {
+            // Armor/weapon mods — apart bijhouden, NIET als perks tonen
+            // (worden al via getArmorMods opgehaald voor het item slot)
           }
         }
 
