@@ -2390,7 +2390,8 @@
     }
 
     // ══════════════════════════════════════════════════════════
-    // ITEM DETAIL POPUP
+    // ITEM DETAIL POPUP  — ⚙ Item Manager only
+    // Fixes: no duplicate perks/mods, Artifice slot, set bonuses
     // ══════════════════════════════════════════════════════════
     function openItemPopup(el) {
       var raw = el.getAttribute('data-item');
@@ -2398,15 +2399,23 @@
       var item;
       try { item = JSON.parse(raw.replace(/&#39;/g,"'").replace(/&quot;/g,'"')); } catch(e) { return; }
 
-      var exotic  = item.isExotic;
-      var tier    = TIER_COLORS[item.tierType] || TIER_COLORS[5];
+      var exotic    = item.isExotic;
+      var isArmor   = !!item.isArmor;
+      var isWeapon  = !!item.isWeapon;
+      var tier      = TIER_COLORS[item.tierType] || TIER_COLORS[5];
       var tierColor = exotic ? '#f5c842' : 'rgba(155,114,207,0.9)';
       var tierLabel = exotic ? 'Exotic' : 'Legendary';
-      var iconBg  = exotic
+      var iconBg    = exotic
         ? 'linear-gradient(135deg,rgba(160,120,20,0.7),rgba(100,70,5,0.9))'
         : 'linear-gradient(135deg,rgba(50,30,70,0.7),rgba(25,15,45,0.9))';
 
       // ── HEADER ──
+      var subtitleParts = [tierLabel];
+      if (item.typeName) subtitleParts.push(item.typeName);
+      if (item.slotName) subtitleParts.push(item.slotName);
+      if (item.isArtifice) subtitleParts.push('🔱 Artifice');
+      if (item.className && item.className !== 'Any') subtitleParts.push(item.className);
+
       var html = '<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;">'
         + '<div style="flex-shrink:0;width:72px;height:72px;border-radius:10px;overflow:hidden;background:' + iconBg + ';border:2px solid ' + tier.border + ';">'
         + (item.icon ? '<img src="' + item.icon + '" width="72" height="72" style="width:72px;height:72px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
@@ -2414,15 +2423,14 @@
         + '</div>'
         + '<div style="flex:1;min-width:0;">'
         + '<div style="font-size:1rem;font-weight:800;color:#fff;line-height:1.2;">' + (item.name || '—') + '</div>'
-        + '<div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:' + tierColor + ';margin-top:3px;">'
-        + tierLabel + (item.typeName ? ' · ' + item.typeName : '') + (item.slotName ? ' · ' + item.slotName : '') + '</div>'
+        + '<div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:' + tierColor + ';margin-top:3px;">' + subtitleParts.join(' · ') + '</div>'
         + (item.power ? '<div style="font-size:0.95rem;font-weight:800;color:#f0c040;margin-top:4px;">⚡ ' + item.power + '</div>' : '')
         + (item.flavorText ? '<div style="font-size:0.68rem;color:rgba(255,255,255,0.35);margin-top:6px;font-style:italic;line-height:1.4;">' + item.flavorText + '</div>' : '')
         + '</div>'
         + '</div>';
 
       // ── WAPEN STATS ──
-      if (item.stats && item.stats.length) {
+      if (isWeapon && item.stats && item.stats.length) {
         html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;margin-bottom:14px;">'
           + '<div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:8px;">Wapen Stats</div>'
           + '<div style="display:flex;flex-direction:column;gap:5px;">';
@@ -2440,12 +2448,45 @@
         html += '</div></div>';
       }
 
-      // ── PERKS ──
-      if (item.perks && item.perks.length) {
+      // ── ARMOR STATS ──
+      if (isArmor && item.armorStatList && item.armorStatList.length) {
+        var ARMOR_ORDER = ['Mobility','Resilience','Recovery','Discipline','Intellect','Strength'];
+        var sorted = (item.armorStatList || []).slice().sort(function(a,b){
+          return ARMOR_ORDER.indexOf(a.label) - ARMOR_ORDER.indexOf(b.label);
+        });
+        html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;margin-bottom:14px;">'
+          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
+          + '<div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);">Armor Stats</div>'
+          + (item.armorTotal > 0 ? '<div style="font-size:0.72rem;color:#f5c842;font-weight:700;">Totaal ' + item.armorTotal + '</div>' : '')
+          + '</div>';
+        sorted.forEach(function(s) {
+          var pct = Math.min(100, Math.round((s.value / 42) * 100));
+          html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">'
+            + '<div style="width:80px;font-size:0.68rem;color:rgba(255,255,255,0.5);text-align:right;flex-shrink:0;">' + s.label + '</div>'
+            + '<div style="flex:1;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;">'
+            + '<div style="width:' + pct + '%;height:100%;background:' + tierColor + ';border-radius:2px;"></div>'
+            + '</div>'
+            + '<div style="width:24px;font-size:0.68rem;color:#fff;font-weight:700;text-align:right;">' + s.value + '</div>'
+            + '</div>';
+        });
+        html += '</div>';
+      }
+
+      // ── PERKS (alleen echte gameplay perks, geen dubbelen met mods) ──
+      // Bungie API stuurt intrinsic perks soms ook door in mods — dedupliceer op naam
+      var modNames = new Set((item.mods || []).filter(Boolean).map(function(m){ return (m.name||'').toLowerCase(); }));
+
+      var perks = (item.perks || []).filter(function(p) {
+        if (!p || !p.name) return false;
+        // Verwijder perks die exact hetzelfde heten als een mod (zijn dan dubbel)
+        return !modNames.has(p.name.toLowerCase());
+      });
+
+      if (perks.length > 0) {
         html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;margin-bottom:14px;">'
           + '<div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:10px;">Perks</div>'
           + '<div style="display:flex;flex-direction:column;gap:10px;">';
-        item.perks.forEach(function(p) {
+        perks.forEach(function(p) {
           html += '<div style="display:flex;align-items:flex-start;gap:10px;">'
             + '<div style="flex-shrink:0;width:34px;height:34px;border-radius:50%;overflow:hidden;background:rgba(155,114,207,0.15);border:1px solid rgba(155,114,207,0.4);">'
             + (p.icon ? '<img src="' + p.icon + '" width="34" height="34" style="width:34px;height:34px;object-fit:cover;display:block;" referrerpolicy="no-referrer">' : '')
@@ -2459,28 +2500,64 @@
         html += '</div></div>';
       }
 
-      // ── MODS (wapen of armor) ──
-      if (item.mods && item.mods.filter(Boolean).length > 0) {
-        var isWeapon = !!(item.stats && item.stats.length);
+      // ── ARMOR SET BONUSES (2-piece en 4-piece) ──
+      // Bungie API stuurt set bonuses soms door als speciale perks met setData
+      var setBonuses = (item.perks || []).filter(function(p) {
+        return p && p.name && (p.isSetBonus || (p.perkCount && p.perkCount >= 2));
+      });
+      if (item.setBonuses && item.setBonuses.length) {
+        // Alternatief: dedicated setBonuses veld
+        html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;margin-bottom:14px;">'
+          + '<div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:10px;">🔗 Set Bonuses</div>'
+          + '<div style="display:flex;flex-direction:column;gap:8px;">';
+        item.setBonuses.forEach(function(b) {
+          html += '<div style="background:rgba(155,114,207,0.08);border:1px solid rgba(155,114,207,0.25);border-radius:8px;padding:8px 12px;">'
+            + '<div style="font-size:0.65rem;font-weight:800;color:rgba(155,114,207,0.9);margin-bottom:3px;">' + (b.perkCount ? b.perkCount + ' Piece · ' : '') + (b.setName || '') + '</div>'
+            + '<div style="font-size:0.76rem;font-weight:700;color:#fff;">' + (b.name || '') + '</div>'
+            + (b.desc ? '<div style="font-size:0.65rem;color:rgba(255,255,255,0.45);line-height:1.45;margin-top:3px;">' + b.desc + '</div>' : '')
+            + '</div>';
+        });
+        html += '</div></div>';
+      }
+
+      // ── MODS ──
+      var mods = (item.mods || []).filter(Boolean);
+      if (mods.length > 0) {
         var modBorderColor = isWeapon ? 'rgba(245,200,66,0.35)' : 'rgba(79,143,255,0.35)';
         var modBg          = isWeapon ? 'rgba(245,200,66,0.1)'  : 'rgba(79,143,255,0.12)';
         var modLabel       = isWeapon ? 'Wapen Mods' : 'Armor Mods';
         html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;">'
           + '<div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:10px;">' + modLabel + '</div>'
           + '<div style="display:flex;flex-direction:column;gap:8px;">';
-        item.mods.forEach(function(m) {
-          if (!m || !m.name) return;
+        mods.forEach(function(m) {
+          if (!m.name) return;
           html += '<div style="display:flex;align-items:center;gap:10px;">'
             + '<div style="flex-shrink:0;width:34px;height:34px;border-radius:6px;overflow:hidden;background:' + modBg + ';border:1px solid ' + modBorderColor + ';">'
             + (m.icon ? '<img src="' + m.icon + '" width="34" height="34" style="width:34px;height:34px;object-fit:cover;display:block;" referrerpolicy="no-referrer">' : '')
             + '</div>'
+            + '<div style="flex:1;min-width:0;">'
             + '<div style="font-size:0.74rem;font-weight:600;color:rgba(255,255,255,0.85);">' + m.name + '</div>'
+            + (m.desc ? '<div style="font-size:0.63rem;color:rgba(255,255,255,0.35);line-height:1.4;margin-top:1px;">' + m.desc + '</div>' : '')
+            + '</div>'
             + '</div>';
         });
         html += '</div></div>';
       }
 
-      // ── ARMOR COSMETICS in popup ──
+      // ── ARTIFICE EXTRA MOD SLOT ──
+      if (isArmor && item.isArtifice) {
+        html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;margin-top:4px;">'
+          + '<div style="background:linear-gradient(135deg,rgba(212,168,67,0.1),rgba(155,114,207,0.08));border:1px solid rgba(212,168,67,0.3);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;">'
+          + '<span style="font-size:1.2rem;">🔱</span>'
+          + '<div>'
+          + '<div style="font-size:0.72rem;font-weight:700;color:#d4a843;">Artifice Armor</div>'
+          + '<div style="font-size:0.62rem;color:rgba(255,255,255,0.4);line-height:1.4;margin-top:2px;">Extra mod slot beschikbaar voor Artifact mods (Master Dungeon drops).</div>'
+          + '</div>'
+          + '</div>'
+          + '</div>';
+      }
+
+      // ── COSMETICS ──
       if (item.cosmetics && item.cosmetics.filter(Boolean).length > 0) {
         html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;margin-top:4px;">'
           + '<div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.28);margin-bottom:8px;">Cosmetics</div>'
