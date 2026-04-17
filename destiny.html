@@ -433,9 +433,39 @@
   </div>
 
   <!-- ══ VAULT ITEM DETAIL POPUP ══ -->
-  <div id="vaultItemPopupOverlay" onclick="closeVaultItemPopup()" style="display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.55);"></div>
-  <div id="vaultItemPopup" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10002;width:min(420px,92vw);max-height:85vh;overflow-y:auto;background:#0d1020;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px;box-shadow:0 8px 48px rgba(0,0,0,0.7);">
-    <button onclick="closeVaultItemPopup()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:rgba(255,255,255,0.4);font-size:1.2rem;cursor:pointer;line-height:1;">✕</button>
+  <style>
+    #vaultItemPopup {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(155,114,207,0.4) rgba(255,255,255,0.04);
+    }
+    #vaultItemPopup::-webkit-scrollbar { width: 5px; }
+    #vaultItemPopup::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); border-radius: 3px; }
+    #vaultItemPopup::-webkit-scrollbar-thumb { background: rgba(155,114,207,0.45); border-radius: 3px; }
+    #vaultItemPopup::-webkit-scrollbar-thumb:hover { background: rgba(155,114,207,0.7); }
+
+    @keyframes vaultPopupIn {
+      from { opacity: 0; transform: translate(-50%, calc(-50% + 14px)); }
+      to   { opacity: 1; transform: translate(-50%, -50%); }
+    }
+    @keyframes vaultOverlayIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    #vaultItemPopup.vault-popup-visible {
+      animation: vaultPopupIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    #vaultItemPopupOverlay.vault-popup-visible {
+      animation: vaultOverlayIn 0.18s ease forwards;
+    }
+    #vaultItemPopup .vault-close-btn:hover {
+      color: #fff !important;
+      background: rgba(255,255,255,0.1) !important;
+      border-radius: 6px;
+    }
+  </style>
+  <div id="vaultItemPopupOverlay" onclick="closeVaultItemPopup()" style="display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.6);"></div>
+  <div id="vaultItemPopup" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10002;width:min(420px,92vw);max-height:85vh;overflow-y:auto;background:#0d1020;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:22px 20px 24px;box-shadow:0 8px 48px rgba(0,0,0,0.7);">
+    <button class="vault-close-btn" onclick="closeVaultItemPopup()" style="position:absolute;top:12px;right:12px;background:none;border:none;color:rgba(255,255,255,0.4);font-size:1.15rem;cursor:pointer;line-height:1;padding:5px 7px;transition:color 0.15s,background 0.15s;">✕</button>
     <div id="vaultItemPopupContent"></div>
   </div>
 
@@ -1862,16 +1892,47 @@
       vaultPopup.style.boxShadow    = '0 8px 48px rgba(0,0,0,0.85), 0 0 32px ' + glow + ', inset 0 1px 0 rgba(255,255,255,0.06)';
       vaultPopup.style.borderRadius = '16px';
 
-      vaultContent.innerHTML    = html;
-      vaultPopup.style.display  = 'block';
+      vaultContent.innerHTML = html;
+      // Reset scroll naar boven bij elk nieuw item
+      vaultPopup.scrollTop = 0;
+
+      // Animatie: verwijder klasse en voeg opnieuw toe voor herstart
+      vaultPopup.classList.remove('vault-popup-visible');
+      vaultOverlay.classList.remove('vault-popup-visible');
+      vaultPopup.style.display   = 'block';
       vaultOverlay.style.display = 'block';
+      // Micro-delay zodat de browser de display:block registreert vóór animatie
+      requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+          vaultPopup.classList.add('vault-popup-visible');
+          vaultOverlay.classList.add('vault-popup-visible');
+        });
+      });
+
       document.body.style.overflow = 'hidden';
+
+      // ESC-toets sluit de vault popup (eigen listener, verwijderd bij sluiten)
+      if (!window._vaultEscListener) {
+        window._vaultEscListener = function(e) {
+          if (e.key === 'Escape') closeVaultItemPopup();
+        };
+        document.addEventListener('keydown', window._vaultEscListener);
+      }
     }
 
     function closeVaultItemPopup() {
-      document.getElementById('vaultItemPopup').style.display        = 'none';
-      document.getElementById('vaultItemPopupOverlay').style.display  = 'none';
+      var vaultPopup   = document.getElementById('vaultItemPopup');
+      var vaultOverlay = document.getElementById('vaultItemPopupOverlay');
+      vaultPopup.style.display   = 'none';
+      vaultOverlay.style.display = 'none';
+      vaultPopup.classList.remove('vault-popup-visible');
+      vaultOverlay.classList.remove('vault-popup-visible');
       document.body.style.overflow = '';
+      // Verwijder ESC listener zodat hij niet blijft hangen
+      if (window._vaultEscListener) {
+        document.removeEventListener('keydown', window._vaultEscListener);
+        window._vaultEscListener = null;
+      }
     }
 
     // Laad wishlist iconen wanneer tab geselecteerd wordt
