@@ -1587,6 +1587,7 @@
             isWeapon: item.isWeapon, isArmor: item.isArmor, isArtifice: item.isArtifice,
             power: item.power, damageType: item.damageType, damageColor: item.damageColor,
             className: item.className, bucketName: item.bucketName ?? '',
+            flavorText: item.flavorText ?? '',
             intrinsics: item.intrinsics ?? [], perks: item.perks ?? [],
             mods: item.mods ?? [], cosmetics: item.cosmetics ?? [],
             stats: item.weaponStats ?? [],
@@ -1607,14 +1608,128 @@
       grid.innerHTML = html;
     }
 
+    // ══ VAULT WEAPON POPUP BUILDER ══
+    function buildVaultWeaponPopupHTML(item) {
+      var exotic      = item.isExotic;
+      var tierColor   = exotic ? '#CEAE33' : '#9b72cf';
+      var tierLabel   = exotic ? 'Exotic' : 'Legendary';
+      var iconBg      = exotic ? 'linear-gradient(135deg,#7a5c0a,#3d2a00)' : 'linear-gradient(135deg,#2a1a4a,#160d2e)';
+      var iconBorder  = exotic ? 'rgba(206,174,51,0.8)' : 'rgba(155,114,207,0.7)';
+      var iconGlow    = exotic ? 'rgba(206,174,51,0.25)' : 'rgba(155,114,207,0.2)';
+
+      var DAMAGE_NAMES  = { 2:'Arc', 3:'Solar', 4:'Void', 6:'Stasis', 7:'Strand' };
+      var DAMAGE_COLORS = { 2:'#79c8f0', 3:'#f0a830', 4:'#b574de', 6:'#4ec3e0', 7:'#31c48d' };
+      var damageName  = item.damageType ? (DAMAGE_NAMES[item.damageType]  || '') : '';
+      var damageColor = item.damageType ? (DAMAGE_COLORS[item.damageType] || '#aaa') : '';
+
+      // Subtitle: LEGENDARY · SIDEARM · ENERGIE
+      var subtitleParts = [tierLabel.toUpperCase()];
+      if (item.typeName)  subtitleParts.push(item.typeName.toUpperCase());
+      if (item.bucketName) subtitleParts.push(item.bucketName.toUpperCase());
+
+      // Update popup border + glow
+      var vp = document.getElementById('vaultItemPopup');
+      if (vp) {
+        vp.style.borderColor = exotic ? 'rgba(206,174,51,0.55)' : 'rgba(155,114,207,0.45)';
+        vp.style.boxShadow   = '0 8px 48px rgba(0,0,0,0.85), 0 0 28px ' + (exotic ? 'rgba(206,174,51,0.18)' : 'rgba(155,114,207,0.18)');
+      }
+
+      // ── HEADER ──
+      var html = ''
+        + '<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:18px;">'
+        +   '<div style="flex-shrink:0;width:74px;height:74px;border-radius:10px;overflow:hidden;background:' + iconBg + ';border:2px solid ' + iconBorder + ';box-shadow:0 0 18px ' + iconGlow + ';">'
+        +     (item.icon
+                ? '<img src="' + item.icon + '" width="74" height="74" style="width:74px;height:74px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
+                : '<div style="width:74px;height:74px;display:flex;align-items:center;justify-content:center;font-size:2.2rem;">🔫</div>')
+        +   '</div>'
+        +   '<div style="flex:1;min-width:0;padding-top:2px;">'
+        +     '<div style="font-size:1.1rem;font-weight:800;color:#fff;line-height:1.2;letter-spacing:0.01em;">' + esc(item.name || '—') + '</div>'
+        +     '<div style="font-size:0.6rem;font-weight:700;letter-spacing:0.12em;color:' + tierColor + ';margin-top:5px;">' + subtitleParts.join(' · ') + '</div>'
+        +     '<div style="margin-top:7px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+        +       '<span style="font-size:1rem;font-weight:800;color:#f5d020;display:flex;align-items:center;gap:3px;">'
+        +         '<span style="font-size:0.85rem;opacity:0.85;">⚡</span>' + (item.power || '—')
+        +       '</span>'
+        +       (damageName
+          ? '<span style="font-size:0.63rem;font-weight:700;color:' + damageColor + ';background:rgba(255,255,255,0.06);border:1px solid ' + damageColor + '33;border-radius:20px;padding:2px 9px;letter-spacing:0.04em;">● ' + damageName + '</span>'
+          : '')
+        +     '</div>'
+        +     (item.flavorText ? '<div style="font-size:0.63rem;color:rgba(255,255,255,0.28);margin-top:8px;font-style:italic;line-height:1.5;">' + esc(item.flavorText) + '</div>' : '')
+        +   '</div>'
+        + '</div>';
+
+      // ── DIVIDER helper ──
+      function div() { return '<div style="height:1px;background:rgba(255,255,255,0.07);margin:14px 0;"></div>'; }
+      function secLabel(t) {
+        return '<div style="font-size:0.58rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:12px;">' + t + '</div>';
+      }
+
+      // ── PERKS (met icon + naam + beschrijving, zoals voorbeeld) ──
+      var allPerks = [].concat(item.intrinsics || [], item.perks || []);
+      var seen = new Set();
+      var perks = allPerks.filter(function(p){
+        if (!p || !p.name) return false;
+        var k = p.name.toLowerCase().trim();
+        if (seen.has(k)) return false;
+        seen.add(k); return true;
+      });
+
+      if (perks.length > 0) {
+        html += div() + secLabel('Perks')
+          + '<div style="display:flex;flex-direction:column;gap:16px;">';
+        perks.forEach(function(p) {
+          html += '<div style="display:flex;gap:13px;align-items:flex-start;">'
+            + '<div style="flex-shrink:0;width:42px;height:42px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.13);display:flex;align-items:center;justify-content:center;">'
+            +   (p.icon ? '<img src="' + p.icon + '" width="42" height="42" style="width:42px;height:42px;object-fit:cover;display:block;" referrerpolicy="no-referrer">' : '<span style="font-size:1.2rem;opacity:0.5;">◈</span>')
+            + '</div>'
+            + '<div style="flex:1;min-width:0;">'
+            +   '<div style="font-size:0.85rem;font-weight:800;color:#fff;line-height:1.2;margin-bottom:3px;">' + esc(p.name || '') + '</div>'
+            +   (p.desc ? '<div style="font-size:0.65rem;color:rgba(255,255,255,0.38);line-height:1.6;">' + esc(p.desc) + '</div>' : '')
+            + '</div>'
+            + '</div>';
+        });
+        html += '</div>';
+      }
+
+      // ── WAPEN STATS (label links, gekleurde bar, getal rechts) ──
+      var statsRaw = item.stats || item.weaponStats || [];
+      if (statsRaw.length > 0) {
+        var STAT_ORDER = ['RPM','Impact','Range','Stability','Handling','Reload Speed','Aim Assist','Zoom','Blast Radius','Velocity','Charge Time','Draw Time','Swing Speed','Guard Efficiency','Guard Resistance','Guard Endurance','Shield Duration','Charge Rate','Magazine','Inventory','Ammo Cap','Airborne Eff','Recoil Dir'];
+        var ordered = statsRaw.slice().sort(function(a,b){
+          var ai = STAT_ORDER.indexOf(a.label); var bi = STAT_ORDER.indexOf(b.label);
+          return (ai<0?99:ai)-(bi<0?99:bi);
+        });
+        html += div() + secLabel('Wapen Stats')
+          + '<div style="display:flex;flex-direction:column;gap:9px;">';
+        ordered.forEach(function(s) {
+          var val = s.value;
+          var pct = Math.min(val, 100);
+          var barColor = pct >= 70 ? '#4caf82' : pct >= 40 ? '#4f8fff' : '#f5c842';
+          html += '<div style="display:flex;align-items:center;gap:10px;">'
+            + '<div style="font-size:0.68rem;color:rgba(255,255,255,0.42);width:108px;flex-shrink:0;">' + esc(s.label) + '</div>'
+            + '<div style="flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,0.08);overflow:hidden;">'
+            +   '<div style="width:' + pct + '%;height:100%;background:' + barColor + ';border-radius:3px;transition:width 0.4s ease;"></div>'
+            + '</div>'
+            + '<div style="font-size:0.72rem;font-weight:700;color:#fff;width:28px;text-align:right;">' + val + '</div>'
+            + '</div>';
+        });
+        html += '</div>';
+      }
+
+      return html;
+    }
+
     // Vault popup: eigen overlay + popup zodat Item Manager popup niet overlapt
     function openVaultItemPopup(el) {
       var raw = el.getAttribute('data-item');
       if (!raw) return;
       var item;
       try { item = JSON.parse(raw.replace(/&#39;/g,"'").replace(/&quot;/g,'"')); } catch(e) { return; }
-      // Bouw HTML via dezelfde helper als Item Manager popup
-      var html = buildItemPopupHTML(item);
+
+      // Wapen → eigen dedicated builder; armor → gedeelde builder
+      var html = (item.isWeapon && !item.isArmor)
+        ? buildVaultWeaponPopupHTML(item)
+        : buildItemPopupHTML(item);
+
       document.getElementById('vaultItemPopupContent').innerHTML = html;
       document.getElementById('vaultItemPopup').style.display = 'block';
       document.getElementById('vaultItemPopupOverlay').style.display = 'block';
