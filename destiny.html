@@ -1044,7 +1044,7 @@
         // Update UI
         if (nameEl) nameEl.textContent = displayName ?? 'Guardian';
         if (idEl)   idEl.textContent   = fullId ? 'Bungie ID: ' + fullId : 'Bungie gekoppeld';
-        if (descEl) descEl.textContent = 'Je Bungie-account is gekoppeld. Stuur een vriendschapsverzoek om samen te gamen!';
+        if (descEl) descEl.textContent = 'Je Bungie account is gekoppeld. Stuur een vriendschapsverzoek om samen te spelen!';
 
         // Bungie avatar via profile embleem
         const mems = bungieData?.destinyMemberships ?? [];
@@ -2256,6 +2256,7 @@
       // Kies het portret object (voor accent kleur + overlay)
       var portraitKey = element + '_' + className;
       var portrait    = window.GHQ_PORTRAITS[portraitKey]
+                     || window.GHQ_PORTRAITS[element]
                      || window.GHQ_PORTRAITS['prismatic_' + className]
                      || null;
 
@@ -2911,12 +2912,11 @@
     function renderStaticChars() {
       var charCards = document.getElementById('charCards');
       var STATIC = [
-        { className:'Hunter', light:2087, element:'prismatic', subclassName:'Prismatic',  emblemBg:null },
-        { className:'Warlock',light:2071, element:'prismatic', subclassName:'Prismatic',  emblemBg:null },
-        { className:'Titan',  light:2094, element:'prismatic', subclassName:'Prismatic',  emblemBg:null },
+        { className:'Hunter', light:2087, element:'no_bungie', subclassName:'Verbind Bungie',  emblemBg:null },
+        { className:'Warlock',light:2071, element:'no_bungie', subclassName:'Verbind Bungie',  emblemBg:null },
+        { className:'Titan',  light:2094, element:'no_bungie', subclassName:'Verbind Bungie',  emblemBg:null },
       ];
       charCards.innerHTML = STATIC.map(function(c, idx) {
-        var ei = ELEMENT_ICONS[c.element] || ELEMENT_ICONS.void;
         var theme = CLASS_THEMES[c.className];
         return '<div class="char-card ' + c.className.toLowerCase() + (idx===0?' active-char':'') + '" onclick="selectStaticChar(this,' + idx + ')" style="display:flex;flex-direction:column;gap:4px;">'
           + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">'
@@ -2924,10 +2924,10 @@
           + '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:0.95rem;font-weight:800;color:' + theme.color + ';">' + c.className + '</div>'
           + '<div style="font-size:1.4rem;font-weight:900;color:var(--gold2);">&#9889; ' + c.light + '</div>'
           + '</div>'
-          + '<div style="flex-shrink:0;width:52px;height:52px;border-radius:8px;background:' + ei.bg + ';display:flex;align-items:center;justify-content:center;">' + ei.svg + '</div>'
+          + '<div style="flex-shrink:0;width:52px;height:52px;border-radius:8px;background:rgba(107,114,128,0.15);border:1px solid rgba(107,114,128,0.3);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">🔒</div>'
           + '</div>'
           + '<div style="display:flex;align-items:center;justify-content:center;margin-top:auto;background:rgba(0,0,0,0.35);border-radius:6px;padding:4px 8px;">'
-          + '<div style="font-size:0.75rem;font-weight:700;color:' + ei.color + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;">' + c.subclassName + '</div>'
+          + '<div style="font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;">' + c.subclassName + '</div>'
           + '</div>'
           + '</div>';
       }).join('');
@@ -2939,9 +2939,9 @@
       document.querySelectorAll('.char-card').forEach(function(c){ c.classList.remove('active-char'); });
       if (el && el.classList) el.classList.add('active-char');
       var STATIC_CHARS = [
-        { className:'Hunter', light:2087, subclass:{ element:'prismatic', name:'Prismatic' }, weapons:[], armor:[], ghost:null, ship:null, sparrow:null },
-        { className:'Warlock',light:2071, subclass:{ element:'prismatic', name:'Prismatic' }, weapons:[], armor:[], ghost:null, ship:null, sparrow:null },
-        { className:'Titan',  light:2094, subclass:{ element:'prismatic', name:'Prismatic' }, weapons:[], armor:[], ghost:null, ship:null, sparrow:null },
+        { className:'Hunter', light:2087, subclass:{ element:'no_bungie', name:'Verbind Bungie' }, weapons:[], armor:[], ghost:null, ship:null, sparrow:null },
+        { className:'Warlock',light:2071, subclass:{ element:'no_bungie', name:'Verbind Bungie' }, weapons:[], armor:[], ghost:null, ship:null, sparrow:null },
+        { className:'Titan',  light:2094, subclass:{ element:'no_bungie', name:'Verbind Bungie' }, weapons:[], armor:[], ghost:null, ship:null, sparrow:null },
       ];
       var char = STATIC_CHARS[idx] || STATIC_CHARS[0];
       renderBuildPanel(char);
