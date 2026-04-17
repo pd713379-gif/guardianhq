@@ -733,7 +733,7 @@ export default async function handler(req, res) {
       //    302 = ItemSockets (uitgeruste perks/mods per item)
       //    304 = ItemStats (weapon stats: RPM, Range, etc.)
       const profile = await bFetch(
-        `/Destiny2/${mType}/Profile/${mId}/?components=102,201,300,302,304`,
+        `/Destiny2/${mType}/Profile/${mId}/?components=102,201,300,302,304,309`,
         token
       );
 
@@ -742,6 +742,7 @@ export default async function handler(req, res) {
       const instanceData  = profile?.itemComponents?.instances?.data ?? {};
       const socketsData   = profile?.itemComponents?.sockets?.data ?? {};
       const statsData     = profile?.itemComponents?.stats?.data ?? {};
+      const plugsData     = profile?.itemComponents?.reusablePlugs?.data ?? {};
 
       // Vault bucket hash
       const VAULT_BUCKET = 138197802;
@@ -774,12 +775,20 @@ export default async function handler(req, res) {
       // Haal alle unieke itemHashes op
       const hashSet = new Set(rawItems.map(i => i.itemHash));
 
-      // Voeg ook alle socket plug hashes toe zodat we perk/mod namen hebben
+      // Voeg ook alle socket plug hashes toe (sockets + reusablePlugs) zodat we perk/mod namen hebben
       const plugHashSet = new Set();
       for (const raw of rawItems) {
+        // Uitgeruste sockets (302)
         const sockets = socketsData[raw.itemInstanceId]?.sockets ?? [];
         for (const s of sockets) {
           if (s.plugHash) plugHashSet.add(s.plugHash);
+        }
+        // Alle beschikbare plugs per socket (304 reusablePlugs) — voor wapen-traits
+        const plugSlots = plugsData[raw.itemInstanceId]?.plugs ?? {};
+        for (const plugArr of Object.values(plugSlots)) {
+          for (const p of (plugArr ?? [])) {
+            if (p?.plugItemHash) plugHashSet.add(p.plugItemHash);
+          }
         }
       }
 
@@ -890,13 +899,49 @@ export default async function handler(req, res) {
             continue;
           }
 
-          // 4. Regular perks/traits (weapon traits, armor set-bonus perks)
-          if (pType.includes('perks') || pType.includes('traits')
-              || pType.startsWith('v400.plugs.weapons.mods.traits')
-              || pType.startsWith('v400.plugs.weapons.mods.barrels')
-              || pType.startsWith('v400.plugs.weapons.mods.magazines')
-              || (pType.startsWith('v400.plugs.armor') && !pType.includes('mods'))) {
+          // 4. Regular perks/traits
+          // Weapon traits: pType contains 'traits' but NOT barrels/magazines/scopes/stocks/grips/tubes
+          const isWeaponTrait = (pType.includes('traits') || pType.includes('perks'))
+            && !pType.includes('barrels') && !pType.includes('magazines')
+            && !pType.includes('scopes') && !pType.includes('stocks')
+            && !pType.includes('grips') && !pType.includes('tubes')
+            && !pType.includes('batteries') && !pType.includes('guards');
+          // Armor set-bonus perks
+          const isArmorPerk = pType.startsWith('v400.plugs.armor') && !pType.includes('mods');
+          if (isWeaponTrait || isArmorPerk) {
             regularPerks.push({ name: pName, desc: pDesc, icon: pIcon });
+          }
+        }
+
+        // ── Fallback: haal weapon traits op via reusablePlugs als socket loop weinig opleverde ──
+        // Dit vangt traits op die niet in de uitgeruste socket zitten maar wel beschikbaar zijn
+        if (def.itemType === 3 && regularPerks.length < 2) {
+          const plugSlots = plugsData[raw.itemInstanceId]?.plugs ?? {};
+          const seenFallback = new Set(regularPerks.map(p => p.name.toLowerCase()));
+          for (const plugArr of Object.values(plugSlots)) {
+            for (const plug of (plugArr ?? [])) {
+              const hash = plug?.plugItemHash;
+              if (!hash) continue;
+              const pd = defs[hash];
+              if (!pd) continue;
+              const pt = (pd.plug?.plugCategoryIdentifier ?? '').toLowerCase();
+              const pn = pd.displayProperties?.name ?? '';
+              const pi = pd.displayProperties?.icon ? 'https://www.bungie.net' + pd.displayProperties.icon : null;
+              const pd2 = pd.displayProperties?.description ?? '';
+              if (!pn || !pi) continue;
+              if (pn.startsWith('Empty') || pn.startsWith('Default') || pn.startsWith('Deprecated')) continue;
+              if (pt.includes('masterwork') || pt.includes('tracker') || pt.startsWith('enhancements.')) continue;
+              if (pt.includes('barrels') || pt.includes('magazines') || pt.includes('scopes')
+                  || pt.includes('stocks') || pt.includes('grips') || pt.includes('tubes')
+                  || pt.includes('batteries') || pt.includes('guards')) continue;
+              if (!(pt.includes('traits') || pt.includes('perks'))) continue;
+              const key = pn.toLowerCase();
+              if (seenFallback.has(key)) continue;
+              seenFallback.add(key);
+              regularPerks.push({ name: pn, desc: pd2, icon: pi });
+              if (regularPerks.length >= 4) break;
+            }
+            if (regularPerks.length >= 4) break;
           }
         }
 
