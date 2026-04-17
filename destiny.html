@@ -1582,16 +1582,28 @@
             : `<div style="width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">${item.isWeapon ? '🔫' : '🛡️'}</div>`;
 
           const dataItem = escHtml(JSON.stringify({
-            name: item.name, typeName: item.typeName, icon: item.icon,
-            isExotic: item.isExotic, isLegendary: item.isLegendary,
-            isWeapon: item.isWeapon, isArmor: item.isArmor, isArtifice: item.isArtifice,
-            power: item.power, damageType: item.damageType, damageColor: item.damageColor,
-            className: item.className, bucketName: item.bucketName ?? '',
-            intrinsics: item.intrinsics ?? [], perks: item.perks ?? [],
-            mods: item.mods ?? [], cosmetics: item.cosmetics ?? [],
-            stats: item.weaponStats ?? [],
+            name:        item.name,
+            typeName:    item.typeName,
+            slotName:    item.bucketName ?? '',
+            icon:        item.icon,
+            flavorText:  item.flavorText ?? '',
+            isExotic:    item.isExotic,
+            isLegendary: item.isLegendary,
+            isWeapon:    item.isWeapon,
+            isArmor:     item.isArmor,
+            isArtifice:  item.isArtifice,
+            power:       item.power,
+            damageType:  item.damageType,
+            damageColor: item.damageColor,
+            className:   item.className,
+            bucketName:  item.bucketName ?? '',
+            intrinsics:  item.intrinsics ?? [],
+            perks:       item.perks ?? [],
+            mods:        item.mods ?? [],
+            cosmetics:   item.cosmetics ?? [],
+            stats:       item.weaponStats ?? [],
             armorStatList: item.armorStatList ?? [],
-            armorTotal: item.armorTotal ?? 0,
+            armorTotal:  item.armorTotal ?? 0,
           }));
 
           html += `<div title="${escHtml(item.name)}"
@@ -1607,286 +1619,260 @@
       grid.innerHTML = html;
     }
 
-    // Vault popup: eigen overlay + popup zodat Item Manager popup niet overlapt
+    // ══════════════════════════════════════════════════════
+    // VAULT ITEM POPUP  — volledig eigen elementen,
+    // nooit gedeeld met Item Manager of andere popups
+    // ══════════════════════════════════════════════════════
     function openVaultItemPopup(el) {
       var raw = el.getAttribute('data-item');
       if (!raw) return;
       var item;
       try { item = JSON.parse(raw.replace(/&#39;/g,"'").replace(/&quot;/g,'"')); } catch(e) { return; }
 
-      // Dynamische kleuren op basis van tier (net als screenshots)
-      var isExotic  = item.isExotic;
-      var isArmor   = !!item.isArmor;
-      var tc        = isExotic ? '#CEAE33' : '#9b72cf';
-      var glow      = isExotic ? 'rgba(206,174,51,0.28)' : 'rgba(155,114,207,0.22)';
-      var border    = isExotic ? 'rgba(206,174,51,0.6)' : 'rgba(155,114,207,0.5)';
-      var bgGrad    = isExotic
-        ? 'linear-gradient(160deg,rgba(60,40,5,0.98) 0%,rgba(13,16,32,1) 40%)'
+      // ── Tier kleuren ──
+      var isExotic = !!item.isExotic;
+      var isArmor  = !!item.isArmor;
+      var isWeapon = !!item.isWeapon;
+      var tc       = isExotic ? '#CEAE33' : '#9b72cf';
+      var glow     = isExotic ? 'rgba(206,174,51,0.30)' : 'rgba(155,114,207,0.22)';
+      var border   = isExotic ? 'rgba(206,174,51,0.65)'  : 'rgba(155,114,207,0.55)';
+      var bgGrad   = isExotic
+        ? 'linear-gradient(160deg,rgba(60,40,5,0.98) 0%,rgba(13,16,32,1) 42%)'
         : isArmor
-          ? 'linear-gradient(160deg,rgba(30,15,55,0.98) 0%,rgba(13,16,32,1) 40%)'
-          : 'linear-gradient(160deg,rgba(20,10,45,0.98) 0%,rgba(13,16,32,1) 40%)';
+          ? 'linear-gradient(160deg,rgba(30,15,55,0.98) 0%,rgba(13,16,32,1) 42%)'
+          : 'linear-gradient(160deg,rgba(20,10,45,0.98) 0%,rgba(13,16,32,1) 42%)';
+      var iconBg   = isExotic ? 'linear-gradient(135deg,#7a5c0a,#3d2a00)' : 'linear-gradient(135deg,#2a1a4a,#160d2e)';
+      var iconBorder = isExotic ? 'rgba(206,174,51,0.85)' : 'rgba(155,114,207,0.75)';
 
-      // Stijl de popup container dynamisch
-      var popup = document.getElementById('vaultItemPopup');
-      popup.style.background   = bgGrad;
-      popup.style.border       = '1.5px solid ' + border;
-      popup.style.boxShadow    = '0 8px 48px rgba(0,0,0,0.85), 0 0 32px ' + glow + ', inset 0 1px 0 rgba(255,255,255,0.06)';
-      popup.style.borderRadius = '16px';
+      // ── Tier label + subtitle ──
+      var tierLabel = isExotic ? 'Exotic' : 'Legendary';
+      var tierColor = isExotic ? '#f5c842' : 'rgba(155,114,207,0.95)';
+      var subtitleParts = [tierLabel.toUpperCase()];
+      if (item.typeName)  subtitleParts.push(item.typeName.toUpperCase());
+      if (item.slotName && item.slotName !== item.typeName) subtitleParts.push(item.slotName.toUpperCase());
+      else if (item.bucketName) subtitleParts.push(item.bucketName.toUpperCase());
 
-      // Bouw HTML via dezelfde helper als Item Manager popup
-      var html = buildItemPopupHTML(item);
-      document.getElementById('vaultItemPopupContent').innerHTML = html;
-      popup.style.display = 'block';
-      document.getElementById('vaultItemPopupOverlay').style.display = 'block';
+      // ── Helper functies ──
+      function vesc(s) {
+        return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+      function vSectionLabel(txt) {
+        return '<div style="font-size:0.58rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;'
+             + 'color:rgba(255,255,255,0.3);padding-bottom:7px;border-bottom:1px solid rgba(255,255,255,0.07);margin-bottom:11px;">'
+             + txt + '</div>';
+      }
+
+      // ════════════════════════════════════
+      // HTML opbouw
+      // ════════════════════════════════════
+
+      // ── HEADER ──
+      var html = '<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:18px;">'
+        + '<div style="flex-shrink:0;width:72px;height:72px;border-radius:10px;overflow:hidden;'
+        +      'background:' + iconBg + ';border:2px solid ' + iconBorder + ';box-shadow:0 0 18px ' + glow + ';">'
+        +   (item.icon
+              ? '<img src="' + vesc(item.icon) + '" width="72" height="72" style="width:72px;height:72px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
+              : '<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:2rem;">' + (isArmor ? '🛡️' : '🔫') + '</div>')
+        + '</div>'
+        + '<div style="flex:1;min-width:0;padding-top:2px;">'
+        +   '<div style="font-size:1.08rem;font-weight:800;color:#fff;line-height:1.2;letter-spacing:0.01em;">' + vesc(item.name || '—') + '</div>'
+        +   '<div style="font-size:0.6rem;font-weight:700;letter-spacing:0.12em;color:' + tierColor + ';margin-top:5px;">' + subtitleParts.join(' · ') + '</div>'
+        +   '<div style="display:flex;align-items:center;gap:5px;margin-top:7px;">'
+        +     '<span style="font-size:0.85rem;color:#f5d020;">⚡</span>'
+        +     '<span style="font-size:0.95rem;font-weight:800;color:#f5d020;">' + (item.power || '—') + '</span>'
+        +   '</div>'
+        +   (item.flavorText
+              ? '<div style="font-size:0.63rem;color:rgba(255,255,255,0.3);margin-top:8px;font-style:italic;'
+              +      'line-height:1.5;border-left:2px solid ' + tc + ';padding-left:8px;">'
+              +   vesc(item.flavorText) + '</div>'
+              : '')
+        + '</div>'
+        + '</div>';
+
+      // ── PERKS (wapens: intrinsics + perks; armor: intrinsics/perks) ──
+      var allPerks = [];
+      // Intrinsics eerst (frame perk, exotic perk) — met eigen stijl
+      (item.intrinsics || []).forEach(function(p) {
+        if (p && p.name) allPerks.push({ name: p.name, desc: p.desc || '', icon: p.icon || '', _intrinsic: true });
+      });
+      // Dan reguliere perks
+      var modNames = new Set((item.mods || []).filter(Boolean).map(function(m){ return (m.name||'').toLowerCase().trim(); }));
+      var seenPerks = new Set(allPerks.map(function(p){ return p.name.toLowerCase().trim(); }));
+      (item.perks || []).forEach(function(p) {
+        if (!p || !p.name) return;
+        var key = p.name.toLowerCase().trim();
+        if (modNames.has(key) || seenPerks.has(key)) return;
+        seenPerks.add(key);
+        allPerks.push({ name: p.name, desc: p.desc || '', icon: p.icon || '', _intrinsic: false });
+      });
+
+      if (allPerks.length > 0) {
+        html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:14px;margin-bottom:4px;">'
+          + vSectionLabel('Perks')
+          + '<div style="display:flex;flex-direction:column;gap:13px;">';
+        allPerks.forEach(function(p) {
+          var bg6  = p._intrinsic ? 'rgba(' + (isExotic ? '206,174,51' : '155,114,207') + ',0.14)' : 'rgba(255,255,255,0.06)';
+          var brd  = p._intrinsic ? '1.5px solid ' + tc : '1px solid rgba(255,255,255,0.14)';
+          var rad  = p._intrinsic ? '7px' : '50%';
+          var glowS= p._intrinsic ? 'box-shadow:0 0 8px ' + glow + ';' : '';
+          var nameC= p._intrinsic ? tc : '#fff';
+          html += '<div style="display:flex;gap:12px;align-items:flex-start;">'
+            + '<div style="flex-shrink:0;width:38px;height:38px;border-radius:' + rad + ';overflow:hidden;'
+            +      'background:' + bg6 + ';border:' + brd + ';' + glowS
+            +      'display:flex;align-items:center;justify-content:center;">'
+            +   (p.icon ? '<img src="' + vesc(p.icon) + '" width="38" height="38" style="width:38px;height:38px;object-fit:cover;display:block;" referrerpolicy="no-referrer">' : '')
+            + '</div>'
+            + '<div style="flex:1;min-width:0;padding-top:1px;">'
+            +   '<div style="font-size:0.8rem;font-weight:700;color:' + nameC + ';line-height:1.2;">' + vesc(p.name) + '</div>'
+            +   (p.desc ? '<div style="font-size:0.63rem;color:rgba(255,255,255,0.42);line-height:1.5;margin-top:3px;">' + vesc(p.desc) + '</div>' : '')
+            + '</div>'
+            + '</div>';
+        });
+        html += '</div></div>';
+      }
+
+      // ── ARMOR MODS ──
+      var mods = (item.mods || []).filter(function(m){ return m && m.name; });
+      if (mods.length > 0) {
+        html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:14px;margin-top:10px;">'
+          + vSectionLabel('Armor Mods')
+          + '<div style="display:flex;flex-direction:column;gap:10px;">';
+        mods.forEach(function(m) {
+          html += '<div style="display:flex;gap:12px;align-items:center;">'
+            + '<div style="flex-shrink:0;width:38px;height:38px;border-radius:8px;overflow:hidden;'
+            +      'background:rgba(79,143,255,0.1);border:1.5px solid rgba(79,143,255,0.3);'
+            +      'display:flex;align-items:center;justify-content:center;">'
+            +   (m.icon ? '<img src="' + vesc(m.icon) + '" width="38" height="38" style="width:38px;height:38px;object-fit:cover;display:block;" referrerpolicy="no-referrer">' : '')
+            + '</div>'
+            + '<div style="flex:1;min-width:0;">'
+            +   '<div style="font-size:0.78rem;font-weight:600;color:rgba(255,255,255,0.88);">' + vesc(m.name) + '</div>'
+            +   (m.desc ? '<div style="font-size:0.62rem;color:rgba(255,255,255,0.38);line-height:1.45;margin-top:1px;">' + vesc(m.desc) + '</div>' : '')
+            + '</div>'
+            + '</div>';
+        });
+        html += '</div></div>';
+      }
+
+      // ── COSMETICS ──
+      var cosmetics = (item.cosmetics || []).filter(function(c){ return c && c.icon; });
+      if (cosmetics.length > 0) {
+        html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:14px;margin-top:10px;">'
+          + vSectionLabel('Cosmetics')
+          + '<div style="display:flex;flex-wrap:wrap;gap:10px;">';
+        cosmetics.forEach(function(c) {
+          html += '<div style="display:flex;align-items:center;gap:8px;">'
+            + '<div style="flex-shrink:0;width:38px;height:38px;border-radius:8px;overflow:hidden;'
+            +      'background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);">'
+            +   '<img src="' + vesc(c.icon) + '" width="38" height="38" style="width:38px;height:38px;object-fit:cover;display:block;" referrerpolicy="no-referrer">'
+            + '</div>'
+            + '<div style="font-size:0.72rem;color:rgba(255,255,255,0.65);">' + vesc(c.name || '') + '</div>'
+            + '</div>';
+        });
+        html += '</div></div>';
+      }
+
+      // ── WAPEN STATS ──
+      var stats = (item.stats || []);
+      if (isWeapon && stats.length > 0) {
+        var STAT_ORDER = ['RPM','Impact','Range','Stability','Handling','Reload Speed',
+          'Aim Assist','Zoom','Blast Radius','Velocity','Charge Time','Draw Time',
+          'Swing Speed','Guard Efficiency','Guard Resistance','Guard Endurance',
+          'Shield Duration','Charge Rate','Magazine','Inventory','Ammo Cap',
+          'Airborne Eff','Airborne Effectiveness','Recoil Dir'];
+        var orderedStats = stats.slice().sort(function(a,b){
+          var ai = STAT_ORDER.indexOf(a.label); var bi = STAT_ORDER.indexOf(b.label);
+          return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
+        });
+        html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:14px;margin-top:10px;">'
+          + vSectionLabel('Wapen Stats')
+          + '<div style="display:flex;flex-direction:column;gap:7px;">';
+        orderedStats.forEach(function(s) {
+          var val = s.value;
+          var pct = Math.min(val, 100);
+          var barColor = pct >= 70 ? '#4caf82' : pct >= 40 ? '#4f8fff' : '#f5c842';
+          html += '<div style="display:flex;align-items:center;gap:10px;">'
+            + '<div style="font-size:0.68rem;color:rgba(255,255,255,0.45);width:110px;flex-shrink:0;text-align:right;">' + vesc(s.label) + '</div>'
+            + '<div style="flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,0.07);overflow:hidden;">'
+            +   '<div style="width:' + pct + '%;height:100%;background:' + barColor + ';border-radius:3px;box-shadow:0 0 5px ' + barColor + '55;"></div>'
+            + '</div>'
+            + '<div style="font-size:0.72rem;font-weight:700;color:#fff;width:28px;text-align:right;">' + val + '</div>'
+            + '</div>';
+        });
+        html += '</div></div>';
+      }
+
+      // ── ARMOR STATS ──
+      if (isArmor) {
+        var ARMOR_ORDER  = ['Mobility','Resilience','Recovery','Discipline','Intellect','Strength'];
+        var ARMOR_DESC   = { Mobility:'Movement Speed · Jump Height', Resilience:'Health · Damage Resistance',
+                             Recovery:'Health Regen Speed', Discipline:'Grenade Cooldown',
+                             Intellect:'Super Cooldown', Strength:'Melee Cooldown' };
+        var ARMOR_COLORS = { Mobility:'#4f8fff', Resilience:'#ef9a9a', Recovery:'#4caf82',
+                             Discipline:'#ce93d8', Intellect:'#ffcc80', Strength:'#a5d6a7' };
+        var rawStats = {};
+        (item.armorStatList || []).forEach(function(s){ rawStats[s.label] = s.value; });
+        var armorTotal = item.armorTotal || Object.values(rawStats).reduce(function(a,b){ return a+b; }, 0);
+
+        html += '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:14px;margin-top:10px;">'
+          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
+          +   '<div style="font-size:0.58rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.3);">Armor Stats</div>'
+          +   (armorTotal > 0
+                ? '<div style="font-size:0.72rem;font-weight:800;color:#fff;background:rgba(255,200,60,0.15);border:1px solid rgba(255,200,60,0.4);border-radius:20px;padding:3px 11px;">Totaal ' + armorTotal + '</div>'
+                : '')
+          + '</div>'
+          + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
+        ARMOR_ORDER.forEach(function(stat) {
+          var val   = rawStats[stat] !== undefined ? rawStats[stat] : 0;
+          var color = ARMOR_COLORS[stat] || '#9b72cf';
+          var pct   = Math.min(100, Math.round((val / 42) * 100));
+          var arrow = val >= 20 ? ' <span style="color:' + color + ';font-size:0.65rem;">▲</span>' : '';
+          html += '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 12px;">'
+            + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">'
+            +   '<div style="font-size:0.72rem;font-weight:700;color:' + (val > 0 ? color : 'rgba(255,255,255,0.3)') + ';">' + stat + '</div>'
+            +   '<div style="font-size:0.82rem;font-weight:800;color:' + (val > 0 ? '#fff' : 'rgba(255,255,255,0.25)') + ';">' + val + arrow + '</div>'
+            + '</div>'
+            + '<div style="height:3px;border-radius:2px;background:rgba(255,255,255,0.08);overflow:hidden;margin-bottom:6px;">'
+            +   (val > 0 ? '<div style="width:' + pct + '%;height:100%;background:' + color + ';border-radius:2px;box-shadow:0 0 4px ' + color + '55;"></div>' : '')
+            + '</div>'
+            + '<div style="font-size:0.57rem;color:rgba(255,255,255,0.28);line-height:1.3;">' + (ARMOR_DESC[stat] || '') + '</div>'
+            + '</div>';
+        });
+        html += '</div></div>';
+      }
+
+      // ── ARTIFICE BADGE ──
+      if (isArmor && item.isArtifice) {
+        html += '<div style="margin-top:12px;background:linear-gradient(135deg,rgba(212,168,67,0.12),rgba(155,114,207,0.07));'
+          + 'border:1px solid rgba(212,168,67,0.35);border-radius:10px;padding:9px 14px;display:flex;align-items:center;gap:10px;">'
+          + '<span style="font-size:1.1rem;flex-shrink:0;">🔱</span>'
+          + '<div>'
+          +   '<div style="font-size:0.7rem;font-weight:800;color:#d4a843;letter-spacing:0.04em;">Artifice Armor</div>'
+          +   '<div style="font-size:0.6rem;color:rgba(255,255,255,0.4);margin-top:2px;line-height:1.4;">Extra mod slot · Master Dungeon drops</div>'
+          + '</div>'
+          + '</div>';
+      }
+
+      // ── Schrijf ALLEEN naar vault-eigen elementen (nooit itemPopup of andere popups) ──
+      var vaultPopup   = document.getElementById('vaultItemPopup');
+      var vaultOverlay = document.getElementById('vaultItemPopupOverlay');
+      var vaultContent = document.getElementById('vaultItemPopupContent');
+
+      vaultPopup.style.background   = bgGrad;
+      vaultPopup.style.border       = '1.5px solid ' + border;
+      vaultPopup.style.boxShadow    = '0 8px 48px rgba(0,0,0,0.85), 0 0 32px ' + glow + ', inset 0 1px 0 rgba(255,255,255,0.06)';
+      vaultPopup.style.borderRadius = '16px';
+
+      vaultContent.innerHTML    = html;
+      vaultPopup.style.display  = 'block';
+      vaultOverlay.style.display = 'block';
       document.body.style.overflow = 'hidden';
     }
 
     function closeVaultItemPopup() {
-      document.getElementById('vaultItemPopup').style.display = 'none';
-      document.getElementById('vaultItemPopupOverlay').style.display = 'none';
+      document.getElementById('vaultItemPopup').style.display        = 'none';
+      document.getElementById('vaultItemPopupOverlay').style.display  = 'none';
       document.body.style.overflow = '';
     }
-
-    function openVaultItemPopup_UNUSED(el) {
-      const raw = el.getAttribute('data-item');
-      if (!raw) return;
-      let item;
-      try { item = JSON.parse(raw.replace(/&quot;/g, '"').replace(/&#39;/g, "'")); } catch { return; }
-
-      const isExotic  = item.isExotic;
-      const tc        = isExotic ? '#CEAE33' : '#9b72cf';
-      const tcSoft    = isExotic ? 'rgba(206,174,51,0.15)' : 'rgba(155,114,207,0.12)';
-      const border    = isExotic ? 'rgba(206,174,51,0.55)' : 'rgba(155,114,207,0.45)';
-      const iconBg    = isExotic
-        ? 'linear-gradient(135deg,rgba(160,120,20,0.75),rgba(100,70,5,0.92))'
-        : 'linear-gradient(135deg,rgba(50,30,70,0.75),rgba(25,15,45,0.92))';
-      const glow      = isExotic ? 'rgba(206,174,51,0.22)' : 'rgba(155,114,207,0.18)';
-
-      const DAMAGE_NAMES  = { 2:'Arc', 3:'Solar', 4:'Void', 6:'Stasis', 7:'Strand' };
-      const DAMAGE_COLORS = { 2:'#79c8f0', 3:'#f0a830', 4:'#b574de', 6:'#4ec3e0', 7:'#31c48d' };
-      const damageColor   = item.damageColor || DAMAGE_COLORS[item.damageType] || null;
-      const damageName    = DAMAGE_NAMES[item.damageType] ?? '';
-      const tierLabel     = isExotic ? 'Exotic' : (item.isLegendary ? 'Legendary' : 'Rare');
-
-      // Update popup border/glow
-      const popup = document.getElementById('itemPopup');
-      popup.style.borderColor = border;
-      popup.style.boxShadow   = `0 8px 48px rgba(0,0,0,0.85), 0 0 28px ${glow}`;
-
-      // ─────────────────────────────────────────────────────
-      // HEADER (shared weapon + armor)
-      // ─────────────────────────────────────────────────────
-      let html = `
-      <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:18px;">
-        <div style="flex-shrink:0;width:74px;height:74px;border-radius:10px;overflow:hidden;background:${iconBg};border:2px solid ${border};box-shadow:0 0 14px ${glow};">
-          ${item.icon
-            ? `<img src="/api/bungie-proxy?action=img&url=${encodeURIComponent(item.icon)}" width="74" height="74" style="width:74px;height:74px;object-fit:cover;display:block;" onerror="this.style.display='none'">`
-            : `<div style="width:74px;height:74px;display:flex;align-items:center;justify-content:center;font-size:2.2rem;">${item.isWeapon ? '🔫' : '🛡️'}</div>`}
-        </div>
-        <div style="flex:1;min-width:0;padding-top:3px;">
-          <div style="font-size:1.05rem;font-weight:800;color:#fff;line-height:1.2;letter-spacing:0.01em;">${escHtml(item.name)}</div>
-          <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${tc};margin-top:4px;">
-            ${tierLabel}${item.typeName ? ' · ' + escHtml(item.typeName) : ''}${item.isArtifice ? ' · Artifice' : ''}${item.className && item.className !== 'Any' ? ' · ' + escHtml(item.className) : ''}
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;margin-top:7px;flex-wrap:wrap;">
-            ${item.power > 0 ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:0.82rem;color:#f5c842;font-weight:800;">⚡ ${item.power}</span>` : ''}
-            ${damageColor ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:0.73rem;color:${damageColor};font-weight:600;"><span style="width:8px;height:8px;border-radius:50%;background:${damageColor};box-shadow:0 0 5px ${damageColor};flex-shrink:0;"></span>${damageName}</span>` : ''}
-          </div>
-          ${item.flavorText ? `<div style="font-size:0.62rem;color:rgba(255,255,255,0.3);font-style:italic;margin-top:7px;line-height:1.45;">${escHtml(item.flavorText)}</div>` : ''}
-        </div>
-      </div>`;
-
-      // ════════════════════════════════════════════════════════
-      // WEAPON POPUP
-      // ════════════════════════════════════════════════════════
-      if (item.isWeapon) {
-
-        // ── 1. PERKS (bovenaan, zoals screenshot) ──────────────
-        const intrinsics = item.intrinsics ?? [];
-        const perks      = item.perks ?? [];
-        const allPerks   = [...intrinsics.map(p=>({...p,_isIntrinsic:true})), ...perks];
-
-        if (allPerks.length > 0) {
-          html += `<div style="margin-bottom:18px;">
-            <div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:rgba(255,255,255,0.28);margin-bottom:10px;">Perks</div>
-            <div style="display:flex;flex-direction:column;gap:11px;">`;
-          for (const p of allPerks) {
-            const iconBorder = p._isIntrinsic ? `border:1.5px solid ${tc};` : 'border:1.5px solid rgba(255,255,255,0.15);';
-            const iconBgC    = p._isIntrinsic ? tcSoft : 'rgba(255,255,255,0.06)';
-            html += `<div style="display:flex;align-items:flex-start;gap:11px;">
-              <div style="flex-shrink:0;width:38px;height:38px;border-radius:${p._isIntrinsic?'7px':'50%'};overflow:hidden;background:${iconBgC};${iconBorder}display:flex;align-items:center;justify-content:center;">
-                ${p.icon ? `<img src="/api/bungie-proxy?action=img&url=${encodeURIComponent(p.icon)}" width="38" height="38" style="width:38px;height:38px;object-fit:cover;display:block;" onerror="this.style.display='none'">` : ''}
-              </div>
-              <div style="flex:1;min-width:0;">
-                <div style="font-size:0.78rem;font-weight:700;color:${p._isIntrinsic ? tc : '#fff'};">${escHtml(p.name)}</div>
-                ${p.desc ? `<div style="font-size:0.64rem;color:rgba(255,255,255,0.42);line-height:1.5;margin-top:2px;">${escHtml(p.desc)}</div>` : ''}
-              </div>
-            </div>`;
-          }
-          html += `</div></div>`;
-        }
-
-        // ── 2. WAPEN STATS (onderaan, zoals screenshot) ─────────
-        const weapStats  = item.weaponStats ?? [];
-        const STAT_ORDER = ['RPM','Impact','Range','Stability','Handling','Reload Speed','Aim Assist','Airborne Effectiveness','Zoom','Magazine','Inventory','Recoil Dir','Blast Radius','Velocity','Charge Time','Draw Time'];
-        const normalize  = l => {
-          if (!l) return l;
-          const lc = l.toLowerCase();
-          if (lc === 'aim assistance' || lc.includes('aim assist')) return 'Aim Assist';
-          if (lc.includes('airborne')) return 'Airborne Effectiveness';
-          if (lc.includes('reload')) return 'Reload Speed';
-          if (lc.includes('recoil')) return 'Recoil Dir';
-          if (lc.includes('inventory') || lc.includes('ammo capacity')) return 'Inventory';
-          return l;
-        };
-        const statsNorm = weapStats.map(s => ({ ...s, label: normalize(s.label) }));
-        const sorted    = [...statsNorm].sort((a,b) => {
-          const ai = STAT_ORDER.indexOf(a.label); const bi = STAT_ORDER.indexOf(b.label);
-          return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
-        });
-
-        if (sorted.length > 0) {
-          html += `<div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:14px;">
-            <div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:rgba(255,255,255,0.28);margin-bottom:11px;">Wapen Stats</div>
-            <div style="display:flex;flex-direction:column;gap:6px;">`;
-          for (const s of sorted) {
-            const pct    = Math.min(100, s.value);
-            const barCol = pct >= 70 ? '#4caf82' : pct >= 45 ? '#4f8fff' : '#c87aff';
-            html += `<div style="display:flex;align-items:center;gap:8px;">
-              <div style="font-size:0.67rem;color:rgba(255,255,255,0.45);width:102px;flex-shrink:0;text-align:right;line-height:1.3;">${escHtml(s.label)}</div>
-              <div style="flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,0.08);overflow:hidden;">
-                <div style="width:${pct}%;height:100%;background:${barCol};border-radius:2px;"></div>
-              </div>
-              <div style="font-size:0.72rem;color:#fff;font-weight:700;width:26px;text-align:right;">${s.value}</div>
-            </div>`;
-          }
-          html += `</div></div>`;
-        }
-
-      // ════════════════════════════════════════════════════════
-      // ARMOR POPUP
-      // ════════════════════════════════════════════════════════
-      } else if (item.isArmor) {
-
-        // ── 1. ARMOR STATS grid (zoals screenshot) ─────────────
-        const ARMOR_STAT_INFO = {
-          'Mobility':   { color:'#4f8fff', sub:'Movement Speed · Jump Height' },
-          'Resilience': { color:'#f5c842', sub:'Health · Damage Resistance'   },
-          'Recovery':   { color:'#4caf82', sub:'Health Regen Speed'            },
-          'Discipline': { color:'#4ec3e0', sub:'Grenade Cooldown'              },
-          'Intellect':  { color:'#b574de', sub:'Super Cooldown'                },
-          'Strength':   { color:'#f0a830', sub:'Melee Cooldown'                },
-        };
-        const ARMOR_ORDER = ['Mobility','Resilience','Recovery','Discipline','Intellect','Strength'];
-        const statList = (item.armorStatList ?? []).sort((a,b) =>
-          ARMOR_ORDER.indexOf(a.label) - ARMOR_ORDER.indexOf(b.label)
-        );
-
-        if (statList.length > 0) {
-          const totalVal = item.armorTotal > 0 ? item.armorTotal : statList.reduce((s,x)=>s+x.value,0);
-          html += `<div style="margin-bottom:18px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-              <div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:rgba(255,255,255,0.28);">Armor Stats</div>
-              <div style="background:rgba(245,200,66,0.12);border:1px solid rgba(245,200,66,0.35);border-radius:20px;padding:3px 11px;font-size:0.7rem;color:#f5c842;font-weight:800;">Totaal ${totalVal}</div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">`;
-          for (const s of statList) {
-            const info = ARMOR_STAT_INFO[s.label] ?? { color: tc, sub: '' };
-            const pct  = Math.min(100, Math.round((s.value / 42) * 100));
-            const tier = s.value >= 30 ? '★' : s.value >= 20 ? '▲' : '';
-            const tierColor = s.value >= 30 ? '#f5c842' : s.value >= 20 ? '#f0a830' : '';
-            html += `<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:9px 11px;">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
-                <div style="font-size:0.7rem;font-weight:700;color:${info.color};">${escHtml(s.label)}</div>
-                <div style="font-size:0.82rem;font-weight:800;color:#fff;display:flex;align-items:center;gap:3px;">
-                  ${s.value}${tier ? `<span style="font-size:0.62rem;color:${tierColor};">${tier}</span>` : ''}
-                </div>
-              </div>
-              <div style="height:3px;border-radius:2px;background:rgba(255,255,255,0.08);overflow:hidden;margin-bottom:5px;">
-                <div style="width:${pct}%;height:100%;background:${info.color};border-radius:2px;opacity:0.8;"></div>
-              </div>
-              <div style="font-size:0.57rem;color:rgba(255,255,255,0.28);line-height:1.3;">${info.sub}</div>
-            </div>`;
-          }
-          html += `</div></div>`;
-        }
-
-        // ── 2. PERKS (zoals screenshot - grote ronde icons + beschrijving) ─
-        const perks = item.perks ?? [];
-        if (perks.length > 0) {
-          html += `<div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:15px;margin-bottom:16px;">
-            <div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:rgba(255,255,255,0.28);margin-bottom:11px;">Perks</div>
-            <div style="display:flex;flex-direction:column;gap:12px;">`;
-          for (const p of perks) {
-            html += `<div style="display:flex;align-items:flex-start;gap:11px;">
-              <div style="flex-shrink:0;width:40px;height:40px;border-radius:50%;overflow:hidden;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;">
-                ${p.icon ? `<img src="/api/bungie-proxy?action=img&url=${encodeURIComponent(p.icon)}" width="40" height="40" style="width:40px;height:40px;object-fit:cover;display:block;" onerror="this.style.display='none'">` : ''}
-              </div>
-              <div style="flex:1;min-width:0;padding-top:2px;">
-                <div style="font-size:0.78rem;font-weight:700;color:#fff;">${escHtml(p.name)}</div>
-                ${p.desc ? `<div style="font-size:0.64rem;color:rgba(255,255,255,0.42);line-height:1.5;margin-top:2px;">${escHtml(p.desc)}</div>` : ''}
-              </div>
-            </div>`;
-          }
-          html += `</div></div>`;
-        }
-
-        // ── 3. ARMOR MODS (zoals screenshot - vierkante icons) ──────────
-        const intrinsics = item.intrinsics ?? [];
-        if (intrinsics.length > 0) {
-          html += `<div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:15px;margin-bottom:16px;">
-            <div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:rgba(255,255,255,0.28);margin-bottom:10px;">Armor Mods</div>
-            <div style="display:flex;flex-direction:column;gap:8px;">`;
-          for (const p of intrinsics) {
-            html += `<div style="display:flex;align-items:center;gap:11px;">
-              <div style="flex-shrink:0;width:38px;height:38px;border-radius:7px;overflow:hidden;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;">
-                ${p.icon ? `<img src="/api/bungie-proxy?action=img&url=${encodeURIComponent(p.icon)}" width="38" height="38" style="width:38px;height:38px;object-fit:cover;display:block;" onerror="this.style.display='none'">` : ''}
-              </div>
-              <div style="flex:1;min-width:0;">
-                <div style="font-size:0.76rem;font-weight:700;color:#fff;">${escHtml(p.name)}</div>
-                ${p.desc ? `<div style="font-size:0.63rem;color:rgba(255,255,255,0.38);line-height:1.45;margin-top:1px;">${escHtml(p.desc)}</div>` : ''}
-              </div>
-            </div>`;
-          }
-          html += `</div></div>`;
-        }
-
-        // ── 4. COSMETICS (ornaments) ────────────────────────────────────
-        const cosmetics = item.cosmetics ?? [];
-        if (cosmetics.length > 0) {
-          html += `<div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:15px;">
-            <div style="font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:rgba(255,255,255,0.28);margin-bottom:10px;">Cosmetics</div>
-            <div style="display:flex;flex-direction:column;gap:8px;">`;
-          for (const c of cosmetics) {
-            html += `<div style="display:flex;align-items:center;gap:11px;">
-              <div style="flex-shrink:0;width:38px;height:38px;border-radius:7px;overflow:hidden;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.12);">
-                ${c.icon ? `<img src="/api/bungie-proxy?action=img&url=${encodeURIComponent(c.icon)}" width="38" height="38" style="width:38px;height:38px;object-fit:cover;display:block;" onerror="this.style.display='none'">` : ''}
-              </div>
-              <div style="font-size:0.76rem;font-weight:600;color:rgba(255,255,255,0.65);">${escHtml(c.name)}</div>
-            </div>`;
-          }
-          html += `</div></div>`;
-        }
-
-        // Artifice badge
-        if (item.isArtifice) {
-          html += `<div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:12px;margin-top:2px;">
-            <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(100,200,255,0.07);border:1px solid rgba(100,200,255,0.2);border-radius:8px;padding:6px 13px;">
-              <span style="font-size:0.85rem;">🔱</span>
-              <div>
-                <div style="font-size:0.72rem;font-weight:700;color:#7dd9f5;">Artifice Armor</div>
-                <div style="font-size:0.6rem;color:rgba(255,255,255,0.32);margin-top:1px;">Extra mod slot beschikbaar</div>
-              </div>
-            </div>
-          </div>`;
-        }
-      }
-
-      document.getElementById('itemPopupContent').innerHTML = html;
-      document.getElementById('itemPopup').style.display    = 'block';
-      document.getElementById('itemPopupOverlay').style.display = 'block';
-      document.body.style.overflow = 'hidden';
-    } // einde openVaultItemPopup_UNUSED
 
     // Laad wishlist iconen wanneer tab geselecteerd wordt
     const origSwitchTab = window.switchTab;
