@@ -285,7 +285,7 @@ async function loadRecentActivities(membership, charIds) {
       : (item.iconImg ? '/api/bungie-proxy?action=img&url=' + encodeURIComponent(item.iconImg) : null);
 
     var iconHtml = imgSrc
-      ? '<img src="' + imgSrc + '" width="52" height="52" style="object-fit:cover;display:block;border-radius:10px;" onerror="this.parentElement.style.fontSize='1.2rem';this.parentElement.textContent='🎮'">'
+      ? '<img src="' + imgSrc + '" width="52" height="52" style="object-fit:cover;display:block;border-radius:10px;" onerror="this.style.display=\'none\'">'
       : '🎮';
 
     return '<div class="activity-item">'
