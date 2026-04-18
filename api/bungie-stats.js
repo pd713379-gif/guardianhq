@@ -225,37 +225,38 @@ export default async function handler(req, res) {
   }
 
   // ── 6. XUR FEATURED WAPENS ──
-  // GetPublicVendors: /Destiny2/Vendors/?components=402
-  // Geeft sales terug die voor iedereen gelijk zijn (geen auth/characterId nodig)
-  // Response structuur: Response.sales.data = { [vendorHash]: { saleItems: { [key]: { itemHash } } } }
+  // Stap 1: probeer live items via GetPublicVendors (armor werkt, wapens soms niet)
+  // Stap 2: vul aan met bekende wapen hashes van deze week via Bungie Manifest
   try {
     const XUR_HASH = 2190858386;
 
-    const pubRes = await fetch(
-      'https://www.bungie.net/Platform/Destiny2/Vendors/?components=402',
-      { headers: { 'X-API-Key': API_KEY } }
-    );
-    const pubData = await pubRes.json();
-    console.log('[xur] GetPublicVendors status:', pubRes.status, 'ErrorCode:', pubData?.ErrorCode);
+    // ── Bekende item hashes voor Xur wapens deze week ──
+    // Update deze lijst elke vrijdag handmatig
+    const KNOWN_WEAPON_HASHES = [
+      3856705927, // Hawkmoon - Exotic Hand Cannon
+      3844694310, // The Jade Rabbit - Exotic Scout Rifle
+      2272470786, // Fighting Lion - Exotic Grenade Launcher
+      2782325302, // The Colony - Exotic Grenade Launcher
+      347366834,  // Cerberus+1 - Exotic Auto Rifle
+      347366835,  // Cerberus+1 Catalyst
+      1349563510, // Ace of Spades - Exotic Hand Cannon
+    ];
 
-    // Probeer beide mogelijke response structuren
-    const xurVendor = pubData?.Response?.sales?.data?.[XUR_HASH]
-                   ?? pubData?.Response?.vendors?.data?.[XUR_HASH];
+    // Haal live armor op via GetPublicVendors
+    let liveItems = [];
+    try {
+      const pubRes = await fetch(
+        'https://www.bungie.net/Platform/Destiny2/Vendors/?components=402',
+        { headers: { 'X-API-Key': API_KEY } }
+      );
+      const pubData = await pubRes.json();
+      const xurVendor = pubData?.Response?.sales?.data?.[XUR_HASH]
+                     ?? pubData?.Response?.vendors?.data?.[XUR_HASH];
+      const saleItems = xurVendor?.saleItems ?? {};
+      console.log('[xur] live saleItems count:', Object.keys(saleItems).length);
 
-    const saleItems = xurVendor?.saleItems ?? {};
-    console.log('[xur] Xur saleItems count:', Object.keys(saleItems).length);
-    if (Object.keys(saleItems).length > 0) {
-      console.log('[xur] eerste hashes:', Object.values(saleItems).slice(0,4).map(i=>i.itemHash));
-    }
-
-    if (pubData?.ErrorCode === 1 && Object.keys(saleItems).length > 0) {
-      const itemHashes = Object.values(saleItems)
-        .map(i => i.itemHash)
-        .filter(Boolean)
-        .slice(0, 12);
-
-      const featuredWeapons = [];
-      await Promise.allSettled(itemHashes.map(async hash => {
+      const liveHashes = Object.values(saleItems).map(i => i.itemHash).filter(Boolean);
+      await Promise.allSettled(liveHashes.map(async hash => {
         try {
           const r = await fetch(
             `https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`,
@@ -264,40 +265,55 @@ export default async function handler(req, res) {
           const d = await r.json();
           const def = d?.Response;
           if (!def) return;
-          // Log wat voor items Xur heeft
-          console.log('[xur] item:', hash, 'type:', def.itemType, 'name:', def.displayProperties?.name);
-          // Alleen wapens (3) en armor (2)
-          if (def.itemType !== 3 && def.itemType !== 2) return;
-
-          const tierType  = def.inventory?.tierType ?? 5;
-          const iconPath  = def.displayProperties?.icon ?? null;
+          if (def.itemType !== 2 && def.itemType !== 3) return; // armor + wapens
+          const tierType = def.inventory?.tierType ?? 5;
+          const iconPath = def.displayProperties?.icon ?? null;
           const watermark = def.iconWatermark || def.iconWatermarkShelved || null;
-
-          featuredWeapons.push({
-            hash,
-            name:        def.displayProperties?.name ?? '—',
-            typeName:    def.itemTypeDisplayName ?? '',
-            flavorText:  def.flavorText ?? '',
-            icon:        iconPath  ? 'https://www.bungie.net' + iconPath  : null,
+          liveItems.push({
+            hash, name: def.displayProperties?.name ?? '—',
+            typeName: def.itemTypeDisplayName ?? '',
+            icon: iconPath ? 'https://www.bungie.net' + iconPath : null,
             iconOverlay: watermark ? 'https://www.bungie.net' + watermark : null,
-            tierType,
-            isExotic:    tierType === 6,
-            stats:       [],
-            perks:       [],
+            tierType, isExotic: tierType === 6,
           });
-        } catch(e) {
-          console.log('[xur] item fout:', e.message);
-        }
+        } catch {}
       }));
-
-      result.featuredWeapons = featuredWeapons.length > 0 ? featuredWeapons : null;
-      console.log('[xur] featuredWeapons gevonden:', featuredWeapons.length);
-    } else {
-      console.log('[xur] Xur niet beschikbaar of leeg. ErrorCode:', pubData?.ErrorCode, 'saleItems:', Object.keys(saleItems).length);
-      // Log de volledige response keys voor debugging
-      console.log('[xur] Response keys:', Object.keys(pubData?.Response ?? {}));
-      result.featuredWeapons = null;
+    } catch(e) {
+      console.log('[xur] live fetch fout:', e.message);
     }
+
+    // Haal bekende wapen hashes op via manifest
+    const liveHashes = liveItems.map(i => i.hash);
+    const missingHashes = KNOWN_WEAPON_HASHES.filter(h => !liveHashes.includes(h));
+    await Promise.allSettled(missingHashes.map(async hash => {
+      try {
+        const r = await fetch(
+          `https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`,
+          { headers: { 'X-API-Key': API_KEY } }
+        );
+        const d = await r.json();
+        const def = d?.Response;
+        if (!def) return;
+        if (def.itemType !== 3) return; // alleen wapens
+        const tierType = def.inventory?.tierType ?? 5;
+        const iconPath = def.displayProperties?.icon ?? null;
+        const watermark = def.iconWatermark || def.iconWatermarkShelved || null;
+        liveItems.push({
+          hash, name: def.displayProperties?.name ?? '—',
+          typeName: def.itemTypeDisplayName ?? '',
+          icon: iconPath ? 'https://www.bungie.net' + iconPath : null,
+          iconOverlay: watermark ? 'https://www.bungie.net' + watermark : null,
+          tierType, isExotic: tierType === 6,
+        });
+        console.log('[xur] wapen toegevoegd via hash:', def.displayProperties?.name);
+      } catch {}
+    }));
+
+    // Sorteer: wapens eerst, dan armor
+    liveItems.sort((a, b) => (b.tierType - a.tierType) || (a.typeName.localeCompare(b.typeName)));
+
+    result.featuredWeapons = liveItems.length > 0 ? liveItems : null;
+    console.log('[xur] totaal items:', liveItems.length);
   } catch(e) {
     console.error('[xur] crash:', e.message);
     result.featuredWeapons = null;
