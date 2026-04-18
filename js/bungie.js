@@ -142,7 +142,7 @@ async function loadBungieProfileData() {
         if (powerEl) {
           powerEl.textContent = power;
         } else {
-          charBtns[idx].innerHTML = '<span class="class-icon"><img src="' + (classImgs[char.classType]||'img/icons/huntericon.png') + '" width="36" height="36" style="display:block;object-fit:cover;border-radius:6px;"></span>' + (classNames[char.classType]||'Guardian') + '<div class="class-power">' + power + '</div>';
+          charBtns[idx].innerHTML = '<span class="class-icon"><img src="' + (classImgs[char.classType]||'img/icons/huntericon.png') + '" width="48" height="48" style="display:block;object-fit:cover;border-radius:6px;"></span>' + (classNames[char.classType]||'Guardian') + '<div class="class-power">' + power + '</div>';
         }
       }
     });
