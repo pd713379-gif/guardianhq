@@ -280,6 +280,7 @@ export default async function handler(req, res) {
             icon: iconPath ? 'https://www.bungie.net' + iconPath : null,
             iconOverlay: watermark ? 'https://www.bungie.net' + watermark : null,
             tierType, isExotic: tierType === 6,
+            itemType: def.itemType,
           });
         } catch {}
       }));
@@ -314,6 +315,7 @@ export default async function handler(req, res) {
           icon: iconPath ? 'https://www.bungie.net' + iconPath : null,
           iconOverlay: watermark ? 'https://www.bungie.net' + watermark : null,
           tierType, isExotic: tierType === 6,
+          itemType: def.itemType,
         });
         console.log('[xur] wapen toegevoegd via hash:', def.displayProperties?.name);
       } catch {}
@@ -327,11 +329,14 @@ export default async function handler(req, res) {
       if (n.includes('catalyst')) return 50;
       // Wapens (geen armor)
       if (item.itemType === 3) return 40;
-      // Warlock armor/bond
+      // Warlock armor/bond/class item
       if (t.includes('warlock') || t.includes('bond')) return 30;
-      // Titan armor/mark
+      // Titan armor/mark/class item
       if (t.includes('titan') || t.includes('mark')) return 20;
-      // Hunter armor/cloak (default voor armor)
+      // Hunter armor/cloak/class item
+      if (t.includes('hunter') || t.includes('cloak')) return 10;
+      // Overige armor (itemType 2 of 19) → Hunter groep
+      if (item.itemType === 2 || item.itemType === 19) return 10;
       return 10;
     };
     liveItems.sort((a, b) => sortOrder(a) - sortOrder(b));
