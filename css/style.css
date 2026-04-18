@@ -294,6 +294,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 1.5rem}
 
 /* WEAPONS */
 .weapon-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#featuredWeaponsGrid::-webkit-scrollbar{width:4px}
+#featuredWeaponsGrid::-webkit-scrollbar-track{background:rgba(255,255,255,0.04);border-radius:4px}
+#featuredWeaponsGrid::-webkit-scrollbar-thumb{background:rgba(155,114,207,0.5);border-radius:4px}
+#featuredWeaponsGrid::-webkit-scrollbar-thumb:hover{background:rgba(155,114,207,0.8)}
 .w-card{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;transition:border-color 0.2s;min-width:0;overflow:hidden}
 .w-card:hover{border-color:var(--border2)}
 .w-exotic{border-left:3px solid #f5c518}
