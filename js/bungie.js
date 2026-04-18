@@ -104,6 +104,48 @@ async function bungieGet(endpoint) {
 
 function setEl(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
 
+function updateCharStatBars(charId, characterStats) {
+  var container = document.getElementById('charStats');
+  if (!container) return;
+
+  var stats = characterStats && characterStats[charId] && characterStats[charId].stats;
+  if (!stats) return;
+
+  // Bungie stat hashes
+  var statMap = {
+    2996146975: 'Mobiliteit',
+    392767087:  'Veerkracht',
+    1943323491: 'Herstel',
+    1735777505: 'Discipline',
+    144602215:  'Intellect',
+    4244567218: 'Kracht',
+  };
+
+  var rows = Object.entries(statMap).map(function(entry) {
+    var hash = entry[0], label = entry[1];
+    var val = stats[hash] ? stats[hash].value : 0;
+    // Balk: max 100 = 100%, boven 100 = goud/neon kleur
+    var barPct = Math.min(val, 100);
+    var isOver100 = val > 100;
+    var barColor = isOver100
+      ? 'linear-gradient(90deg,#f5c842,#ffe680)'  // goud/neon
+      : 'linear-gradient(90deg,#d4a843,#f5c842)'; // normaal goud
+    var valColor = isOver100 ? '#ffe680' : '';
+    var valStyle = isOver100 ? 'color:#ffe680;font-weight:800;text-shadow:0 0 8px rgba(255,230,0,0.6);' : '';
+
+    return '<div class="stat-bar-row">'
+      + '<div class="stat-bar-top">'
+      + '<span class="stat-bar-name">' + label + '</span>'
+      + '<span class="stat-bar-val" style="' + valStyle + '">' + val + '</span>'
+      + '</div>'
+      + '<div class="stat-bar-track">'
+      + '<div class="stat-bar-fill" style="width:' + barPct + '%;background:' + barColor + (isOver100 ? ';box-shadow:0 0 6px rgba(255,230,0,0.5)' : '') + ';"></div>'
+      + '</div></div>';
+  });
+
+  container.innerHTML = rows.join('');
+}
+
 async function loadBungieProfileData() {
   try {
     var user = await bungieGet('/User/GetMembershipsForCurrentUser/');
@@ -121,9 +163,18 @@ async function loadBungieProfileData() {
     localStorage.setItem('bungie_platform',   m.membershipType.toString());
     localStorage.setItem('bungie_destiny_id', m.membershipId);
 
-    var profile    = await bungieGet('/Destiny2/' + m.membershipType + '/Profile/' + m.membershipId + '/?components=100,200');
+    var profile    = await bungieGet('/Destiny2/' + m.membershipType + '/Profile/' + m.membershipId + '/?components=100,200,300');
     var characters = profile.characters && profile.characters.data;
     if (!characters) { console.warn('Geen characters'); return null; }
+
+    // Sla character stats op voor gebruik bij selectChar
+    var characterStats = profile.characterStats && profile.characterStats.data || {};
+    window._bungieCharIds = charIds;
+    window._bungieCharStats = characterStats;
+    window._bungieCharacters = characters;
+
+    // Update stats voor eerste (actieve) character
+    updateCharStatBars(charIds[0], characterStats);
 
     var classNames = {0:'Titan',1:'Hunter',2:'Warlock'};
     var classImgs  = {0:'img/icons/titanicon.png',1:'img/icons/huntericon.png',2:'img/icons/warlockicon.png'};
