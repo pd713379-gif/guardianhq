@@ -225,39 +225,42 @@ export default async function handler(req, res) {
   }
 
   // ── 6. XUR FEATURED WAPENS ──
-  // Bron: paracausal.science/xur/current.json (community API, geen auth nodig)
-  // Iconen: Bungie Armory Search op naam
+  // GetPublicVendors: /Destiny2/Vendors/?components=402
+  // Geeft sales terug die voor iedereen gelijk zijn (geen auth/characterId nodig)
+  // Response structuur: Response.sales.data = { [vendorHash]: { saleItems: { [key]: { itemHash } } } }
   try {
-    const pcRes = await fetch('https://paracausal.science/xur/current.json', {
-      headers: { 'User-Agent': 'GuardianHQ/1.0' }
-    });
-    const pcData = await pcRes.json();
-    console.log('[xur] paracausal response:', JSON.stringify(pcData)?.slice(0, 300));
+    const XUR_HASH = 2190858386;
 
-    // paracausal geeft een array van items terug met o.a. itemHash en displayProperties
-    // of null als Xur niet beschikbaar is
-    if (!pcData || (Array.isArray(pcData) && pcData.length === 0)) {
-      result.featuredWeapons = null;
-    } else {
-      const items = Array.isArray(pcData) ? pcData : (pcData.saleItems || pcData.items || []);
+    const pubRes = await fetch(
+      'https://www.bungie.net/Platform/Destiny2/Vendors/?components=402',
+      { headers: { 'X-API-Key': API_KEY } }
+    );
+    const pubData = await pubRes.json();
+    console.log('[xur] GetPublicVendors status:', pubRes.status, 'ErrorCode:', pubData?.ErrorCode);
+
+    // Probeer beide mogelijke response structuren
+    const xurVendor = pubData?.Response?.sales?.data?.[XUR_HASH]
+                   ?? pubData?.Response?.vendors?.data?.[XUR_HASH];
+
+    const saleItems = xurVendor?.saleItems ?? {};
+    console.log('[xur] Xur saleItems count:', Object.keys(saleItems).length);
+
+    if (pubData?.ErrorCode === 1 && Object.keys(saleItems).length > 0) {
+      const itemHashes = Object.values(saleItems)
+        .map(i => i.itemHash)
+        .filter(Boolean)
+        .slice(0, 12);
+
       const featuredWeapons = [];
-
-      await Promise.allSettled(items.slice(0, 10).map(async item => {
+      await Promise.allSettled(itemHashes.map(async hash => {
         try {
-          // Haal hash op — paracausal heeft itemHash direct of via nested object
-          const hash = item.itemHash || item.hash || item?.item?.itemHash;
-          if (!hash) return;
-
           const r = await fetch(
             `https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`,
             { headers: { 'X-API-Key': API_KEY } }
           );
           const d = await r.json();
           const def = d?.Response;
-          if (!def) return;
-
-          // Alleen wapens (itemType 3)
-          if (def.itemType !== 3) return;
+          if (!def || def.itemType !== 3) return; // alleen wapens
 
           const tierType  = def.inventory?.tierType ?? 5;
           const iconPath  = def.displayProperties?.icon ?? null;
@@ -281,7 +284,12 @@ export default async function handler(req, res) {
       }));
 
       result.featuredWeapons = featuredWeapons.length > 0 ? featuredWeapons : null;
-      console.log('[xur] featuredWeapons:', featuredWeapons.length);
+      console.log('[xur] featuredWeapons gevonden:', featuredWeapons.length);
+    } else {
+      console.log('[xur] Xur niet beschikbaar of leeg. ErrorCode:', pubData?.ErrorCode, 'saleItems:', Object.keys(saleItems).length);
+      // Log de volledige response keys voor debugging
+      console.log('[xur] Response keys:', Object.keys(pubData?.Response ?? {}));
+      result.featuredWeapons = null;
     }
   } catch(e) {
     console.error('[xur] crash:', e.message);
