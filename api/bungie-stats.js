@@ -225,41 +225,31 @@ export default async function handler(req, res) {
   }
 
   // ── 6. XUR FEATURED WAPENS ──
-  // De Bungie /Destiny2/Vendors/ endpoint vereist een characterId — zonder die
-  // geeft Bungie een 400/500 terug die de hele functie crasht.
-  // Correcte publieke route: gebruik een bekend publiek profiel als "dummy reader"
-  // zodat we component 402 (PublicVendorSales) kunnen ophalen zonder OAuth.
+  // Bungie publieke vendor endpoint: component 402 = VendorSales (geen auth nodig)
   // Xur hash: 2190858386
   try {
     const XUR_HASH = 2190858386;
 
-    // Stap 1: haal een publiek profiel + karakter op via het Bungie search endpoint
-    // We gebruiken een hardcoded bekend publiek account (Bungie eigen test account)
-    // mType=3 (Steam), mId en charId zijn publiek beschikbaar
-    const DUMMY_MTYPE  = 3;
-    const DUMMY_MID    = '4611686018488107374';
-    const DUMMY_CHARID = '2305843009444966019';
-
-    // Stap 2: haal vendor sales op via character vendor endpoint (component 402 = public sales, geen auth nodig)
+    // Publieke vendor sales — geen characterId of OAuth nodig
     const xurRes = await fetch(
-      `https://www.bungie.net/Platform/Destiny2/${DUMMY_MTYPE}/Profile/${DUMMY_MID}/Character/${DUMMY_CHARID}/Vendors/${XUR_HASH}/?components=402`,
+      `https://www.bungie.net/Platform/Destiny2/Vendors/?components=402&vendorHash=${XUR_HASH}`,
       { headers: { 'X-API-Key': API_KEY } }
     );
 
-    // Veilig parsen — Bungie stuurt soms HTML errors bij outage
     let xurData = null;
     try { xurData = await xurRes.json(); } catch { xurData = null; }
 
-    console.log('[xur] HTTP status:', xurRes.status, '| ErrorStatus:', xurData?.ErrorStatus);
+    console.log('[xur] HTTP status:', xurRes.status, '| ErrorCode:', xurData?.ErrorCode);
 
-    const xurSaleItems = xurData?.Response?.sales?.data ?? {};
-    console.log('[xur] saleItems count:', Object.keys(xurSaleItems).length);
+    // Probeer ook via de sales per vendor in de response
+    const salesData = xurData?.Response?.sales?.data ?? {};
+    console.log('[xur] saleItems count:', Object.keys(salesData).length);
 
-    if (xurData?.ErrorCode === 1 && Object.keys(xurSaleItems).length > 0) {
-      const itemHashes = Object.values(xurSaleItems)
+    if (xurData?.ErrorCode === 1 && Object.keys(salesData).length > 0) {
+      const itemHashes = Object.values(salesData)
         .map(i => i.itemHash)
         .filter(Boolean)
-        .slice(0, 10);
+        .slice(0, 12);
 
       const featuredWeapons = [];
       await Promise.allSettled(itemHashes.map(async hash => {
@@ -279,6 +269,42 @@ export default async function handler(req, res) {
           const iconPath  = def.displayProperties?.icon ?? null;
           const watermark = def.iconWatermark || def.iconWatermarkShelved || null;
 
+          // Stats ophalen
+          const stats = [];
+          if (def.stats?.stats) {
+            const statDefs = {
+              4284893193: 'Snelheid',
+              2523465841: 'Reikwijdte',
+              1240592695: 'Schade',
+              155624089:  'Stabiliteit',
+              943549884:  'Laadsnelheid',
+              1931675084: 'Magazijn',
+              1345609583: 'Stofwolk',
+              3555269338: 'Rondborstigheid',
+              2714457168: 'Terugstoot',
+              1885944937: 'Nauwkeurigheid',
+            };
+            Object.entries(def.stats.stats).forEach(([statHash, statObj]) => {
+              const label = statDefs[statHash];
+              if (label && statObj.value > 0) {
+                stats.push({ label, value: statObj.value });
+              }
+            });
+            stats.sort((a, b) => b.value - a.value);
+          }
+
+          // Perks ophalen (eerste 4 intrinsic / weapon perks)
+          const perks = [];
+          if (def.sockets?.socketEntries) {
+            const firstFour = def.sockets.socketEntries.slice(0, 6);
+            firstFour.forEach(s => {
+              const plug = s.singleInitialItemHash;
+              if (plug) {
+                perks.push({ name: '', desc: '', icon: null, hash: plug });
+              }
+            });
+          }
+
           featuredWeapons.push({
             hash,
             name:        def.displayProperties?.name ?? '—',
@@ -288,6 +314,8 @@ export default async function handler(req, res) {
             iconOverlay: watermark ? 'https://www.bungie.net' + watermark : null,
             tierType,
             isExotic:    tierType === 6,
+            stats:       stats.slice(0, 6),
+            perks:       [],
           });
         } catch {}
       }));
@@ -295,7 +323,6 @@ export default async function handler(req, res) {
       result.featuredWeapons = featuredWeapons.length > 0 ? featuredWeapons : null;
       console.log('[xur] featuredWeapons gevonden:', featuredWeapons.length);
     } else {
-      // Xur niet beschikbaar (buiten vrijdag–dinsdag) of karakter niet gevonden
       console.log('[xur] Xur niet beschikbaar of geen items. ErrorCode:', xurData?.ErrorCode);
       result.featuredWeapons = null;
     }
