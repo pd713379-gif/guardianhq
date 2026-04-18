@@ -2875,10 +2875,8 @@
         var ei = ELEMENT_ICONS[c.subclass && c.subclass.element] || ELEMENT_ICONS.void;
         var isActive = idx === _activeCharIdx;
         var theme = CLASS_THEMES[c.className] || CLASS_THEMES.Hunter;
-        var CLASS_ICONS = { Hunter: '/img/icons/huntericon.png', Warlock: '/img/icons/warlockicon.png', Titan: '/img/icons/titanicon.png' };
-        var classIconSrc = CLASS_ICONS[c.className] || null;
-        var subIconBig = classIconSrc
-          ? '<img src="' + classIconSrc + '" style="width:52px;height:52px;border-radius:8px;object-fit:cover;display:block;">'
+        var subIconBig = (c.subclass && c.subclass.icon && c.subclass.icon.indexOf('bungie.net')!==-1)
+          ? '<img src="' + c.subclass.icon + '" referrerpolicy="no-referrer" style="width:52px;height:52px;border-radius:8px;object-fit:cover;display:block;">'
           : '<div style="width:52px;height:52px;border-radius:8px;background:' + ei.bg + ';display:flex;align-items:center;justify-content:center;">' + ei.svg + '</div>';
         var bgStyle = c.emblemBg ? 'background-image:url(' + c.emblemBg + ');background-size:cover;background-position:center left;' : '';
         var overlay = c.emblemBg ? '<div style="position:absolute;inset:0;background:rgba(3,5,10,0.72);border-radius:inherit;"></div>' : '';
@@ -2926,7 +2924,7 @@
           + '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:0.95rem;font-weight:800;color:' + theme.color + ';">' + c.className + '</div>'
           + '<div style="font-size:1.4rem;font-weight:900;color:var(--gold2);">&#9889; ' + c.light + '</div>'
           + '</div>'
-          + '<div style="flex-shrink:0;width:52px;height:52px;border-radius:8px;overflow:hidden;"><img src="/img/icons/' + c.className.toLowerCase() + 'icon.png" style="width:52px;height:52px;object-fit:cover;display:block;"></div>'
+          + '<div style="flex-shrink:0;width:52px;height:52px;border-radius:8px;background:rgba(107,114,128,0.15);border:1px solid rgba(107,114,128,0.3);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">🔒</div>'
           + '</div>'
           + '<div style="display:flex;align-items:center;justify-content:center;margin-top:auto;background:rgba(0,0,0,0.35);border-radius:6px;padding:4px 8px;">'
           + '<div style="font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;">' + c.subclassName + '</div>'
