@@ -2970,10 +2970,16 @@
         var isActive = idx === _activeCharIdx;
         var theme = CLASS_THEMES[c.className] || CLASS_THEMES.Hunter;
         var CLASS_ICONS = { Hunter: '/img/icons/huntericon.png', Warlock: '/img/icons/warlockicon.png', Titan: '/img/icons/titanicon.png' };
-        var classIconSrc = CLASS_ICONS[c.className] || null;
-        var subIconBig = classIconSrc
-          ? '<img src="' + classIconSrc + '" style="width:52px;height:52px;border-radius:8px;object-fit:cover;display:block;">'
-          : '<div style="width:52px;height:52px;border-radius:8px;background:' + ei.bg + ';display:flex;align-items:center;justify-content:center;">' + ei.svg + '</div>';
+        // Als Bungie subclass icoon beschikbaar is → gebruik die, anders eigen class icoon
+        var subIconBig;
+        if (c.subclass && c.subclass.icon && c.subclass.icon.indexOf('bungie.net') !== -1) {
+          subIconBig = '<img src="' + c.subclass.icon + '" referrerpolicy="no-referrer" style="width:52px;height:52px;border-radius:8px;object-fit:cover;display:block;">';
+        } else {
+          var classIconSrc = CLASS_ICONS[c.className] || null;
+          subIconBig = classIconSrc
+            ? '<img src="' + classIconSrc + '" style="width:52px;height:52px;border-radius:8px;object-fit:cover;display:block;">'
+            : '<div style="width:52px;height:52px;border-radius:8px;background:' + ei.bg + ';display:flex;align-items:center;justify-content:center;">' + ei.svg + '</div>';
+        }
         var bgStyle = c.emblemBg ? 'background-image:url(' + c.emblemBg + ');background-size:cover;background-position:center left;' : '';
         var overlay = c.emblemBg ? '<div style="position:absolute;inset:0;background:rgba(3,5,10,0.72);border-radius:inherit;"></div>' : '';
         return '<div class="char-card ' + c.className.toLowerCase() + (isActive?' active-char':'') + '" onclick="selectLiveChar(' + idx + ')" style="position:relative;overflow:hidden;cursor:pointer;' + bgStyle + '">'
