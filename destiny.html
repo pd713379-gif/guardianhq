@@ -880,6 +880,8 @@
       // Geen live wapens: toon Xur offline melding + countdown
       if (!weapons || weapons.length === 0) {
         var cd = getXurCountdown();
+        // Als cd null is = Xur zou online zijn maar API geeft geen data
+        var xurZouOnlineZijn = (cd === null);
         var dagBlok = '';
         if (cd && cd.d > 0) {
           dagBlok = '<div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;">'
@@ -893,28 +895,30 @@
 
         grid.innerHTML = '<div style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 12px;gap:10px;text-align:center;">'
           + '<div style="font-size:2rem;">👾</div>'
-          + '<div style="font-size:0.8rem;font-weight:700;color:rgba(255,255,255,0.7);">Xur is momenteel niet in de Tower</div>'
-          + '<div style="font-size:0.65rem;color:rgba(255,255,255,0.35);">Keert terug op vrijdag om 19:00 UTC</div>'
-          + '<div style="margin-top:4px;display:flex;gap:8px;">'
+          + '<div style="font-size:0.8rem;font-weight:700;color:rgba(255,255,255,0.7);">' + (xurZouOnlineZijn ? 'Xur data wordt geladen...' : 'Xur is momenteel niet in de Tower') + '</div>'
+          + '<div style="font-size:0.65rem;color:rgba(255,255,255,0.35);">' + (xurZouOnlineZijn ? 'Probeer de pagina te vernieuwen' : 'Keert terug op vrijdag om 19:00 UTC') + '</div>'
+          + (xurZouOnlineZijn ? '' : '<div style="margin-top:4px;display:flex;gap:8px;">')
           + dagBlok
           + '<div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;"><div id="xurCd_h" style="font-size:1rem;font-weight:800;color:#9b72cf;">' + cdH + '</div><div style="font-size:0.5rem;color:rgba(255,255,255,0.3);text-transform:uppercase;">uur</div></div>'
           + '<div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;"><div id="xurCd_m" style="font-size:1rem;font-weight:800;color:#9b72cf;">' + cdM + '</div><div style="font-size:0.5rem;color:rgba(255,255,255,0.3);text-transform:uppercase;">min</div></div>'
           + '<div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;"><div id="xurCd_s" style="font-size:1rem;font-weight:800;color:#9b72cf;">' + cdS + '</div><div style="font-size:0.5rem;color:rgba(255,255,255,0.3);text-transform:uppercase;">sec</div></div>'
-          + '</div></div>';
+          + (xurZouOnlineZijn ? '' : '</div>') + '</div>';
 
-        if (window._xurCdTimer) clearInterval(window._xurCdTimer);
-        window._xurCdTimer = setInterval(function() {
-          var c = getXurCountdown();
-          if (!c) { clearInterval(window._xurCdTimer); return; }
-          var dEl = document.getElementById('xurCd_d');
-          var hEl = document.getElementById('xurCd_h');
-          var mEl = document.getElementById('xurCd_m');
-          var sEl = document.getElementById('xurCd_s');
-          if (dEl) dEl.textContent = c.d;
-          if (hEl) hEl.textContent = String(c.h).padStart(2,'0');
-          if (mEl) mEl.textContent = String(c.m).padStart(2,'0');
-          if (sEl) sEl.textContent = String(c.s).padStart(2,'0');
-        }, 1000);
+        if (cd) {
+          if (window._xurCdTimer) clearInterval(window._xurCdTimer);
+          window._xurCdTimer = setInterval(function() {
+            var c = getXurCountdown();
+            if (!c) { clearInterval(window._xurCdTimer); return; }
+            var dEl = document.getElementById('xurCd_d');
+            var hEl = document.getElementById('xurCd_h');
+            var mEl = document.getElementById('xurCd_m');
+            var sEl = document.getElementById('xurCd_s');
+            if (dEl) dEl.textContent = c.d;
+            if (hEl) hEl.textContent = String(c.h).padStart(2,'0');
+            if (mEl) mEl.textContent = String(c.m).padStart(2,'0');
+            if (sEl) sEl.textContent = String(c.s).padStart(2,'0');
+          }, 1000);
+        }
         return;
       }
 
