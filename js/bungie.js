@@ -173,6 +173,11 @@ async function loadBungieProfileData() {
 
     // Sla character stats op voor gebruik bij selectChar
     var characterStats = profile.characterStats && profile.characterStats.data || {};
+    console.log('[charStats] keys:', Object.keys(characterStats));
+    console.log('[charStats] charIds:', charIds);
+    if (charIds[0] && characterStats[charIds[0]]) {
+      console.log('[charStats] eerste char stats:', JSON.stringify(characterStats[charIds[0]].stats).slice(0,200));
+    }
     window._bungieCharIds = charIds;
     window._bungieCharStats = characterStats;
     window._bungieCharacters = characters;
