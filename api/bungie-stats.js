@@ -238,8 +238,8 @@ export default async function handler(req, res) {
       3844694310, // The Jade Rabbit - Exotic Scout Rifle
       3549153978, // Fighting Lion - Exotic Grenade Launcher
       3899270607, // The Colony - Exotic Grenade Launcher
-      1541131350, // Cerberus+1 - Exotic Auto Rifle (Catalyst bij Xur)
-      347366834,  // Ace of Spades - Exotic Hand Cannon (Catalyst bij Xur)
+      1380383475, // Cerberus+1 Catalyst
+      3708505013, // Ace of Spades Catalyst
       2809120022, // Relativism - Exotic Hunter Cloak
       2362430352, // Stoicism - Exotic Titan Mark
       2273643087, // Solipsism - Exotic Warlock Bond
