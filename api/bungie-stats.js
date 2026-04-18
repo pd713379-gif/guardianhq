@@ -244,6 +244,9 @@ export default async function handler(req, res) {
 
     const saleItems = xurVendor?.saleItems ?? {};
     console.log('[xur] Xur saleItems count:', Object.keys(saleItems).length);
+    if (Object.keys(saleItems).length > 0) {
+      console.log('[xur] eerste hashes:', Object.values(saleItems).slice(0,4).map(i=>i.itemHash));
+    }
 
     if (pubData?.ErrorCode === 1 && Object.keys(saleItems).length > 0) {
       const itemHashes = Object.values(saleItems)
@@ -260,7 +263,11 @@ export default async function handler(req, res) {
           );
           const d = await r.json();
           const def = d?.Response;
-          if (!def || def.itemType !== 3) return; // alleen wapens
+          if (!def) return;
+          // Log wat voor items Xur heeft
+          console.log('[xur] item:', hash, 'type:', def.itemType, 'name:', def.displayProperties?.name);
+          // Alleen wapens (3) en armor (2)
+          if (def.itemType !== 3 && def.itemType !== 2) return;
 
           const tierType  = def.inventory?.tierType ?? 5;
           const iconPath  = def.displayProperties?.icon ?? null;
