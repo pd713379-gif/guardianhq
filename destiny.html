@@ -853,31 +853,82 @@
     }
 
     // ── FEATURED WAPENS RENDERER ──
+    function getXurCountdown() {
+      // Xur is online vrijdag 19:00 UTC t/m dinsdag 19:00 UTC
+      const now = new Date();
+      const day = now.getUTCDay(); // 0=zo,1=ma,2=di,3=wo,4=do,5=vr,6=za
+      const hour = now.getUTCHours();
+      const xurOnline = (day === 5 && hour >= 19) || day === 6 || day === 0 || day === 1 || (day === 2 && hour < 19);
+      if (xurOnline) return null; // online, geen countdown nodig
+      // Bereken seconden tot volgende vrijdag 19:00 UTC
+      let daysUntilFri = (5 - day + 7) % 7;
+      if (day === 5 && hour < 19) daysUntilFri = 0;
+      const nextFri = new Date(now);
+      nextFri.setUTCDate(now.getUTCDate() + daysUntilFri);
+      nextFri.setUTCHours(19, 0, 0, 0);
+      const diff = Math.max(0, Math.floor((nextFri - now) / 1000));
+      const d = Math.floor(diff / 86400);
+      const h = Math.floor((diff % 86400) / 3600);
+      const m = Math.floor((diff % 3600) / 60);
+      const s = diff % 60;
+      return { d, h, m, s, ms: nextFri - now };
+    }
+
     function renderFeaturedWeapons(weapons) {
       const grid = document.getElementById('featuredWeaponsGrid');
       if (!grid) return;
 
-      // Fallback wapens als Xur niet beschikbaar is
-      const fallback = [
-        { name:'Falling Guillotine', typeName:'Legendary Sword',        isExotic:false, icon:'https://www.bungie.net/common/destiny2_content/icons/3b5bdf59873855c2f065a7e7b79fe407.jpg' },
-        { name:'Palindrome',         typeName:'Hand Cannon',             isExotic:false, icon:'https://www.bungie.net/common/destiny2_content/icons/97909b48e32b30c4f02a7e7dc2c86dce.jpg' },
-        { name:'Gjallarhorn',        typeName:'Exotic Rocket Launcher',  isExotic:true,  icon:'https://www.bungie.net/common/destiny2_content/icons/bffe0f0c5efde5e8c90d7bbe2fa78d13.jpg' },
-        { name:'The Messenger',      typeName:'Pulse Rifle',             isExotic:false, icon:'https://www.bungie.net/common/destiny2_content/icons/0f8f1f79cbffb0f6e2de8fcd5c40c2a7.jpg' },
-      ];
+      // Als geen live wapens: toon Xur offline melding met countdown
+      if (!weapons || weapons.length === 0) {
+        const cd = getXurCountdown();
+        if (cd) {
+          grid.innerHTML = `<div id="xurOfflineMsg" style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 12px;gap:10px;text-align:center;">
+            <div style="font-size:2rem;">👾</div>
+            <div style="font-size:0.8rem;font-weight:700;color:rgba(255,255,255,0.7);">Xur is momenteel niet in de Tower</div>
+            <div style="font-size:0.65rem;color:rgba(255,255,255,0.35);">Keert terug op vrijdag om 19:00 UTC</div>
+            <div style="margin-top:4px;display:flex;gap:8px;">
+              ${cd.d > 0 ? `<div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;"><div style="font-size:1rem;font-weight:800;color:#9b72cf;" id="xurCd_d">${cd.d}</div><div style="font-size:0.5rem;color:rgba(255,255,255,0.3);text-transform:uppercase;">dagen</div></div>` : ''}
+              <div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;"><div style="font-size:1rem;font-weight:800;color:#9b72cf;" id="xurCd_h">${String(cd.h).padStart(2,'0')}</div><div style="font-size:0.5rem;color:rgba(255,255,255,0.3);text-transform:uppercase;">uur</div></div>
+              <div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;"><div style="font-size:1rem;font-weight:800;color:#9b72cf;" id="xurCd_m">${String(cd.m).padStart(2,'0')}</div><div style="font-size:0.5rem;color:rgba(255,255,255,0.3);text-transform:uppercase;">min</div></div>
+              <div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;"><div style="font-size:1rem;font-weight:800;color:#9b72cf;" id="xurCd_s">${String(cd.s).padStart(2,'0')}</div><div style="font-size:0.5rem;color:rgba(255,255,255,0.3);text-transform:uppercase;">sec</div></div>
+            </div>
+          </div>`;
+          // Live countdown aftellen per seconde
+          if (window._xurCdTimer) clearInterval(window._xurCdTimer);
+          window._xurCdTimer = setInterval(() => {
+            const c = getXurCountdown();
+            if (!c) { clearInterval(window._xurCdTimer); return; }
+            const dEl = document.getElementById('xurCd_d');
+            const hEl = document.getElementById('xurCd_h');
+            const mEl = document.getElementById('xurCd_m');
+            const sEl = document.getElementById('xurCd_s');
+            if (dEl) dEl.textContent = c.d;
+            if (hEl) hEl.textContent = String(c.h).padStart(2,'0');
+            if (mEl) mEl.textContent = String(c.m).padStart(2,'0');
+            if (sEl) sEl.textContent = String(c.s).padStart(2,'0');
+          }, 1000);
+          return;
+        }
+      }
 
-      const list = (weapons && weapons.length > 0) ? weapons : fallback;
+      const list = weapons && weapons.length > 0 ? weapons : [];
+      if (list.length === 0) { grid.innerHTML = ''; return; }
 
       grid.innerHTML = list.map(w => {
         const borderColor = w.isExotic ? 'rgba(212,168,67,0.5)' : 'rgba(155,114,207,0.4)';
         const tierLabel   = w.isExotic ? '⭐ Exotic' : '💜 Legendary';
         const tierColor   = w.isExotic ? '#f5c842' : '#9b72cf';
         const dataW = escHtml(JSON.stringify(w));
+        // Direct van bungie.net laden — geen proxy nodig voor publieke CDN iconen
+        const iconHtml = w.icon
+          ? `<img src="${escHtml(w.icon)}" width="52" height="52" style="object-fit:cover;display:block;" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML='<div style=\'width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;\'>🔫</div>'">`
+          : '<div style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">🔫</div>';
 
         return `<div class="w-card ${w.isExotic ? 'w-exotic' : 'w-legendary'}"
           style="display:flex;align-items:center;gap:10px;padding:10px;cursor:pointer;border:1px solid ${borderColor};border-radius:12px;"
           onclick="openFeaturedWeaponPopup(this)" data-weapon="${dataW}">
           <div style="flex-shrink:0;width:52px;height:52px;border-radius:8px;overflow:hidden;border:2px solid ${borderColor};background:rgba(255,255,255,0.06);">
-            ${w.icon ? `<img src="/api/bungie-proxy?action=img&url=${encodeURIComponent(w.icon)}" width="52" height="52" style="object-fit:cover;display:block;" onerror="this.style.display='none'">` : '<div style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">🔫</div>'}
+            ${iconHtml}
           </div>
           <div style="flex:1;min-width:0;">
             <div class="w-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(w.name)}</div>
@@ -902,7 +953,7 @@
 
       let html = `<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;">
         <div style="flex-shrink:0;width:72px;height:72px;border-radius:10px;overflow:hidden;background:${iconBg};border:2px solid ${borderColor};">
-          ${w.icon ? `<img src="/api/bungie-proxy?action=img&url=${encodeURIComponent(w.icon)}" width="72" height="72" style="width:72px;height:72px;object-fit:cover;display:block;" onerror="this.style.display='none'">` : '<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:2rem;">🔫</div>'}
+          ${w.icon ? `<img src="${escHtml(w.icon)}" width="72" height="72" style="width:72px;height:72px;object-fit:cover;display:block;" referrerpolicy="no-referrer" onerror="this.style.display='none'">` : '<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:2rem;">🔫</div>'}
         </div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:1rem;font-weight:800;color:#fff;line-height:1.2;">${escHtml(w.name)}</div>
