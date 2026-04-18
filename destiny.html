@@ -167,7 +167,7 @@
           <!-- Wapens -->
           <div class="d-card glass">
             <div class="d-card-label">🔫 Featured Wapens <span style="font-size:0.7rem;color:var(--text3);font-weight:400">· Xur deze week</span></div>
-            <div id="featuredWeaponsGrid" class="weapon-grid">
+            <div id="featuredWeaponsGrid" class="weapon-grid" style="max-height:320px;overflow-y:auto;padding-right:4px;">
               <div style="color:var(--text3);font-size:0.8rem;padding:8px">Laden...</div>
             </div>
           </div>
@@ -882,13 +882,34 @@
         var cd = getXurCountdown();
         var xurHoortOnline = (cd === null); // zat/zo/ma/di = Xur hoort online te zijn
 
+        // Fake items voor als Xur offline of data niet beschikbaar is
+        var fakeItems = [
+          { name:'Hawkmoon',         typeName:'Exotic Hand Cannon',       isExotic:true,  icon:'https://www.bungie.net/common/destiny2_content/icons/deb38c0de0a9c7dc79e8f58b9f49a78a.jpg' },
+          { name:'Dead Messenger',   typeName:'Exotic Grenade Launcher',  isExotic:true,  icon:'https://www.bungie.net/common/destiny2_content/icons/c9c7b7986dc77c1c82a4e83c0a54c720.jpg' },
+          { name:'Prometheus Lens',  typeName:'Exotic Trace Rifle',       isExotic:true,  icon:'https://www.bungie.net/common/destiny2_content/icons/eb23e31bef4e68a6c31e5eeaf0571b0e.jpg' },
+          { name:'Black Talon',      typeName:'Exotic Sword',             isExotic:true,  icon:'https://www.bungie.net/common/destiny2_content/icons/a8616d9d7b3ddd0c7cbc919c64b35e2b.jpg' },
+          { name:'Gwisin Vest',      typeName:'Exotic Hunter Armor',      isExotic:true,  icon:'https://www.bungie.net/common/destiny2_content/icons/8773d0887c67b8fdc7ee07cc42c35fe4.jpg' },
+          { name:'Wormgod Caress',   typeName:'Exotic Titan Armor',       isExotic:true,  icon:'https://www.bungie.net/common/destiny2_content/icons/8f2d8f47c1fce4e6c43e5c7e94f75694.jpg' },
+          { name:"Nezarec's Sin",    typeName:'Exotic Warlock Armor',     isExotic:true,  icon:'https://www.bungie.net/common/destiny2_content/icons/3b2d07e08f2c6fb37f7a4c8aa5d7d11a.jpg' },
+        ];
+
         if (xurHoortOnline) {
-          // Xur hoort online te zijn maar API faalt
-          grid.innerHTML = '<div style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 12px;gap:8px;text-align:center;">'
-            + '<div style="font-size:2rem;">👾</div>'
-            + '<div style="font-size:0.8rem;font-weight:700;color:rgba(255,255,255,0.7);">Xur data tijdelijk niet beschikbaar</div>'
-            + '<div style="font-size:0.65rem;color:rgba(255,255,255,0.35);">Probeer de pagina te vernieuwen</div>'
-            + '</div>';
+          // Xur hoort online te zijn maar API faalt — toon fake items met badge
+          var fakeHtml = '<div style="grid-column:1/-1;font-size:0.6rem;color:rgba(255,255,255,0.25);text-align:center;padding:4px 0 6px;">⚠️ Live data niet beschikbaar — voorbeeldweergave</div>';
+          fakeHtml += fakeItems.map(function(w) {
+            var dataW = escHtml(JSON.stringify(w));
+            return '<div class="w-card w-exotic" style="display:flex;align-items:center;gap:10px;padding:10px;cursor:pointer;border:1px solid rgba(212,168,67,0.5);border-radius:12px;" onclick="openFeaturedWeaponPopup(this)" data-weapon="' + dataW + '">'
+              + '<div style="flex-shrink:0;width:52px;height:52px;border-radius:8px;overflow:hidden;border:2px solid rgba(212,168,67,0.5);background:rgba(255,255,255,0.06);">'
+              + (w.icon ? '<img src="' + escHtml(w.icon) + '" width="52" height="52" style="object-fit:cover;display:block;" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">' : '<div style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">🔫</div>')
+              + '</div>'
+              + '<div style="flex:1;min-width:0;">'
+              + '<div class="w-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(w.name) + '</div>'
+              + '<div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#f5c842;">⭐ Exotic</div>'
+              + '<div class="w-type">' + escHtml(w.typeName) + '</div>'
+              + '</div></div>';
+          }).join('');
+          grid.innerHTML = fakeHtml;
+          return;
         } else {
           // Xur is echt offline (wo/do)
           var dagBlok = '';
@@ -898,10 +919,23 @@
               + '<div style="font-size:0.5rem;color:rgba(255,255,255,0.3);text-transform:uppercase;">dagen</div>'
               + '</div>';
           }
-          grid.innerHTML = '<div style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 12px;gap:10px;text-align:center;">'
-            + '<div style="font-size:2rem;">👾</div>'
-            + '<div style="font-size:0.8rem;font-weight:700;color:rgba(255,255,255,0.7);">Xur is momenteel niet in de Tower</div>'
-            + '<div style="font-size:0.65rem;color:rgba(255,255,255,0.35);">Keert terug op vrijdag om 19:00 UTC</div>'
+          // Toon fake items + kleine countdown bovenaan
+          var offlineBanner = '<div style="grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:rgba(155,114,207,0.08);border-radius:8px;margin-bottom:2px;">'
+            + '<span style="font-size:0.65rem;color:rgba(255,255,255,0.4);">👾 Xur keert terug op vrijdag</span>'
+            + '<span style="font-size:0.65rem;color:#9b72cf;font-weight:700;" id="xurMiniCd">--:--:--</span>'
+            + '</div>';
+          grid.innerHTML = offlineBanner + fakeItems.map(function(w) {
+            var dataW = escHtml(JSON.stringify(w));
+            return '<div class="w-card w-exotic" style="display:flex;align-items:center;gap:10px;padding:10px;cursor:pointer;border:1px solid rgba(212,168,67,0.3);border-radius:12px;opacity:0.65;" onclick="openFeaturedWeaponPopup(this)" data-weapon="' + dataW + '">'
+              + '<div style="flex-shrink:0;width:52px;height:52px;border-radius:8px;overflow:hidden;border:2px solid rgba(212,168,67,0.3);background:rgba(255,255,255,0.06);">'
+              + (w.icon ? '<img src="' + escHtml(w.icon) + '" width="52" height="52" style="object-fit:cover;display:block;" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">' : '<div style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">🔫</div>')
+              + '</div>'
+              + '<div style="flex:1;min-width:0;">'
+              + '<div class="w-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(w.name) + '</div>'
+              + '<div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#f5c842;">⭐ Exotic</div>'
+              + '<div class="w-type">' + escHtml(w.typeName) + '</div>'
+              + '</div></div>';
+          }).join('');
             + '<div style="margin-top:4px;display:flex;flex-direction:row;gap:8px;justify-content:center;">'
             + dagBlok
             + '<div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;text-align:center;"><div id="xurCd_h" style="font-size:1rem;font-weight:800;color:#9b72cf;">' + String(cd.h).padStart(2,'0') + '</div><div style="font-size:0.5rem;color:rgba(255,255,255,0.3);text-transform:uppercase;">uur</div></div>'
@@ -913,14 +947,13 @@
           window._xurCdTimer = setInterval(function() {
             var c = getXurCountdown();
             if (!c) { clearInterval(window._xurCdTimer); return; }
-            var dEl = document.getElementById('xurCd_d');
-            var hEl = document.getElementById('xurCd_h');
-            var mEl = document.getElementById('xurCd_m');
-            var sEl = document.getElementById('xurCd_s');
-            if (dEl) dEl.textContent = c.d;
-            if (hEl) hEl.textContent = String(c.h).padStart(2,'0');
-            if (mEl) mEl.textContent = String(c.m).padStart(2,'0');
-            if (sEl) sEl.textContent = String(c.s).padStart(2,'0');
+            var mini = document.getElementById('xurMiniCd');
+            if (mini) {
+              var parts = [];
+              if (c.d > 0) parts.push(c.d + 'd');
+              parts.push(String(c.h).padStart(2,'0') + ':' + String(c.m).padStart(2,'0') + ':' + String(c.s).padStart(2,'0'));
+              mini.textContent = parts.join(' ');
+            }
           }, 1000);
         }
         return;
@@ -963,7 +996,7 @@
 
       let html = `<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;">
         <div style="flex-shrink:0;width:72px;height:72px;border-radius:10px;overflow:hidden;background:${iconBg};border:2px solid ${borderColor};">
-          ${w.icon ? `<img src="${escHtml(w.icon)}" width="72" height="72" style="width:72px;height:72px;object-fit:cover;display:block;" referrerpolicy="no-referrer" onerror="this.style.display='none'">` : '<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:2rem;">🔫</div>'}
+          ${w.icon ? `<img src="${escHtml(w.icon)}" width="72" height="72" style="width:72px;height:72px;object-fit:cover;display:block;" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">` : '<div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:2rem;">🔫</div>'}
         </div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:1rem;font-weight:800;color:#fff;line-height:1.2;">${escHtml(w.name)}</div>
@@ -1368,7 +1401,7 @@
       // ── Header ──
       let html = `<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:18px;">
         <div style="flex-shrink:0;width:76px;height:76px;border-radius:12px;overflow:hidden;background:${iconBg};border:2px solid ${borderColor};box-shadow:0 0 20px ${w.tier==='exotic'?'rgba(212,168,67,0.3)':'rgba(155,114,207,0.2)'};">
-          <img src="${escHtml(w.icon)}" width="76" height="76" style="width:76px;height:76px;object-fit:cover;display:block;" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+          <img src="${escHtml(w.icon)}" width="76" height="76" style="width:76px;height:76px;object-fit:cover;display:block;" referrerpolicy="no-referrer" onerror="this.style.display=&quot;none&quot;">
         </div>
         <div style="flex:1;min-width:0;padding-top:2px;">
           <div style="font-size:1.05rem;font-weight:800;color:#fff;line-height:1.2;letter-spacing:0.01em;">${escHtml(w.name)}</div>
@@ -1669,7 +1702,7 @@
             ? (item.damageColor ? `<div style="position:absolute;top:3px;left:3px;width:6px;height:6px;border-radius:50%;background:${item.damageColor};box-shadow:0 0 4px ${item.damageColor};"></div>` : '')
             : '';
           const iconHtml = item.icon
-            ? `<img src="/api/bungie-proxy?action=img&url=${encodeURIComponent(item.icon)}" width="56" height="56" style="width:56px;height:56px;object-fit:cover;display:block;" loading="lazy" onerror="this.style.display='none'">`
+            ? `<img src="/api/bungie-proxy?action=img&url=${encodeURIComponent(item.icon)}" width="56" height="56" style="width:56px;height:56px;object-fit:cover;display:block;" loading="lazy" onerror="this.style.display=&quot;none&quot;">`
             : `<div style="width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">${item.isWeapon ? '🔫' : '🛡️'}</div>`;
 
           const dataItem = escHtml(JSON.stringify({
