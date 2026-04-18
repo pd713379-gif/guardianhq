@@ -230,17 +230,22 @@ export default async function handler(req, res) {
   try {
     const XUR_HASH = 2190858386;
 
-    // ── Bekende item hashes voor Xur wapens deze week ──
+    // ── Bekende item hashes voor Xur items deze week ──
+    // Wapens + class items + catalysts die niet via publieke API binnenkomen
     // Update deze lijst elke vrijdag handmatig
-    const KNOWN_WEAPON_HASHES = [
+    const KNOWN_EXTRA_HASHES = [
       3856705927, // Hawkmoon - Exotic Hand Cannon
       3844694310, // The Jade Rabbit - Exotic Scout Rifle
-      2272470786, // Fighting Lion - Exotic Grenade Launcher
-      2782325302, // The Colony - Exotic Grenade Launcher
-      347366834,  // Cerberus+1 - Exotic Auto Rifle
-      347366835,  // Cerberus+1 Catalyst
-      1349563510, // Ace of Spades - Exotic Hand Cannon
+      3549153978, // Fighting Lion - Exotic Grenade Launcher
+      3899270607, // The Colony - Exotic Grenade Launcher
+      1541131350, // Cerberus+1 - Exotic Auto Rifle (Catalyst bij Xur)
+      347366834,  // Ace of Spades - Exotic Hand Cannon (Catalyst bij Xur)
+      2809120022, // Relativism - Exotic Hunter Cloak
+      2362430352, // Stoicism - Exotic Titan Mark
+      2273643087, // Solipsism - Exotic Warlock Bond
     ];
+    // Items die NIET in de lijst horen (Legendary rommel die API soms meestuurt)
+    const EXCLUDE_NAMES = ['Stochastic Variable', 'Crown-Splitter'];
 
     // Haal live armor op via GetPublicVendors
     let liveItems = [];
@@ -282,9 +287,12 @@ export default async function handler(req, res) {
       console.log('[xur] live fetch fout:', e.message);
     }
 
-    // Haal bekende wapen hashes op via manifest
+    // Verwijder ongewenste Legendary items
+    liveItems = liveItems.filter(i => !EXCLUDE_NAMES.includes(i.name));
+
+    // Haal bekende extra hashes op via manifest
     const liveHashes = liveItems.map(i => i.hash);
-    const missingHashes = KNOWN_WEAPON_HASHES.filter(h => !liveHashes.includes(h));
+    const missingHashes = KNOWN_EXTRA_HASHES.filter(h => !liveHashes.includes(h));
     await Promise.allSettled(missingHashes.map(async hash => {
       try {
         const r = await fetch(
@@ -294,7 +302,9 @@ export default async function handler(req, res) {
         const d = await r.json();
         const def = d?.Response;
         if (!def) return;
-        if (def.itemType !== 3) return; // alleen wapens
+        if (EXCLUDE_NAMES.includes(def.displayProperties?.name)) return;
+        // wapens=3, armor=2, class items (Hunter Cloak/Titan Mark/Warlock Bond)=19
+        if (def.itemType !== 3 && def.itemType !== 2 && def.itemType !== 19) return;
         const tierType = def.inventory?.tierType ?? 5;
         const iconPath = def.displayProperties?.icon ?? null;
         const watermark = def.iconWatermark || def.iconWatermarkShelved || null;
