@@ -310,15 +310,17 @@ async function loadFavWeapons(membership, charIds) {
       return;
     }
 
-    list.innerHTML = items.map(function(w) {
+    // Sla items op in window zodat onclick via index werkt (geen encoding problemen)
+    window._favWeaponsData = items;
+
+    list.innerHTML = items.map(function(w, idx) {
       var borderColor = w.isExotic ? '#f5c842' : '#9b72cf';
       var tierLabel = w.isExotic ? 'Exotic' : 'Legendary';
       var iconHtml = w.icon
         ? '<img src="/api/bungie-proxy?action=img&url=' + encodeURIComponent(w.icon) + '" width="42" height="42" style="object-fit:cover;display:block;border-radius:6px;" onerror="this.style.display=&quot;none&quot;">'
         : '🔫';
       var killsFmt = w.kills >= 1000 ? (w.kills/1000).toFixed(1) + 'k' : w.kills;
-      var dataW = encodeURIComponent(JSON.stringify(w));
-      return '<div class="fav-weapon" onclick="openFavWeaponPopup(\'' + dataW + '\')">'  // fixed
+      return '<div class="fav-weapon" onclick="openFavWeaponPopup(' + idx + ')">'
         + '<div class="fw-icon" style="border-left:3px solid ' + borderColor + ';padding:0;overflow:hidden;">' + iconHtml + '</div>'
         + '<div style="flex:1;min-width:0;">'
         + '<div class="fw-name">' + w.name + '</div>'
