@@ -237,8 +237,8 @@ async function loadFavWeapons(membership, charIds) {
 
     // Haal manifest info op per wapen
     var items = [];
-    await Promise.all(sorted.map(function(w) {
-      return bungieGet('/Destiny2/Manifest/DestinyInventoryItemDefinition/' + w.ref + '/').then(function(def) {
+    await Promise.all(sorted.map(async function(w) {
+      return bungieGet('/Destiny2/Manifest/DestinyInventoryItemDefinition/' + w.ref + '/').then(async function(def) {
         if (!def) return;
         var tierType = def.inventory && def.inventory.tierType || 5;
         var iconPath = def.displayProperties && def.displayProperties.icon;
@@ -260,13 +260,31 @@ async function loadFavWeapons(membership, charIds) {
           stats.sort(function(a,b){ return b.value - a.value; });
         }
 
-        // Perks (eerste socket entries namen)
-        var perks = [];
+        // Perks — haal naam + beschrijving + icoon op per socket
+        var perkHashes = [];
         if (def.sockets && def.sockets.socketEntries) {
-          def.sockets.socketEntries.slice(0,5).forEach(function(s) {
-            if (s.singleInitialItemHash) perks.push(s.singleInitialItemHash);
+          def.sockets.socketEntries.forEach(function(s) {
+            if (s.singleInitialItemHash) perkHashes.push(s.singleInitialItemHash);
           });
         }
+        // Haal perk definities op (max 6)
+        var perks = [];
+        var perkResults = await Promise.all(perkHashes.slice(0,6).map(function(hash) {
+          return bungieGet('/Destiny2/Manifest/DestinyInventoryItemDefinition/' + hash + '/').catch(function(){ return null; });
+        }));
+        perkResults.forEach(function(pd) {
+          if (!pd) return;
+          var dp = pd.displayProperties;
+          if (!dp || !dp.name || dp.name.length < 2) return;
+          // Sla lege of Masterwork tier items over
+          var desc = dp.description || '';
+          if (!desc && !dp.name) return;
+          perks.push({
+            name: dp.name,
+            desc: desc,
+            icon: dp.icon ? 'https://www.bungie.net' + dp.icon : null,
+          });
+        });
 
         items.push({
           ref: w.ref,
@@ -278,7 +296,7 @@ async function loadFavWeapons(membership, charIds) {
           iconOverlay: watermark ? 'https://www.bungie.net' + watermark : null,
           tierType: tierType,
           isExotic: tierType === 6,
-          stats: stats.slice(0,6),
+          stats: stats.slice(0, 9),
           perks: perks,
         });
       }).catch(function(){});
