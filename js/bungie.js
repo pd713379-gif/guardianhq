@@ -163,7 +163,7 @@ async function loadBungieProfileData() {
     localStorage.setItem('bungie_platform',   m.membershipType.toString());
     localStorage.setItem('bungie_destiny_id', m.membershipId);
 
-    var profile    = await bungieGet('/Destiny2/' + m.membershipType + '/Profile/' + m.membershipId + '/?components=100,200,300');
+    var profile    = await bungieGet('/Destiny2/' + m.membershipType + '/Profile/' + m.membershipId + '/?components=100,200');
     var characters = profile.characters && profile.characters.data;
     if (!characters) { console.warn('Geen characters'); return null; }
 
@@ -172,12 +172,16 @@ async function loadBungieProfileData() {
     var classImgs  = {0:'img/icons/titanicon.png',1:'img/icons/huntericon.png',2:'img/icons/warlockicon.png'};
 
     // Sla character stats op voor gebruik bij selectChar
-    var characterStats = profile.characterStats && profile.characterStats.data || {};
+    // Stats zitten in characters.data[charId].stats (component 200)
+    // Bouw zelfde structuur als component 300 zou geven
+    var characterStats = {};
+    charIds.forEach(function(charId) {
+      var char = characters[charId];
+      if (char && char.stats) {
+        characterStats[charId] = { stats: char.stats };
+      }
+    });
     console.log('[charStats] keys:', Object.keys(characterStats));
-    console.log('[charStats] charIds:', charIds);
-    if (charIds[0] && characterStats[charIds[0]]) {
-      console.log('[charStats] eerste char stats:', JSON.stringify(characterStats[charIds[0]].stats).slice(0,200));
-    }
     window._bungieCharIds = charIds;
     window._bungieCharStats = characterStats;
     window._bungieCharacters = characters;
