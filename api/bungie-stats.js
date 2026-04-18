@@ -319,8 +319,22 @@ export default async function handler(req, res) {
       } catch {}
     }));
 
-    // Sorteer: wapens eerst, dan armor
-    liveItems.sort((a, b) => (b.tierType - a.tierType) || (a.typeName.localeCompare(b.typeName)));
+    // Sorteer: Hunter armor → Titan armor → Warlock armor → Wapens → Catalysts
+    const sortOrder = (item) => {
+      const t = (item.typeName || '').toLowerCase();
+      const n = (item.name || '').toLowerCase();
+      // Catalysts
+      if (n.includes('catalyst')) return 50;
+      // Wapens (geen armor)
+      if (item.itemType === 3) return 40;
+      // Warlock armor/bond
+      if (t.includes('warlock') || t.includes('bond')) return 30;
+      // Titan armor/mark
+      if (t.includes('titan') || t.includes('mark')) return 20;
+      // Hunter armor/cloak (default voor armor)
+      return 10;
+    };
+    liveItems.sort((a, b) => sortOrder(a) - sortOrder(b));
 
     result.featuredWeapons = liveItems.length > 0 ? liveItems : null;
     console.log('[xur] totaal items:', liveItems.length);
