@@ -533,8 +533,9 @@
       loadAvatarDisplay();
     });
 
-    function openFavWeaponPopup(dataEncoded) {
-      var w = JSON.parse(decodeURIComponent(dataEncoded));
+    function openFavWeaponPopup(idx) {
+      var w = window._favWeaponsData && window._favWeaponsData[idx];
+      if (!w) return;
       var popup = document.getElementById('favWeaponPopup');
       var pContent = document.getElementById('favWeaponPopupContent');
       var borderColor = w.isExotic ? '#f5c842' : '#9b72cf';
