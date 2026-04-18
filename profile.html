@@ -82,7 +82,7 @@
     }
     .char-btn:hover{border-color:var(--border2);color:var(--text)}
     .char-btn.active{background:rgba(212,168,67,0.1);border-color:rgba(212,168,67,0.4);color:var(--gold2)}
-    .char-btn .class-icon{font-size:1.2rem;display:block;margin-bottom:4px}
+    .char-btn .class-icon{display:flex;justify-content:center;margin-bottom:4px}
     .char-btn .class-power{font-size:0.9rem;color:var(--gold2);font-weight:700}
     .stat-bar-row{margin-bottom:12px}
     .stat-bar-top{display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:5px}
@@ -404,17 +404,17 @@
           <div class="p-card-title">⚔️ Characters</div>
           <div class="char-select">
             <div class="char-btn active" onclick="selectChar(this)">
-              <span class="class-icon">🏹</span>
+              <span class="class-icon"><img src="img/icons/huntericon.png" width="36" height="36" style="display:block;object-fit:cover;border-radius:6px;"></span>
               Hunter
               <div class="class-power">2087</div>
             </div>
             <div class="char-btn" onclick="selectChar(this)">
-              <span class="class-icon">✨</span>
+              <span class="class-icon"><img src="img/icons/warlockicon.png" width="36" height="36" style="display:block;object-fit:cover;border-radius:6px;"></span>
               Warlock
               <div class="class-power">2071</div>
             </div>
             <div class="char-btn" onclick="selectChar(this)">
-              <span class="class-icon">🛡️</span>
+              <span class="class-icon"><img src="img/icons/titanicon.png" width="36" height="36" style="display:block;object-fit:cover;border-radius:6px;"></span>
               Titan
               <div class="class-power">2094</div>
             </div>
