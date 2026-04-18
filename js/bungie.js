@@ -167,18 +167,15 @@ async function loadBungieProfileData() {
     var characters = profile.characters && profile.characters.data;
     if (!characters) { console.warn('Geen characters'); return null; }
 
+    var charIds    = Object.keys(characters);
+    var classNames = {0:'Titan',1:'Hunter',2:'Warlock'};
+    var classImgs  = {0:'img/icons/titanicon.png',1:'img/icons/huntericon.png',2:'img/icons/warlockicon.png'};
+
     // Sla character stats op voor gebruik bij selectChar
     var characterStats = profile.characterStats && profile.characterStats.data || {};
     window._bungieCharIds = charIds;
     window._bungieCharStats = characterStats;
     window._bungieCharacters = characters;
-
-    // Update stats voor eerste (actieve) character
-    updateCharStatBars(charIds[0], characterStats);
-
-    var classNames = {0:'Titan',1:'Hunter',2:'Warlock'};
-    var classImgs  = {0:'img/icons/titanicon.png',1:'img/icons/huntericon.png',2:'img/icons/warlockicon.png'};
-    var charIds    = Object.keys(characters);
     var charBtns   = document.querySelectorAll('.char-btn');
     var totalMinutes = 0, highestPower = 0;
 
@@ -228,6 +225,8 @@ async function loadBungieProfileData() {
       linkBtn.onclick = function() { if (confirm('Ontkoppelen?')) { clearBungieTokens(); location.reload(); } };
     }
 
+    // Update stat bars voor eerste character
+    updateCharStatBars(charIds[0], characterStats);
     console.log('✅ Power:', highestPower, '| Uren:', Math.floor(totalMinutes/60));
 
     // ── Recente Activiteiten ──
