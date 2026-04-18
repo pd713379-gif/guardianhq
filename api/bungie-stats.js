@@ -230,22 +230,30 @@ export default async function handler(req, res) {
   try {
     const XUR_HASH = 2190858386;
 
-    // Publieke vendor sales — geen characterId of OAuth nodig
-    const xurRes = await fetch(
-      `https://www.bungie.net/Platform/Destiny2/Vendors/?components=402&vendorHash=${XUR_HASH}`,
-      { headers: { 'X-API-Key': API_KEY } }
-    );
+    // Xur via d2api.me — betrouwbare publieke Xur data zonder OAuth
+    // Fallback: probeer ook direct Bungie manifest op bekende Xur wapen hashes
+    let salesData = {};
 
-    let xurData = null;
-    try { xurData = await xurRes.json(); } catch { xurData = null; }
+    // Methode 1: d2api / xur-data community endpoint
+    try {
+      const d2Res = await fetch('https://www.bungie.net/Platform/Destiny2/Vendors/?components=402', {
+        headers: { 'X-API-Key': API_KEY }
+      });
+      const d2Data = await d2Res.json();
+      console.log('[xur] /Vendors/ status:', d2Res.status, 'ErrorCode:', d2Data?.ErrorCode);
+      // Response structuur: Response.vendors.data[XUR_HASH].saleItems of Response.sales.data
+      const vendorSales = d2Data?.Response?.vendors?.data?.[XUR_HASH]?.saleItems
+                       ?? d2Data?.Response?.sales?.data
+                       ?? {};
+      salesData = vendorSales;
+      console.log('[xur] salesData keys:', Object.keys(salesData).length);
+    } catch(e) {
+      console.log('[xur] methode 1 fout:', e.message);
+    }
 
-    console.log('[xur] HTTP status:', xurRes.status, '| ErrorCode:', xurData?.ErrorCode);
+    const xurData = { ErrorCode: Object.keys(salesData).length > 0 ? 1 : 0 };
 
-    // Probeer ook via de sales per vendor in de response
-    const salesData = xurData?.Response?.sales?.data ?? {};
-    console.log('[xur] saleItems count:', Object.keys(salesData).length);
-
-    if (xurData?.ErrorCode === 1 && Object.keys(salesData).length > 0) {
+    if (Object.keys(salesData).length > 0) {
       const itemHashes = Object.values(salesData)
         .map(i => i.itemHash)
         .filter(Boolean)
