@@ -225,63 +225,47 @@ export default async function handler(req, res) {
   }
 
   // ── 6. XUR FEATURED WAPENS ──
-  // Haal Xur items op via whereisxur.com scrape + Bungie manifest voor iconen
+  // Bron: paracausal.science/xur/current.json (community API, geen auth nodig)
+  // Iconen: Bungie Armory Search op naam
   try {
-    // Stap 1: haal whereisxur.com op en parse de wapennamen
-    const wxRes = await fetch('https://whereisxur.com/', {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; GuardianHQ/1.0)' }
+    const pcRes = await fetch('https://paracausal.science/xur/current.json', {
+      headers: { 'User-Agent': 'GuardianHQ/1.0' }
     });
-    const wxHtml = await wxRes.text();
+    const pcData = await pcRes.json();
+    console.log('[xur] paracausal response:', JSON.stringify(pcData)?.slice(0, 300));
 
-    // Parse "Strange Gear Offers" sectie — wapens staan als h4 met img erboven
-    // Zoek het blok na "Strange Gear Offers"
-    const gearStart = wxHtml.indexOf('Strange Gear Offers');
-    const gearBlock = gearStart > -1 ? wxHtml.slice(gearStart, gearStart + 4000) : '';
-
-    // Extract alle h4 tekst + img alt/title in het blok
-    const weaponNames = [];
-    const h4Regex = /<h4[^>]*>([^<]+)<\/h4>/g;
-    const imgRegex = /<img[^>]+(?:alt|title)="([^"]+)"[^>]*>/g;
-    const imgSrcs  = [];
-
-    let m;
-    const imgSrcRegex = /<img[^>]+src="(https:\/\/whereisxur\.com\/wp-content\/uploads\/[^"]+)"[^>]*>/g;
-    while ((m = imgSrcRegex.exec(gearBlock)) !== null) imgSrcs.push(m[1]);
-    while ((m = h4Regex.exec(gearBlock)) !== null) {
-      const name = m[1].trim();
-      if (name && !name.includes('Surplus') && !name.includes('Catalyst')) weaponNames.push(name);
-    }
-
-    console.log('[xur] weaponNames van whereisxur:', weaponNames);
-
-    if (weaponNames.length === 0) {
+    // paracausal geeft een array van items terug met o.a. itemHash en displayProperties
+    // of null als Xur niet beschikbaar is
+    if (!pcData || (Array.isArray(pcData) && pcData.length === 0)) {
       result.featuredWeapons = null;
     } else {
-      // Stap 2: zoek elk wapen op in Bungie manifest via naam search
+      const items = Array.isArray(pcData) ? pcData : (pcData.saleItems || pcData.items || []);
       const featuredWeapons = [];
-      await Promise.allSettled(weaponNames.slice(0, 6).map(async (name, idx) => {
+
+      await Promise.allSettled(items.slice(0, 10).map(async item => {
         try {
-          // Bungie heeft geen naam-search endpoint — gebruik manifest search via hash tabel
-          // We gebruiken de community D2 manifest search
-          const searchRes = await fetch(
-            `https://www.bungie.net/Platform/Destiny2/Armory/Search/DestinyInventoryItemDefinition/${encodeURIComponent(name)}/?page=0`,
+          // Haal hash op — paracausal heeft itemHash direct of via nested object
+          const hash = item.itemHash || item.hash || item?.item?.itemHash;
+          if (!hash) return;
+
+          const r = await fetch(
+            `https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`,
             { headers: { 'X-API-Key': API_KEY } }
           );
-          const searchData = await searchRes.json();
-          const results = searchData?.Response?.results?.results ?? [];
-          // Pak het eerste resultaat dat een wapen is (itemType 3)
-          const match = results.find(r => r.itemType === 3) || results[0];
-          if (!match) return;
+          const d = await r.json();
+          const def = d?.Response;
+          if (!def) return;
 
-          const hash = match.hash;
-          const def  = match;
+          // Alleen wapens (itemType 3)
+          if (def.itemType !== 3) return;
+
           const tierType  = def.inventory?.tierType ?? 5;
           const iconPath  = def.displayProperties?.icon ?? null;
           const watermark = def.iconWatermark || def.iconWatermarkShelved || null;
 
           featuredWeapons.push({
             hash,
-            name:        def.displayProperties?.name ?? name,
+            name:        def.displayProperties?.name ?? '—',
             typeName:    def.itemTypeDisplayName ?? '',
             flavorText:  def.flavorText ?? '',
             icon:        iconPath  ? 'https://www.bungie.net' + iconPath  : null,
@@ -292,12 +276,12 @@ export default async function handler(req, res) {
             perks:       [],
           });
         } catch(e) {
-          console.log('[xur] manifest search fout voor', name, e.message);
+          console.log('[xur] item fout:', e.message);
         }
       }));
 
       result.featuredWeapons = featuredWeapons.length > 0 ? featuredWeapons : null;
-      console.log('[xur] featuredWeapons via whereisxur:', featuredWeapons.length);
+      console.log('[xur] featuredWeapons:', featuredWeapons.length);
     }
   } catch(e) {
     console.error('[xur] crash:', e.message);
