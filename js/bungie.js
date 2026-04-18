@@ -182,6 +182,9 @@ async function loadBungieProfileData() {
       }
     });
     console.log('[charStats] keys:', Object.keys(characterStats));
+    if (charIds[0] && characterStats[charIds[0]]) {
+      console.log('[charStats] raw stats:', JSON.stringify(characterStats[charIds[0]].stats));
+    }
     window._bungieCharIds = charIds;
     window._bungieCharStats = characterStats;
     window._bungieCharacters = characters;
