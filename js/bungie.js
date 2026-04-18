@@ -126,7 +126,7 @@ async function loadBungieProfileData() {
     if (!characters) { console.warn('Geen characters'); return null; }
 
     var classNames = {0:'Titan',1:'Hunter',2:'Warlock'};
-    var classIcons = {0:'🛡️',1:'🏹',2:'✨'};
+    var classImgs  = {0:'img/icons/titanicon.png',1:'img/icons/huntericon.png',2:'img/icons/warlockicon.png'};
     var charIds    = Object.keys(characters);
     var charBtns   = document.querySelectorAll('.char-btn');
     var totalMinutes = 0, highestPower = 0;
@@ -137,7 +137,13 @@ async function loadBungieProfileData() {
       totalMinutes += minutes;
       if (power > highestPower) highestPower = power;
       if (charBtns[idx]) {
-        charBtns[idx].innerHTML = '<span class="class-icon">' + (classIcons[char.classType]||'⚔️') + '</span>' + (classNames[char.classType]||'Guardian') + '<div class="class-power">' + power + '</div>';
+        // Alleen power getal updaten — icoon en naam HTML niet aanraken
+        var powerEl = charBtns[idx].querySelector('.class-power');
+        if (powerEl) {
+          powerEl.textContent = power;
+        } else {
+          charBtns[idx].innerHTML = '<span class="class-icon"><img src="' + (classImgs[char.classType]||'img/icons/huntericon.png') + '" width="36" height="36" style="display:block;object-fit:cover;border-radius:6px;"></span>' + (classNames[char.classType]||'Guardian') + '<div class="class-power">' + power + '</div>';
+        }
       }
     });
 
