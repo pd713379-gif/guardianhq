@@ -186,6 +186,13 @@ async function loadBungieProfileData() {
       console.warn('Activiteiten laden mislukt:', actErr.message);
     }
 
+    // ── Favoriete Wapens ──
+    try {
+      await loadFavWeapons(m, charIds);
+    } catch(wErr) {
+      console.warn('Favoriete wapens laden mislukt:', wErr.message);
+    }
+
     return { characters, membership: m };
 
   } catch(err) {
@@ -194,6 +201,121 @@ async function loadBungieProfileData() {
   }
 }
 
+
+async function loadFavWeapons(membership, charIds) {
+  var list = document.getElementById('favWeaponsList');
+  if (!list) return;
+  list.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Wapens laden...</div>';
+
+  try {
+    // Haal unique weapon stats op voor elk character, combineer dan
+    var allWeapons = {};
+    await Promise.all(charIds.map(function(charId) {
+      return bungieGet(
+        '/Destiny2/' + membership.membershipType +
+        '/Account/' + membership.membershipId +
+        '/Character/' + charId +
+        '/Stats/UniqueWeapons/'
+      ).then(function(data) {
+        var weapons = data && data.weapons || [];
+        weapons.forEach(function(w) {
+          var ref = w.referenceId;
+          var kills = w.values && w.values.uniqueWeaponKills && w.values.uniqueWeaponKills.basic.value || 0;
+          if (!allWeapons[ref] || allWeapons[ref].kills < kills) {
+            allWeapons[ref] = { ref: ref, kills: kills };
+          }
+        });
+      }).catch(function(){});
+    }));
+
+    // Sorteer op kills, pak top 10
+    var sorted = Object.values(allWeapons).sort(function(a,b){ return b.kills - a.kills; }).slice(0, 10);
+    if (sorted.length === 0) {
+      list.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Geen wapendata gevonden</div>';
+      return;
+    }
+
+    // Haal manifest info op per wapen
+    var items = [];
+    await Promise.all(sorted.map(function(w) {
+      return bungieGet('/Destiny2/Manifest/DestinyInventoryItemDefinition/' + w.ref + '/').then(function(def) {
+        if (!def) return;
+        var tierType = def.inventory && def.inventory.tierType || 5;
+        var iconPath = def.displayProperties && def.displayProperties.icon;
+        var watermark = def.iconWatermark || def.iconWatermarkShelved || null;
+
+        // Stats
+        var stats = [];
+        if (def.stats && def.stats.stats) {
+          var statDefs = {
+            4284893193:'Snelheid', 2523465841:'Reikwijdte', 1240592695:'Schade',
+            155624089:'Stabiliteit', 1345609583:'Laadsnelheid', 943549884:'Magazijn',
+            3555269338:'Rondborstigheid', 2714457168:'Terugstoot', 1885944937:'Nauwkeurigheid',
+            1931675084:'Stofwolk'
+          };
+          Object.entries(def.stats.stats).forEach(function(entry) {
+            var label = statDefs[entry[0]];
+            if (label && entry[1].value > 0) stats.push({ label: label, value: entry[1].value });
+          });
+          stats.sort(function(a,b){ return b.value - a.value; });
+        }
+
+        // Perks (eerste socket entries namen)
+        var perks = [];
+        if (def.sockets && def.sockets.socketEntries) {
+          def.sockets.socketEntries.slice(0,5).forEach(function(s) {
+            if (s.singleInitialItemHash) perks.push(s.singleInitialItemHash);
+          });
+        }
+
+        items.push({
+          ref: w.ref,
+          kills: w.kills,
+          name: def.displayProperties && def.displayProperties.name || '—',
+          typeName: def.itemTypeDisplayName || '',
+          flavorText: def.flavorText || '',
+          icon: iconPath ? 'https://www.bungie.net' + iconPath : null,
+          iconOverlay: watermark ? 'https://www.bungie.net' + watermark : null,
+          tierType: tierType,
+          isExotic: tierType === 6,
+          stats: stats.slice(0,6),
+          perks: perks,
+        });
+      }).catch(function(){});
+    }));
+
+    // Sorteer nogmaals op kills (Promise.all = ongeordend)
+    items.sort(function(a,b){ return b.kills - a.kills; });
+
+    if (items.length === 0) {
+      list.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Geen wapens gevonden</div>';
+      return;
+    }
+
+    list.innerHTML = items.map(function(w) {
+      var borderColor = w.isExotic ? '#f5c842' : '#9b72cf';
+      var tierLabel = w.isExotic ? 'Exotic' : 'Legendary';
+      var iconHtml = w.icon
+        ? '<img src="/api/bungie-proxy?action=img&url=' + encodeURIComponent(w.icon) + '" width="42" height="42" style="object-fit:cover;display:block;border-radius:6px;" onerror="this.style.display=&quot;none&quot;">'
+        : '🔫';
+      var killsFmt = w.kills >= 1000 ? (w.kills/1000).toFixed(1) + 'k' : w.kills;
+      var dataW = encodeURIComponent(JSON.stringify(w));
+      return '<div class="fav-weapon" onclick="openFavWeaponPopup(\'' + dataW + '\')">'  // fixed
+        + '<div class="fw-icon" style="border-left:3px solid ' + borderColor + ';padding:0;overflow:hidden;">' + iconHtml + '</div>'
+        + '<div style="flex:1;min-width:0;">'
+        + '<div class="fw-name">' + w.name + '</div>'
+        + '<div class="fw-type">' + tierLabel + ' · ' + w.typeName + '</div>'
+        + '</div>'
+        + '<div class="fw-kills">' + killsFmt + ' kills</div>'
+        + '</div>';
+    }).join('');
+
+    console.log("✅ Favoriete wapens geladen:", items.length);
+  } catch(e) {
+    console.warn("Favoriete wapens fout:", e.message);
+    list.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Kon wapens niet laden</div>';
+  }
+}
 
 async function loadRecentActivities(membership, charIds) {
   var list = document.getElementById('recentActivitiesList');
@@ -269,6 +391,16 @@ async function loadRecentActivities(membership, charIds) {
       });
     }).catch(function() {});
   }));
+
+  // Dedup op naam + tijdslot (zelfde activiteit binnen 30 min = duplicaat)
+  var seen = {};
+  items = items.filter(function(item) {
+    var slot = Math.floor(item.period / (30 * 60 * 1000));
+    var key = item.name + '_' + slot;
+    if (seen[key]) return false;
+    seen[key] = true;
+    return true;
+  });
 
   // Sorteer op tijd (nieuwste eerst)
   items.sort(function(a, b) { return b.period - a.period; });
