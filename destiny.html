@@ -877,34 +877,38 @@
       var grid = document.getElementById('featuredWeaponsGrid');
       if (!grid) return;
 
-      // Geen live wapens: toon Xur offline melding + countdown
+      // Geen live wapens: toon melding
       if (!weapons || weapons.length === 0) {
         var cd = getXurCountdown();
-        // Als cd null is = Xur zou online zijn maar API geeft geen data
-        var xurZouOnlineZijn = (cd === null);
-        var dagBlok = '';
-        if (cd && cd.d > 0) {
-          dagBlok = '<div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;">'
-                  + '<div id="xurCd_d" style="font-size:1rem;font-weight:800;color:#9b72cf;">' + cd.d + '</div>'
-                  + '<div style="font-size:0.5rem;color:rgba(255,255,255,0.3);text-transform:uppercase;">dagen</div>'
-                  + '</div>';
-        }
-        var cdH = cd ? String(cd.h).padStart(2,'0') : '00';
-        var cdM = cd ? String(cd.m).padStart(2,'0') : '00';
-        var cdS = cd ? String(cd.s).padStart(2,'0') : '00';
+        var xurHoortOnline = (cd === null); // zat/zo/ma/di = Xur hoort online te zijn
 
-        grid.innerHTML = '<div style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 12px;gap:10px;text-align:center;">'
-          + '<div style="font-size:2rem;">👾</div>'
-          + '<div style="font-size:0.8rem;font-weight:700;color:rgba(255,255,255,0.7);">' + (xurZouOnlineZijn ? 'Xur data wordt geladen...' : 'Xur is momenteel niet in de Tower') + '</div>'
-          + '<div style="font-size:0.65rem;color:rgba(255,255,255,0.35);">' + (xurZouOnlineZijn ? 'Probeer de pagina te vernieuwen' : 'Keert terug op vrijdag om 19:00 UTC') + '</div>'
-          + (xurZouOnlineZijn ? '' : '<div style="margin-top:4px;display:flex;gap:8px;">')
-          + dagBlok
-          + '<div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;"><div id="xurCd_h" style="font-size:1rem;font-weight:800;color:#9b72cf;">' + cdH + '</div><div style="font-size:0.5rem;color:rgba(255,255,255,0.3);text-transform:uppercase;">uur</div></div>'
-          + '<div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;"><div id="xurCd_m" style="font-size:1rem;font-weight:800;color:#9b72cf;">' + cdM + '</div><div style="font-size:0.5rem;color:rgba(255,255,255,0.3);text-transform:uppercase;">min</div></div>'
-          + '<div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;"><div id="xurCd_s" style="font-size:1rem;font-weight:800;color:#9b72cf;">' + cdS + '</div><div style="font-size:0.5rem;color:rgba(255,255,255,0.3);text-transform:uppercase;">sec</div></div>'
-          + (xurZouOnlineZijn ? '' : '</div>') + '</div>';
+        if (xurHoortOnline) {
+          // Xur hoort online te zijn maar API faalt
+          grid.innerHTML = '<div style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 12px;gap:8px;text-align:center;">'
+            + '<div style="font-size:2rem;">👾</div>'
+            + '<div style="font-size:0.8rem;font-weight:700;color:rgba(255,255,255,0.7);">Xur data tijdelijk niet beschikbaar</div>'
+            + '<div style="font-size:0.65rem;color:rgba(255,255,255,0.35);">Probeer de pagina te vernieuwen</div>'
+            + '</div>';
+        } else {
+          // Xur is echt offline (wo/do)
+          var dagBlok = '';
+          if (cd.d > 0) {
+            dagBlok = '<div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;text-align:center;">'
+              + '<div id="xurCd_d" style="font-size:1rem;font-weight:800;color:#9b72cf;">' + cd.d + '</div>'
+              + '<div style="font-size:0.5rem;color:rgba(255,255,255,0.3);text-transform:uppercase;">dagen</div>'
+              + '</div>';
+          }
+          grid.innerHTML = '<div style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 12px;gap:10px;text-align:center;">'
+            + '<div style="font-size:2rem;">👾</div>'
+            + '<div style="font-size:0.8rem;font-weight:700;color:rgba(255,255,255,0.7);">Xur is momenteel niet in de Tower</div>'
+            + '<div style="font-size:0.65rem;color:rgba(255,255,255,0.35);">Keert terug op vrijdag om 19:00 UTC</div>'
+            + '<div style="margin-top:4px;display:flex;flex-direction:row;gap:8px;justify-content:center;">'
+            + dagBlok
+            + '<div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;text-align:center;"><div id="xurCd_h" style="font-size:1rem;font-weight:800;color:#9b72cf;">' + String(cd.h).padStart(2,'0') + '</div><div style="font-size:0.5rem;color:rgba(255,255,255,0.3);text-transform:uppercase;">uur</div></div>'
+            + '<div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;text-align:center;"><div id="xurCd_m" style="font-size:1rem;font-weight:800;color:#9b72cf;">' + String(cd.m).padStart(2,'0') + '</div><div style="font-size:0.5rem;color:rgba(255,255,255,0.3);text-transform:uppercase;">min</div></div>'
+            + '<div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;text-align:center;"><div id="xurCd_s" style="font-size:1rem;font-weight:800;color:#9b72cf;">' + String(cd.s).padStart(2,'0') + '</div><div style="font-size:0.5rem;color:rgba(255,255,255,0.3);text-transform:uppercase;">sec</div></div>'
+            + '</div></div>';
 
-        if (cd) {
           if (window._xurCdTimer) clearInterval(window._xurCdTimer);
           window._xurCdTimer = setInterval(function() {
             var c = getXurCountdown();
