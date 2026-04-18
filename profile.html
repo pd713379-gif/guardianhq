@@ -804,6 +804,12 @@
     function selectChar(el) {
       document.querySelectorAll('.char-btn').forEach(b => b.classList.remove('active'));
       el.classList.add('active');
+      // Update stats voor geselecteerd character
+      if (window._bungieCharIds && window._bungieCharStats) {
+        var idx = Array.from(document.querySelectorAll('.char-btn')).indexOf(el);
+        var charId = window._bungieCharIds[idx];
+        if (charId) updateCharStatBars(charId, window._bungieCharStats);
+      }
     }
 
     function openBungie() {
