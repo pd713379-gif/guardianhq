@@ -323,24 +323,34 @@ async function loadRecentActivities(membership, charIds) {
 
   list.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Activiteiten laden...</div>';
 
-  // Haal activiteiten op voor het eerste character (meest gespeeld)
-  var charId = charIds[0];
-  var data = await bungieGet(
-    '/Destiny2/' + membership.membershipType +
-    '/Account/' + membership.membershipId +
-    '/Character/' + charId +
-    '/Stats/Activities/?count=10&mode=0'
-  );
+  // Haal activiteiten op voor ALLE characters, combineer dan (nieuwste eerst)
+  var allActivities = [];
+  await Promise.all(charIds.map(function(charId) {
+    return bungieGet(
+      '/Destiny2/' + membership.membershipType +
+      '/Account/' + membership.membershipId +
+      '/Character/' + charId +
+      '/Stats/Activities/?count=10&mode=0&page=0'
+    ).then(function(data) {
+      var acts = data && data.activities || [];
+      acts.forEach(function(a) { allActivities.push(a); });
+    }).catch(function(){});
+  }));
 
-  var activities = data && data.activities;
-  if (!activities || activities.length === 0) {
+  // Sorteer op datum nieuwste eerst, pak top 15
+  allActivities.sort(function(a, b) {
+    return new Date(b.period) - new Date(a.period);
+  });
+  var activities = allActivities.slice(0, 15);
+
+  if (activities.length === 0) {
     list.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Geen recente activiteiten gevonden</div>';
     return;
   }
 
   // Haal manifest info op per activiteit (pgcrImage, naam)
   var items = [];
-  await Promise.all(activities.slice(0, 10).map(function(act) {
+  await Promise.all(activities.map(function(act) {
     var hash = act.activityDetails && act.activityDetails.directorActivityHash;
     if (!hash) return Promise.resolve();
     return bungieGet('/Destiny2/Manifest/DestinyActivityDefinition/' + hash + '/').then(function(def) {
