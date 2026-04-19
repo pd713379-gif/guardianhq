@@ -1248,7 +1248,7 @@
 
     // ── COMMUNITY WISHLIST 2026 — 10 PvE + 10 PvP ──
     const WISHLIST_WEAPONS = [
-      // ── PvE GOD ROLLS ──
+
       {
         icon: 'https://www.bungie.net/common/destiny2_content/icons/5e25b9ef3f669e053b428945a31ca8b7.jpg',
         name: 'Fatebringer', type: 'Hand Cannon', element: 'kinetic', rpm: 140, ammo: 'Primary',
@@ -1258,6 +1258,19 @@
         godRolls: {
           pve: { col1: ['Kinetic Tremors', 'Firefly'], col2: ['Precision Instrument', 'Dragonfly'], mw: 'Reload / Range MW', note: 'Kinetic Tremors creëert shockwaves na genoeg hits — ideaal voor add clear. Precision Instrument stapelt schade per precisietreffer voor boss DPS.' },
           pvp: { col1: ['Keep Away', 'Rapid Hit'], col2: ['Eye of the Storm', 'Opening Shot'], mw: 'Range MW', note: 'Keep Away geeft +Range buiten close range — consistent in duels. Eye of the Storm activeert bij laag HP voor betere accuracy.' },
+        },
+        intrinsic: 'Adaptive Frame — Betrouwbaar vuurwapen met uitgebalanceerde stats.',
+        flavor: 'Het lot is niet blind — het kijkt recht in je ogen.'
+      },
+      {
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/5e25b9ef3f669e053b428945a31ca8b7.jpg',
+        name: 'Fatebringer', type: 'Hand Cannon', element: 'kinetic', rpm: 140, ammo: 'Primary',
+        tier: 'legendary', source: 'Vault of Glass (Templar encounter)',
+        perks: 'Keep Away · Eye of the Storm',
+        tag: 'PvP God Roll', tagClass: 'badge-event',
+        godRolls: {
+          pvp: { col1: ['Keep Away', 'Rapid Hit'], col2: ['Eye of the Storm', 'Opening Shot'], mw: 'Range MW', note: 'Keep Away +Range buiten CQC. Eye of the Storm activeert bij laag HP — consistent dueling roll.' },
+          pve: { col1: ['Kinetic Tremors', 'Firefly'], col2: ['Precision Instrument', 'Dragonfly'], mw: 'Reload / Range MW', note: 'Beste PvE roll: Kinetic Tremors + Precision Instrument voor add clear en boss DPS.' },
         },
         intrinsic: 'Adaptive Frame — Betrouwbaar vuurwapen met uitgebalanceerde stats.',
         flavor: 'Het lot is niet blind — het kijkt recht in je ogen.'
@@ -1277,6 +1290,18 @@
       },
       {
         icon: 'https://www.bungie.net/common/destiny2_content/icons/4f38c8c8819e2bfcc2a8f8c97e8abb99.jpg',
+        name: 'Something New', type: 'Hand Cannon', element: 'solar', rpm: 120, ammo: 'Primary',
+        tier: 'legendary', source: 'Seasonal / World drops',
+        perks: 'Rapid Hit · Kill Clip',
+        tag: 'PvP God Roll', tagClass: 'badge-event',
+        godRolls: {
+          pvp: { col1: ['Rapid Hit', 'Rangefinder'], col2: ['Kill Clip', 'Opening Shot'], mw: 'Range MW', note: 'Kill Clip +33% schade na reload kill. Rapid Hit stacks Reload Speed snel op. Classic PvP 120 HC roll.' },
+        },
+        intrinsic: 'Precision Frame — Verticale recoil, makkelijk te controleren.',
+        flavor: 'Soms is de beste aanval een bekend ritme.'
+      },
+      {
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/4f38c8c8819e2bfcc2a8f8c97e8abb99.jpg',
         name: 'Yeartide Apex', type: 'Submachine Gun', element: 'void', rpm: 900, ammo: 'Primary',
         tier: 'legendary', source: 'Guardian Games 2026',
         perks: 'Heal Clip · Chaos Reshaped',
@@ -1287,119 +1312,6 @@
         },
         intrinsic: 'Aggressive Frame — Hoge schade per bullet, stevige kickback.',
         flavor: 'Elk jaar hetzelfde probleem. Elk jaar dezelfde oplossing.'
-      },
-      {
-        icon: 'https://www.bungie.net/common/destiny2_content/icons/e3b1d924bc8185384e79e0b8418231e5.jpg',
-        name: 'Apex Predator', type: 'Rocket Launcher', element: 'solar', rpm: 15, ammo: 'Heavy',
-        tier: 'legendary', source: 'Last Wish (Raid — Riven encounter)',
-        perks: 'Reconstruction · Bait and Switch',
-        tag: 'Raid God Roll', tagClass: 'badge-hot',
-        godRolls: {
-          pve: { col1: ['Auto-Loading Holster', 'Reconstruction'], col2: ['Bait and Switch', 'Explosive Light'], mw: 'Velocity MW', note: 'Bait and Switch geeft +35% damage 10s na gebruik van alle 3 wapens. Beste Rocket voor Raid DPS rotaties.' },
-        },
-        intrinsic: 'Aggressive Frame — Hoge schade per schot, stevige recoil.',
-        flavor: 'Uit de diepten van de Dreaming City — voor hen die lang genoeg leven.'
-      },
-      {
-        icon: 'https://www.bungie.net/common/destiny2_content/icons/053052f62c31340e8a9630cf70b67845.jpg',
-        name: 'Lotus-Eater', type: 'Sidearm', element: 'void', rpm: 491, ammo: 'Primary',
-        tier: 'legendary', source: 'Seasonal / World drops 2026',
-        perks: 'Reconstruction · Destabilizing Rounds',
-        tag: 'PvE God Roll', tagClass: 'badge-live',
-        godRolls: {
-          pve: { col1: ['Reconstruction', 'Subsistence'], col2: ['Destabilizing Rounds', 'One For All'], mw: 'Stability MW', note: 'Reconstruction vult magazijn passief. Destabilizing Rounds maakt Void-explosies op kills — perfecte Void synergy.' },
-        },
-        intrinsic: 'Aggressive Burst — Schiet 2-round bursts.',
-        flavor: 'Vergeet je zorgen. Vergeet alles. Schiet gewoon.'
-      },
-      {
-        icon: 'https://www.bungie.net/common/destiny2_content/icons/55c8844c3cc6bb736d391c72643a83c1.jpg',
-        name: 'Imperial Decree', type: 'Shotgun', element: 'void', rpm: 55, ammo: 'Heavy',
-        tier: 'legendary', source: 'Cabal-themed drops / Seasonal',
-        perks: 'Grave Robber · Trench Barrel',
-        tag: 'PvE God Roll', tagClass: 'badge-live',
-        godRolls: {
-          pve: { col1: ['Grave Robber', 'Auto-Loading Holster'], col2: ['Trench Barrel', 'One-Two Punch'], mw: 'Range MW', note: 'Trench Barrel geeft +50% schade na melee hit — ideaal voor Melee builds. One-Two Punch verhoogt melee dmg na shotgun hit.' },
-        },
-        intrinsic: 'Aggressive Frame — Hoge schade per schot.',
-        flavor: 'De Cabal decreteren niet — ze executeren.'
-      },
-      {
-        icon: 'https://www.bungie.net/common/destiny2_content/icons/3ff48eb8a0bb52de29904ecc7fcd1219.jpg',
-        name: 'Solemn Remembrance', type: 'Hand Cannon', element: 'stasis', rpm: 120, ammo: 'Primary',
-        tier: 'legendary', source: 'Europa / Seasonal Stasis drops',
-        perks: 'Headstone · Precision Instrument',
-        tag: 'PvE God Roll', tagClass: 'badge-live',
-        godRolls: {
-          pve: { col1: ['Headstone', 'Rapid Hit'], col2: ['Precision Instrument', 'Firefly'], mw: 'Reload MW', note: 'Headstone spawnt Stasis-kristallen op precisie kills — synergeert met Stasis subclasses. Precision Instrument stapelt schade.' },
-          pvp: { col1: ['Slideshot', 'Rapid Hit'], col2: ['Keep Away', 'Eye of the Storm'], mw: 'Range MW', note: 'Slideshot geeft Rangefinder bonus na slide. Top-tier HC voor 120 RPM duels.' },
-        },
-        intrinsic: 'Precision Frame — Verticale recoil, makkelijk te controleren.',
-        flavor: 'Elke ijskristal is een herinnering aan wat verloren ging.'
-      },
-      {
-        icon: 'https://www.bungie.net/common/destiny2_content/icons/53e9b7a4c9e3a0b8a1d4f2e7c5b3d9f1.jpg',
-        name: 'The Beacon', type: 'Fusion Rifle', element: 'arc', rpm: 660, ammo: 'Energy',
-        tier: 'legendary', source: 'Guardian Games 2026 / Seasonal',
-        perks: 'Rewind Rounds · Target Lock',
-        tag: 'PvE God Roll', tagClass: 'badge-live',
-        godRolls: {
-          pve: { col1: ['Rewind Rounds', 'Feeding Frenzy'], col2: ['Target Lock', 'Reservoir Burst'], mw: 'Charge Time MW', note: 'Rewind Rounds vult het magazijn bij precision kills. Target Lock schade scaling maakt dit de beste Fusion voor DPS in 2026.' },
-          pvp: { col1: ['Under Pressure', 'Perpetual Motion'], col2: ['Backup Plan', 'High-Impact Reserves'], mw: 'Charge Time MW', note: 'Backup Plan verlaagt charge time na wapenwisseling — ideaal voor peek-shooting.' },
-        },
-        intrinsic: 'High-Impact Frame — Langzame lading, hoge schade per bolt.',
-        flavor: 'Het licht reist ver. Het geluid ook. Maar de schade het verst.'
-      },
-      {
-        icon: 'https://www.bungie.net/common/destiny2_content/icons/6c78c79fc2994a981955ad52aa0ed045.jpg',
-        name: 'Keraunios', type: 'Trace Rifle', element: 'arc', rpm: 1000, ammo: 'Energy',
-        tier: 'legendary', source: 'Arc-themed Seasonal 2026',
-        perks: 'Rolling Storm · Jolting Feedback',
-        tag: 'PvE God Roll', tagClass: 'badge-live',
-        godRolls: {
-          pve: { col1: ['Rolling Storm', 'Feeding Frenzy'], col2: ['Jolting Feedback', 'Voltshot'], mw: 'Stability MW', note: 'Rolling Storm laadt Arc energie op. Jolting Feedback schiet Arc bolts op geraakte vijanden — chaining kills door hele encounters.' },
-        },
-        intrinsic: 'Adaptive Frame — Betrouwbare sustained beam damage.',
-        flavor: 'Zeus lachte. Keraunios schoot.'
-      },
-      {
-        icon: 'https://www.bungie.net/common/destiny2_content/icons/e3b1d924bc8185384e79e0b8418231e5.jpg',
-        name: 'Phoneutria Fera', type: 'Shotgun', element: 'solar', rpm: 65, ammo: 'Primary',
-        tier: 'legendary', source: 'Solar seasonal / World drops 2026',
-        perks: 'Threat Detector · Incandescent',
-        tag: 'PvE God Roll', tagClass: 'badge-live',
-        godRolls: {
-          pve: { col1: ['Threat Detector', 'Auto-Loading Holster'], col2: ['Incandescent', 'Swashbuckler'], mw: 'Range MW', note: 'Incandescent spreidt Scorch op omliggende vijanden na kill — perfecte Solar synergy. Swashbuckler +25% schade na melee/kill stack.' },
-          pvp: { col1: ['Slideshot', 'Threat Detector'], col2: ['Frenzy', 'Opening Shot'], mw: 'Range MW', note: 'Frenzy geeft +15% schade, +15 Reload, +15 Handling na 12s in combat. Aggressive shotgun roll.' },
-        },
-        intrinsic: 'Aggressive Frame — Hoge schade per schot.',
-        flavor: 'De giftigste spin van Brazilië. Nu als shotgun.'
-      },
-      // ── PvP GOD ROLLS ──
-      {
-        icon: 'https://www.bungie.net/common/destiny2_content/icons/5e25b9ef3f669e053b428945a31ca8b7.jpg',
-        name: 'Fatebringer', type: 'Hand Cannon', element: 'kinetic', rpm: 140, ammo: 'Primary',
-        tier: 'legendary', source: 'Vault of Glass (Templar encounter)',
-        perks: 'Keep Away · Eye of the Storm',
-        tag: 'PvP God Roll', tagClass: 'badge-event',
-        godRolls: {
-          pvp: { col1: ['Keep Away', 'Rapid Hit'], col2: ['Eye of the Storm', 'Opening Shot'], mw: 'Range MW', note: 'Keep Away +Range buiten CQC. Eye of the Storm activeert bij laag HP — consistent dueling roll.' },
-          pve: { col1: ['Kinetic Tremors', 'Firefly'], col2: ['Precision Instrument', 'Dragonfly'], mw: 'Reload / Range MW', note: 'Beste PvE roll: Kinetic Tremors + Precision Instrument voor add clear en boss DPS.' },
-        },
-        intrinsic: 'Adaptive Frame — Betrouwbaar vuurwapen met uitgebalanceerde stats.',
-        flavor: 'Het lot is niet blind — het kijkt recht in je ogen.'
-      },
-      {
-        icon: 'https://www.bungie.net/common/destiny2_content/icons/4f38c8c8819e2bfcc2a8f8c97e8abb99.jpg',
-        name: 'Something New', type: 'Hand Cannon', element: 'solar', rpm: 120, ammo: 'Primary',
-        tier: 'legendary', source: 'Seasonal / World drops',
-        perks: 'Rapid Hit · Kill Clip',
-        tag: 'PvP God Roll', tagClass: 'badge-event',
-        godRolls: {
-          pvp: { col1: ['Rapid Hit', 'Rangefinder'], col2: ['Kill Clip', 'Opening Shot'], mw: 'Range MW', note: 'Kill Clip +33% schade na reload kill. Rapid Hit stacks Reload Speed snel op. Classic PvP 120 HC roll.' },
-        },
-        intrinsic: 'Precision Frame — Verticale recoil, makkelijk te controleren.',
-        flavor: 'Soms is de beste aanval een bekend ritme.'
       },
       {
         icon: 'https://www.bungie.net/common/destiny2_content/icons/3ff48eb8a0bb52de29904ecc7fcd1219.jpg',
@@ -1415,6 +1327,18 @@
         flavor: 'Elke ijskristal is een herinnering.'
       },
       {
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/e3b1d924bc8185384e79e0b8418231e5.jpg',
+        name: 'Apex Predator', type: 'Rocket Launcher', element: 'solar', rpm: 15, ammo: 'Heavy',
+        tier: 'legendary', source: 'Last Wish (Raid — Riven encounter)',
+        perks: 'Reconstruction · Bait and Switch',
+        tag: 'Raid God Roll', tagClass: 'badge-hot',
+        godRolls: {
+          pve: { col1: ['Auto-Loading Holster', 'Reconstruction'], col2: ['Bait and Switch', 'Explosive Light'], mw: 'Velocity MW', note: 'Bait and Switch geeft +35% damage 10s na gebruik van alle 3 wapens. Beste Rocket voor Raid DPS rotaties.' },
+        },
+        intrinsic: 'Aggressive Frame — Hoge schade per schot, stevige recoil.',
+        flavor: 'Uit de diepten van de Dreaming City — voor hen die lang genoeg leven.'
+      },
+      {
         icon: 'https://www.bungie.net/common/destiny2_content/icons/53e9b7a4c9e3a0b8a1d4f2e7c5b3d9f1.jpg',
         name: 'Imperial Decree', type: 'Shotgun', element: 'void', rpm: 55, ammo: 'Heavy',
         tier: 'legendary', source: 'Cabal-themed drops / Seasonal',
@@ -1426,6 +1350,18 @@
         },
         intrinsic: 'Aggressive Frame — Hoge schade per schot.',
         flavor: 'De Cabal decreteren niet — ze executeren.'
+      },
+      {
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/053052f62c31340e8a9630cf70b67845.jpg',
+        name: 'Lotus-Eater', type: 'Sidearm', element: 'void', rpm: 491, ammo: 'Primary',
+        tier: 'legendary', source: 'Seasonal / World drops 2026',
+        perks: 'Reconstruction · Destabilizing Rounds',
+        tag: 'PvE God Roll', tagClass: 'badge-live',
+        godRolls: {
+          pve: { col1: ['Reconstruction', 'Subsistence'], col2: ['Destabilizing Rounds', 'One For All'], mw: 'Stability MW', note: 'Reconstruction vult magazijn passief. Destabilizing Rounds maakt Void-explosies op kills — perfecte Void synergy.' },
+        },
+        intrinsic: 'Aggressive Burst — Schiet 2-round bursts.',
+        flavor: 'Vergeet je zorgen. Vergeet alles. Schiet gewoon.'
       },
       {
         icon: 'https://www.bungie.net/common/destiny2_content/icons/e3b1d924bc8185384e79e0b8418231e5.jpg',
@@ -1441,6 +1377,18 @@
         flavor: 'De giftigste spin van Brazilië. Nu als shotgun.'
       },
       {
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/55c8844c3cc6bb736d391c72643a83c1.jpg',
+        name: 'Imperial Decree', type: 'Shotgun', element: 'void', rpm: 55, ammo: 'Heavy',
+        tier: 'legendary', source: 'Cabal-themed drops / Seasonal',
+        perks: 'Grave Robber · Trench Barrel',
+        tag: 'PvE God Roll', tagClass: 'badge-live',
+        godRolls: {
+          pve: { col1: ['Grave Robber', 'Auto-Loading Holster'], col2: ['Trench Barrel', 'One-Two Punch'], mw: 'Range MW', note: 'Trench Barrel geeft +50% schade na melee hit — ideaal voor Melee builds. One-Two Punch verhoogt melee dmg na shotgun hit.' },
+        },
+        intrinsic: 'Aggressive Frame — Hoge schade per schot.',
+        flavor: 'De Cabal decreteren niet — ze executeren.'
+      },
+      {
         icon: 'https://www.bungie.net/common/destiny2_content/icons/6c78c79fc2994a981955ad52aa0ed045.jpg',
         name: 'Relentless', type: 'Pulse Rifle', element: 'strand', rpm: 390, ammo: 'Primary',
         tier: 'legendary', source: 'World drops / Seasonal',
@@ -1452,6 +1400,19 @@
         },
         intrinsic: 'Lightweight Frame — Verhoogt bewegingssnelheid.',
         flavor: 'Strand verbindt alles — ook slachtoffers.'
+      },
+      {
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/3ff48eb8a0bb52de29904ecc7fcd1219.jpg',
+        name: 'Solemn Remembrance', type: 'Hand Cannon', element: 'stasis', rpm: 120, ammo: 'Primary',
+        tier: 'legendary', source: 'Europa / Seasonal Stasis drops',
+        perks: 'Headstone · Precision Instrument',
+        tag: 'PvE God Roll', tagClass: 'badge-live',
+        godRolls: {
+          pve: { col1: ['Headstone', 'Rapid Hit'], col2: ['Precision Instrument', 'Firefly'], mw: 'Reload MW', note: 'Headstone spawnt Stasis-kristallen op precisie kills — synergeert met Stasis subclasses. Precision Instrument stapelt schade.' },
+          pvp: { col1: ['Slideshot', 'Rapid Hit'], col2: ['Keep Away', 'Eye of the Storm'], mw: 'Range MW', note: 'Slideshot geeft Rangefinder bonus na slide. Top-tier HC voor 120 RPM duels.' },
+        },
+        intrinsic: 'Precision Frame — Verticale recoil, makkelijk te controleren.',
+        flavor: 'Elke ijskristal is een herinnering aan wat verloren ging.'
       },
       {
         icon: 'https://www.bungie.net/common/destiny2_content/icons/053052f62c31340e8a9630cf70b67845.jpg',
@@ -1466,6 +1427,19 @@
         flavor: 'De stier valt altijd. De matador staat altijd.'
       },
       {
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/53e9b7a4c9e3a0b8a1d4f2e7c5b3d9f1.jpg',
+        name: 'The Beacon', type: 'Fusion Rifle', element: 'arc', rpm: 660, ammo: 'Energy',
+        tier: 'legendary', source: 'Guardian Games 2026 / Seasonal',
+        perks: 'Rewind Rounds · Target Lock',
+        tag: 'PvE God Roll', tagClass: 'badge-live',
+        godRolls: {
+          pve: { col1: ['Rewind Rounds', 'Feeding Frenzy'], col2: ['Target Lock', 'Reservoir Burst'], mw: 'Charge Time MW', note: 'Rewind Rounds vult het magazijn bij precision kills. Target Lock schade scaling maakt dit de beste Fusion voor DPS in 2026.' },
+          pvp: { col1: ['Under Pressure', 'Perpetual Motion'], col2: ['Backup Plan', 'High-Impact Reserves'], mw: 'Charge Time MW', note: 'Backup Plan verlaagt charge time na wapenwisseling — ideaal voor peek-shooting.' },
+        },
+        intrinsic: 'High-Impact Frame — Langzame lading, hoge schade per bolt.',
+        flavor: 'Het licht reist ver. Het geluid ook. Maar de schade het verst.'
+      },
+      {
         icon: 'https://www.bungie.net/common/destiny2_content/icons/e64fefae9f4f320e9cf41ebda471132e.jpg',
         name: 'Triple Laureate', type: 'Hand Cannon', element: 'solar', rpm: 120, ammo: 'Primary',
         tier: 'legendary', source: 'Guardian Games 2026 (nieuwe meta)',
@@ -1476,6 +1450,18 @@
         },
         intrinsic: 'Precision Frame — Verticale recoil, makkelijk te controleren.',
         flavor: 'Drie overwinningen. Drie laurieren. Één schot.'
+      },
+      {
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/6c78c79fc2994a981955ad52aa0ed045.jpg',
+        name: 'Keraunios', type: 'Trace Rifle', element: 'arc', rpm: 1000, ammo: 'Energy',
+        tier: 'legendary', source: 'Arc-themed Seasonal 2026',
+        perks: 'Rolling Storm · Jolting Feedback',
+        tag: 'PvE God Roll', tagClass: 'badge-live',
+        godRolls: {
+          pve: { col1: ['Rolling Storm', 'Feeding Frenzy'], col2: ['Jolting Feedback', 'Voltshot'], mw: 'Stability MW', note: 'Rolling Storm laadt Arc energie op. Jolting Feedback schiet Arc bolts op geraakte vijanden — chaining kills door hele encounters.' },
+        },
+        intrinsic: 'Adaptive Frame — Betrouwbare sustained beam damage.',
+        flavor: 'Zeus lachte. Keraunios schoot.'
       },
       {
         icon: 'https://www.bungie.net/common/destiny2_content/icons/3b8c4f2a1d6e9b7c5a3f8d2e4b6c0a1e.jpg',
@@ -1490,6 +1476,21 @@
         intrinsic: 'Aggressive Frame — Hoge schade per bullet.',
         flavor: 'Alleen de winnaar leeft lang genoeg om de Trials te vertellen.'
       },
+      {
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/e3b1d924bc8185384e79e0b8418231e5.jpg',
+        name: 'Phoneutria Fera', type: 'Shotgun', element: 'solar', rpm: 65, ammo: 'Primary',
+        tier: 'legendary', source: 'Solar seasonal / World drops 2026',
+        perks: 'Threat Detector · Incandescent',
+        tag: 'PvE God Roll', tagClass: 'badge-live',
+        godRolls: {
+          pve: { col1: ['Threat Detector', 'Auto-Loading Holster'], col2: ['Incandescent', 'Swashbuckler'], mw: 'Range MW', note: 'Incandescent spreidt Scorch op omliggende vijanden na kill — perfecte Solar synergy. Swashbuckler +25% schade na melee/kill stack.' },
+          pvp: { col1: ['Slideshot', 'Threat Detector'], col2: ['Frenzy', 'Opening Shot'], mw: 'Range MW', note: 'Frenzy geeft +15% schade, +15 Reload, +15 Handling na 12s in combat. Aggressive shotgun roll.' },
+        },
+        intrinsic: 'Aggressive Frame — Hoge schade per schot.',
+        flavor: 'De giftigste spin van Brazilië. Nu als shotgun.'
+      },
+      // ── PvP GOD ROLLS ──
+    
     ];
 
     // Haal echte weapon icons op via server proxy
