@@ -3068,7 +3068,11 @@
           + '</div>'
           + '</div>';
       }).join('');
-      // Toon Warlock als demo
+      // Toon Warlock als demo + verberg connect banner
+      var banner = document.getElementById('bungieConnectBanner');
+      if (banner) banner.style.display = 'none';
+      var panel = document.getElementById('buildPanel');
+      if (panel) panel.style.display = 'block';
       selectStaticChar(charCards.children[1], 1);
     }
 
