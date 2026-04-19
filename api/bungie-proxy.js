@@ -1054,7 +1054,10 @@ export default async function handler(req, res) {
           perks:          regularPerks.slice(0, 6),
           mods:           vaultMods.filter(Boolean),
           cosmetics:      vaultCosmetics,
+          flavorText:     def.flavorText ?? '',
+          slotName:       BUCKET_NAMES[bucketHash] ?? '',
           // stats
+          stats:          weaponStats,
           weaponStats,
           armorStatList,
           armorTotal,
