@@ -277,22 +277,28 @@ async function loadFavWeapons(membership, charIds) {
   list.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Wapens laden...</div>';
 
   try {
-    // Haal unique weapon stats op voor elk character, combineer dan
+    // Haal recent gebruikte wapens op via activiteiten van laatste 30 dagen
     var allWeapons = {};
+    var thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    var dateStr = thirtyDaysAgo.toISOString().split('T')[0];
+
     await Promise.all(charIds.map(function(charId) {
       return bungieGet(
         '/Destiny2/' + membership.membershipType +
         '/Account/' + membership.membershipId +
         '/Character/' + charId +
-        '/Stats/UniqueWeapons/'
+        '/Stats/UniqueWeapons/?daystart=' + dateStr
       ).then(function(data) {
         var weapons = data && data.weapons || [];
+        console.log('[favWeapons] char ' + charId + ' weapons:', weapons.length);
         weapons.forEach(function(w) {
           var ref = w.referenceId;
           var kills = w.values && w.values.uniqueWeaponKills && w.values.uniqueWeaponKills.basic.value || 0;
-          if (!allWeapons[ref] || allWeapons[ref].kills < kills) {
-            allWeapons[ref] = { ref: ref, kills: kills };
+          if (!allWeapons[ref]) {
+            allWeapons[ref] = { ref: ref, kills: 0 };
           }
+          allWeapons[ref].kills += kills;
         });
       }).catch(function(){});
     }));
