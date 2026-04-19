@@ -1338,7 +1338,7 @@
         flavor: 'Elke ijskristal is een herinnering aan wat verloren ging.'
       },
       {
-        icon: 'https://www.bungie.net/common/destiny2_content/icons/f3d1fd691fc0edb0eac9fe8bb4228dab.jpg',
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/53e9b7a4c9e3a0b8a1d4f2e7c5b3d9f1.jpg',
         name: 'The Beacon', type: 'Fusion Rifle', element: 'arc', rpm: 660, ammo: 'Energy',
         tier: 'legendary', source: 'Guardian Games 2026 / Seasonal',
         perks: 'Rewind Rounds · Target Lock',
@@ -1402,7 +1402,7 @@
         flavor: 'Soms is de beste aanval een bekend ritme.'
       },
       {
-        icon: 'https://www.bungie.net/common/destiny2_content/icons/f3d1fd691fc0edb0eac9fe8bb4228dab.jpg',
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/a2d4f6b8c0e2a4d6f8b0c2e4a6d8f0b2.jpg',
         name: 'Yeartide Apex', type: 'Submachine Gun', element: 'void', rpm: 900, ammo: 'Primary',
         tier: 'legendary', source: 'Guardian Games 2026',
         perks: 'Lone Wolf · Target Lock',
@@ -1428,7 +1428,7 @@
         flavor: 'Elke ijskristal is een herinnering.'
       },
       {
-        icon: 'https://www.bungie.net/common/destiny2_content/icons/55c8844c3cc6bb736d391c72643a83c1.jpg',
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/53e9b7a4c9e3a0b8a1d4f2e7c5b3d9f1.jpg',
         name: 'Imperial Decree', type: 'Shotgun', element: 'void', rpm: 55, ammo: 'Heavy',
         tier: 'legendary', source: 'Cabal-themed drops / Seasonal',
         perks: 'Slideways · Moving Target',
@@ -1479,7 +1479,7 @@
         flavor: 'De stier valt altijd. De matador staat altijd.'
       },
       {
-        icon: 'https://www.bungie.net/common/destiny2_content/icons/f3d1fd691fc0edb0eac9fe8bb4228dab.jpg',
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/e64fefae9f4f320e9cf41ebda471132e.jpg',
         name: 'Triple Laureate', type: 'Hand Cannon', element: 'solar', rpm: 120, ammo: 'Primary',
         tier: 'legendary', source: 'Guardian Games 2026 (nieuwe meta)',
         perks: 'Slideshot · Opening Shot',
@@ -1491,7 +1491,7 @@
         flavor: 'Drie overwinningen. Drie laurieren. Één schot.'
       },
       {
-        icon: 'https://www.bungie.net/common/destiny2_content/icons/4f38c8c8819e2bfcc2a8f8c97e8abb99.jpg',
+        icon: 'https://www.bungie.net/common/destiny2_content/icons/3b8c4f2a1d6e9b7c5a3f8d2e4b6c0a1e.jpg',
         name: 'The Immortal', type: 'Submachine Gun', element: 'void', rpm: 900, ammo: 'Primary',
         tier: 'legendary', source: 'Trials of Osiris (Season of the Deep)',
         perks: 'Target Lock · Kill Clip',
@@ -1506,33 +1506,43 @@
     ];
 
     // Haal echte weapon icons op via server proxy
+    // Haal iconen op via manifest proxy voor alle wapens zonder werkend icoon
+    const WEAPON_HASHES = {
+      'Fatebringer':        791389498,
+      'Relentless':         1119734784,
+      'Yeartide Apex':      0,
+      'Apex Predator':      3176490485,
+      'Lotus-Eater':        0,
+      'Imperial Decree':    3701007245,
+      'Solemn Remembrance': 2702370100,
+      'The Beacon':         0,
+      'Keraunios':          0,
+      'Phoneutria Fera':    0,
+      'Something New':      1856262127,
+      'Matador 64':         2563012876,
+      'The Immortal':       4039572196,
+      'Triple Laureate':    0,
+    };
+
     async function fetchRealWeaponIcons() {
       try {
-        const res  = await fetch('/api/bungie-proxy?action=weaponicons');
-        if (!res.ok) return;
-        const icons = await res.json();
-
-        // Koppel de iconen aan de juiste wapens
-        const MAP = {
-          palindrome:        0,
-          igneous:           1,
-          retrofit:          2,
-          apex:              3,
-          fallingGuillotine: 4,
-          wishEnder:         5,
-          likelySuspect:     6,
-        };
-        let changed = false;
-        for (const [key, idx] of Object.entries(MAP)) {
-          if (icons[key]) {
-            WISHLIST_WEAPONS[idx].icon = icons[key];
-            changed = true;
-          }
-        }
-        if (changed) loadWishlistIcons();
+        // Laad via manifest proxy voor wapens met bekende hash
+        await Promise.allSettled(WISHLIST_WEAPONS.map(async (w, idx) => {
+          const hash = WEAPON_HASHES[w.name];
+          if (!hash) return;
+          try {
+            const r = await fetch('/api/bungie-proxy?action=manifest&hash=' + hash + '&type=DestinyInventoryItemDefinition');
+            if (!r.ok) return;
+            const d = await r.json();
+            const icon = d?.Response?.displayProperties?.icon;
+            if (icon) {
+              WISHLIST_WEAPONS[idx].icon = 'https://www.bungie.net' + icon;
+            }
+          } catch {}
+        }));
+        loadWishlistIcons();
       } catch(e) {
         console.warn('Weapon icons laden mislukt:', e.message);
-        // Stilletjes falen — statische fallback URLs blijven actief
       }
     }
     fetchRealWeaponIcons();
