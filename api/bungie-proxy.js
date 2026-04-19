@@ -845,8 +845,18 @@ export default async function handler(req, res) {
         const damageType  = instance.damageType ?? def.defaultDamageType ?? 0;
         const bucketHash  = def.inventory?.bucketTypeHash ?? 0;
 
-        // ── Perks via sockets ──────────────────────────────────
-        const sockets     = socketsData[raw.itemInstanceId]?.sockets ?? [];
+        // ── Perks via sockets of manifest definitie ──────────
+        // Vault items zijn niet uitgerust → live sockets zijn leeg
+        // Gebruik manifest sockets als primaire bron, live sockets als aanvulling
+        const liveSockets = socketsData[raw.itemInstanceId]?.sockets ?? [];
+        const manifestSockets = def.sockets?.socketEntries ?? [];
+
+        // Combineer: haal plugHash uit live socket (uitgeruste perk) of manifest (default plug)
+        const sockets = manifestSockets.map((entry, idx) => {
+          const live = liveSockets[idx];
+          return { plugHash: live?.plugHash ?? entry.singleInitialItemHash ?? null };
+        }).filter(s => s.plugHash);
+
         const perks        = [];
         const intrinsicPerk = null;
 
