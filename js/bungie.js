@@ -119,17 +119,17 @@ function updateCharStatBars(charId, characterStats) {
   });
 
   // Bungie stat hashes
-  var statMap = {
-    2996146975: 'Mobility',
-    392767087:  'Health',
-    1943323491: 'Recovery',
-    1735777505: 'Grenade',
-    144602215:  'Super',
-    4244567218: 'Melee',
-  };
+  var statMap = [
+    { hash: '392767087',  label: 'Health'   },
+    { hash: '4244567218', label: 'Melee'    },
+    { hash: '1735777505', label: 'Grenade'  },
+    { hash: '144602215',  label: 'Super'    },
+    { hash: '2996146975', label: 'Mobility' },
+    { hash: '1943323491', label: 'Recovery' },
+  ];
 
-  var rows = Object.entries(statMap).map(function(entry) {
-    var hash = entry[0], label = entry[1];
+  var rows = statMap.map(function(entry) {
+    var hash = entry.hash, label = entry.label;
     var val = stats[hash] !== undefined ? (typeof stats[hash] === 'object' ? stats[hash].value : stats[hash]) : 0;
     // Balk: max 100 = 100%, boven 100 = goud/neon kleur
     var barPct = Math.min(val, 100);
