@@ -277,27 +277,25 @@ async function loadFavWeapons(membership, charIds) {
   list.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Wapens laden...</div>';
 
   try {
-    // Haal recent gebruikte wapens op via activiteiten van laatste 30 dagen
+    // Haal activiteiten van laatste 7 dagen op per character
+    // Dan per activiteit de PGCR (post game carnage report) voor wapen gebruik
+    // Maar PGCR is te zwaar — gebruik /Stats/UniqueWeapons/ zonder filter
+    // en sorteer op uniqueWeaponKillsPrecisionKills ratio voor "recent" gevoel
     var allWeapons = {};
-    var sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    var dateStr = sevenDaysAgo.toISOString().split('T')[0];
 
     await Promise.all(charIds.map(function(charId) {
       return bungieGet(
         '/Destiny2/' + membership.membershipType +
         '/Account/' + membership.membershipId +
         '/Character/' + charId +
-        '/Stats/UniqueWeapons/?daystart=' + dateStr
+        '/Stats/UniqueWeapons/'
       ).then(function(data) {
         var weapons = data && data.weapons || [];
-        console.log('[favWeapons] char ' + charId + ' weapons:', weapons.length);
         weapons.forEach(function(w) {
           var ref = w.referenceId;
           var kills = w.values && w.values.uniqueWeaponKills && w.values.uniqueWeaponKills.basic.value || 0;
-          if (!allWeapons[ref]) {
-            allWeapons[ref] = { ref: ref, kills: 0 };
-          }
+          var lastUsed = w.values && w.values.uniqueWeaponKillsPrecisionKills && w.values.uniqueWeaponKillsPrecisionKills.basic.value || 0;
+          if (!allWeapons[ref]) allWeapons[ref] = { ref: ref, kills: 0 };
           allWeapons[ref].kills += kills;
         });
       }).catch(function(){});
@@ -305,6 +303,7 @@ async function loadFavWeapons(membership, charIds) {
 
     // Sorteer op kills, pak top 10
     var sorted = Object.values(allWeapons).sort(function(a,b){ return b.kills - a.kills; }).slice(0, 10);
+
     if (sorted.length === 0) {
       list.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Geen wapendata gevonden</div>';
       return;
@@ -316,7 +315,6 @@ async function loadFavWeapons(membership, charIds) {
       return bungieGet('/Destiny2/Manifest/DestinyInventoryItemDefinition/' + w.ref + '/').then(async function(def) {
         if (!def) return;
         var tierType = def.inventory && def.inventory.tierType || 5;
-        console.log('[favWeapons] item:', def.displayProperties && def.displayProperties.name, 'tier:', tierType, 'kills:', w.kills);
         var iconPath = def.displayProperties && def.displayProperties.icon;
         var watermark = def.iconWatermark || def.iconWatermarkShelved || null;
 
@@ -336,14 +334,13 @@ async function loadFavWeapons(membership, charIds) {
           stats.sort(function(a,b){ return b.value - a.value; });
         }
 
-        // Perks — haal naam + beschrijving + icoon op per socket
+        // Perks
         var perkHashes = [];
         if (def.sockets && def.sockets.socketEntries) {
           def.sockets.socketEntries.forEach(function(s) {
             if (s.singleInitialItemHash) perkHashes.push(s.singleInitialItemHash);
           });
         }
-        // Haal perk definities op (max 6)
         var perks = [];
         var perkResults = await Promise.all(perkHashes.slice(0,6).map(function(hash) {
           return bungieGet('/Destiny2/Manifest/DestinyInventoryItemDefinition/' + hash + '/').catch(function(){ return null; });
@@ -352,9 +349,7 @@ async function loadFavWeapons(membership, charIds) {
           if (!pd) return;
           var dp = pd.displayProperties;
           if (!dp || !dp.name || dp.name.length < 2) return;
-          // Sla lege of Masterwork tier items over
           var desc = dp.description || '';
-          if (!desc && !dp.name) return;
           perks.push({
             name: dp.name,
             desc: desc,
@@ -378,7 +373,6 @@ async function loadFavWeapons(membership, charIds) {
       }).catch(function(){});
     }));
 
-    // Sorteer nogmaals op kills (Promise.all = ongeordend)
     items.sort(function(a,b){ return b.kills - a.kills; });
 
     if (items.length === 0) {
@@ -386,7 +380,6 @@ async function loadFavWeapons(membership, charIds) {
       return;
     }
 
-    // Sla items op in window zodat onclick via index werkt (geen encoding problemen)
     window._favWeaponsData = items;
 
     list.innerHTML = items.map(function(w, idx) {
@@ -410,144 +403,5 @@ async function loadFavWeapons(membership, charIds) {
   } catch(e) {
     console.warn("Favoriete wapens fout:", e.message);
     list.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Kon wapens niet laden</div>';
-  }
-}
-
-async function loadRecentActivities(membership, charIds) {
-  var list = document.getElementById('recentActivitiesList');
-  if (!list) return;
-
-  list.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Activiteiten laden...</div>';
-
-  // Haal activiteiten op voor ALLE characters, combineer dan (nieuwste eerst)
-  var allActivities = [];
-  await Promise.all(charIds.map(function(charId) {
-    return bungieGet(
-      '/Destiny2/' + membership.membershipType +
-      '/Account/' + membership.membershipId +
-      '/Character/' + charId +
-      '/Stats/Activities/?count=10&mode=0&page=0'
-    ).then(function(data) {
-      var acts = data && data.activities || [];
-      acts.forEach(function(a) { allActivities.push(a); });
-    }).catch(function(){});
-  }));
-
-  // Sorteer op datum nieuwste eerst, pak top 15
-  allActivities.sort(function(a, b) {
-    return new Date(b.period) - new Date(a.period);
-  });
-  var activities = allActivities.slice(0, 15);
-
-  if (activities.length === 0) {
-    list.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Geen recente activiteiten gevonden</div>';
-    return;
-  }
-
-  // Haal manifest info op per activiteit (pgcrImage, naam)
-  var items = [];
-  await Promise.all(activities.map(function(act) {
-    var hash = act.activityDetails && act.activityDetails.directorActivityHash;
-    if (!hash) return Promise.resolve();
-    return bungieGet('/Destiny2/Manifest/DestinyActivityDefinition/' + hash + '/').then(function(def) {
-      if (!def) return;
-      var values = act.values || {};
-      var completed  = values.completed  && values.completed.basic.value === 1;
-      var standing   = values.standing   && values.standing.basic.value;  // 0=win, 1=loss
-      var mode       = act.activityDetails && act.activityDetails.mode;
-
-      // Bepaal resultaat label
-      var resultLabel = 'Voltooid';
-      var resultClass = 'result-complete';
-      if (!completed) { resultLabel = 'Niet voltooid'; resultClass = 'result-dnf'; }
-      else if (mode >= 69 && mode <= 84) { // PvP modes
-        if (standing === 0) { resultLabel = 'Gewonnen'; resultClass = 'result-win'; }
-        else                { resultLabel = 'Verloren'; resultClass = 'result-loss'; }
-      } else if (mode === 63) { // Gambit
-        if (standing === 0) { resultLabel = 'Gewonnen'; resultClass = 'result-win'; }
-        else                { resultLabel = 'Verloren'; resultClass = 'result-loss'; }
-      }
-
-      // Tijd berekenen
-      var period = act.period ? new Date(act.period) : null;
-      var timeStr = '';
-      if (period) {
-        var diffMs  = Date.now() - period.getTime();
-        var diffMin = Math.floor(diffMs / 60000);
-        var diffH   = Math.floor(diffMin / 60);
-        var diffD   = Math.floor(diffH / 24);
-        if (diffD >= 2)      timeStr = diffD + ' dagen geleden';
-        else if (diffD === 1) timeStr = 'Gisteren · ' + period.toLocaleTimeString('nl-NL', {hour:'2-digit',minute:'2-digit'});
-        else if (diffH >= 1)  timeStr = diffH + ' uur geleden · ' + period.toLocaleTimeString('nl-NL', {hour:'2-digit',minute:'2-digit'});
-        else                  timeStr = diffMin + ' min geleden';
-      }
-
-      var pgcrImg = def.pgcrImage ? 'https://www.bungie.net' + def.pgcrImage : null;
-      var iconImg = def.displayProperties && def.displayProperties.icon ? 'https://www.bungie.net' + def.displayProperties.icon : null;
-      var name    = def.displayProperties && def.displayProperties.name || 'Onbekend';
-
-      items.push({
-        name:       name,
-        timeStr:    timeStr,
-        pgcrImg:    pgcrImg,
-        iconImg:    iconImg,
-        resultLabel:resultLabel,
-        resultClass:resultClass,
-        period:     period ? period.getTime() : 0,
-      });
-    }).catch(function() {});
-  }));
-
-  // Dedup op naam + tijdslot (zelfde activiteit binnen 30 min = duplicaat)
-  var seen = {};
-  items = items.filter(function(item) {
-    var slot = Math.floor(item.period / (30 * 60 * 1000));
-    var key = item.name + '_' + slot;
-    if (seen[key]) return false;
-    seen[key] = true;
-    return true;
-  });
-
-  // Sorteer op tijd (nieuwste eerst)
-  items.sort(function(a, b) { return b.period - a.period; });
-
-  if (items.length === 0) {
-    list.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Geen activiteiten gevonden</div>';
-    return;
-  }
-
-  list.innerHTML = items.map(function(item) {
-    // Plaatje via proxy om CORB te omzeilen
-    var imgSrc = item.pgcrImg
-      ? '/api/bungie-proxy?action=img&url=' + encodeURIComponent(item.pgcrImg)
-      : (item.iconImg ? '/api/bungie-proxy?action=img&url=' + encodeURIComponent(item.iconImg) : null);
-
-    var iconHtml = imgSrc
-      ? '<img src="' + imgSrc + '" width="52" height="52" style="object-fit:cover;display:block;border-radius:10px;" onerror="this.style.display=\'none\'">'
-      : '🎮';
-
-    return '<div class="activity-item">'
-      + '<div class="act-icon">' + iconHtml + '</div>'
-      + '<div class="act-info">'
-      + '<div class="act-name">' + item.name + '</div>'
-      + '<div class="act-sub">' + item.timeStr + '</div>'
-      + '</div>'
-      + '<span class="act-result ' + item.resultClass + '">' + item.resultLabel + '</span>'
-      + '</div>';
-  }).join('');
-
-  console.log('✅ Activiteiten geladen:', items.length);
-}
-
-function applySubclassTheme(subclassName) {
-  var key = (subclassName || '').toLowerCase(), found = null;
-  Object.keys(SUBCLASS_THEMES).forEach(function(k) { if (!found && key.indexOf(k) !== -1) found = SUBCLASS_THEMES[k]; });
-  if (!found) return;
-  document.documentElement.style.setProperty('--subclass-color', found.color);
-  document.documentElement.style.setProperty('--subclass-glow',  found.glow);
-  var hero = document.querySelector('.profile-hero');
-  if (hero) {
-    hero.style.background        = 'linear-gradient(180deg, ' + found.glow + ' 0%, transparent 100%)';
-    hero.style.borderBottomColor = found.color + '33';
   }
 }
