@@ -271,6 +271,123 @@ async function loadBungieProfileData() {
 }
 
 
+
+async function loadRecentActivities(membership, charIds) {
+  var list = document.getElementById('recentActivitiesList');
+  if (!list) return;
+  list.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Activiteiten laden...</div>';
+
+  var allActivities = [];
+  await Promise.all(charIds.map(function(charId) {
+    return bungieGet(
+      '/Destiny2/' + membership.membershipType +
+      '/Account/' + membership.membershipId +
+      '/Character/' + charId +
+      '/Stats/Activities/?count=10&mode=0&page=0'
+    ).then(function(data) {
+      var acts = data && data.activities || [];
+      acts.forEach(function(a) { allActivities.push(a); });
+    }).catch(function(){});
+  }));
+
+  allActivities.sort(function(a, b) {
+    return new Date(b.period) - new Date(a.period);
+  });
+  var activities = allActivities.slice(0, 15);
+
+  if (activities.length === 0) {
+    list.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Geen recente activiteiten gevonden</div>';
+    return;
+  }
+
+  var items = [];
+  await Promise.all(activities.map(function(act) {
+    var hash = act.activityDetails && act.activityDetails.directorActivityHash;
+    if (!hash) return Promise.resolve();
+    return bungieGet('/Destiny2/Manifest/DestinyActivityDefinition/' + hash + '/').then(function(def) {
+      if (!def) return;
+      var values = act.values || {};
+      var completed = values.completed && values.completed.basic.value === 1;
+      var standing  = values.standing && values.standing.basic.value;
+      var mode      = act.activityDetails && act.activityDetails.mode;
+
+      var resultLabel = 'Voltooid';
+      var resultClass = 'result-complete';
+      if (!completed) { resultLabel = 'Niet voltooid'; resultClass = 'result-dnf'; }
+      else if (mode >= 69 && mode <= 84) {
+        resultLabel = standing === 0 ? 'Gewonnen' : 'Verloren';
+        resultClass = standing === 0 ? 'result-win' : 'result-loss';
+      } else if (mode === 63) {
+        resultLabel = standing === 0 ? 'Gewonnen' : 'Verloren';
+        resultClass = standing === 0 ? 'result-win' : 'result-loss';
+      }
+
+      var period = act.period ? new Date(act.period) : null;
+      var timeStr = '';
+      if (period) {
+        var diffMs  = Date.now() - period.getTime();
+        var diffMin = Math.floor(diffMs / 60000);
+        var diffH   = Math.floor(diffMin / 60);
+        var diffD   = Math.floor(diffH / 24);
+        if (diffD >= 2)       timeStr = diffD + ' dagen geleden';
+        else if (diffD === 1) timeStr = 'Gisteren · ' + period.toLocaleTimeString('nl-NL', {hour:'2-digit',minute:'2-digit'});
+        else if (diffH >= 1)  timeStr = diffH + ' uur geleden · ' + period.toLocaleTimeString('nl-NL', {hour:'2-digit',minute:'2-digit'});
+        else                  timeStr = diffMin + ' min geleden';
+      }
+
+      var pgcrImg = def.pgcrImage ? 'https://www.bungie.net' + def.pgcrImage : null;
+      var iconImg = def.displayProperties && def.displayProperties.icon ? 'https://www.bungie.net' + def.displayProperties.icon : null;
+      var name    = def.displayProperties && def.displayProperties.name || 'Onbekend';
+
+      items.push({
+        name: name,
+        timeStr: timeStr,
+        pgcrImg: pgcrImg,
+        iconImg: iconImg,
+        resultLabel: resultLabel,
+        resultClass: resultClass,
+        period: period ? period.getTime() : 0,
+      });
+    }).catch(function() {});
+  }));
+
+  // Dedup op naam + tijdslot
+  var seen = {};
+  items = items.filter(function(item) {
+    var slot = Math.floor(item.period / (30 * 60 * 1000));
+    var key = item.name + '_' + slot;
+    if (seen[key]) return false;
+    seen[key] = true;
+    return true;
+  });
+
+  items.sort(function(a, b) { return b.period - a.period; });
+
+  if (items.length === 0) {
+    list.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Geen activiteiten gevonden</div>';
+    return;
+  }
+
+  list.innerHTML = items.map(function(item) {
+    var imgSrc = item.pgcrImg
+      ? '/api/bungie-proxy?action=img&url=' + encodeURIComponent(item.pgcrImg)
+      : (item.iconImg ? '/api/bungie-proxy?action=img&url=' + encodeURIComponent(item.iconImg) : null);
+    var iconHtml = imgSrc
+      ? '<img src="' + imgSrc + '" width="52" height="52" style="object-fit:cover;display:block;border-radius:10px;" onerror="this.style.display=&quot;none&quot;">'
+      : '🎮';
+    return '<div class="activity-item">'
+      + '<div class="act-icon">' + iconHtml + '</div>'
+      + '<div class="act-info">'
+      + '<div class="act-name">' + item.name + '</div>'
+      + '<div class="act-sub">' + item.timeStr + '</div>'
+      + '</div>'
+      + '<span class="act-result ' + item.resultClass + '">' + item.resultLabel + '</span>'
+      + '</div>';
+  }).join('');
+
+  console.log('✅ Activiteiten geladen:', items.length);
+}
+
 async function loadFavWeapons(membership, charIds) {
   var list = document.getElementById('favWeaponsList');
   if (!list) return;
