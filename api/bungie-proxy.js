@@ -733,7 +733,7 @@ export default async function handler(req, res) {
       //    302 = ItemSockets (uitgeruste perks/mods per item)
       //    304 = ItemStats (weapon stats: RPM, Range, etc.)
       const profile = await bFetch(
-        `/Destiny2/${mType}/Profile/${mId}/?components=102,201,300,302,304,309`,
+        `/Destiny2/${mType}/Profile/${mId}/?components=102,201,300,302,304,305,309`,
         token
       );
 
@@ -743,6 +743,11 @@ export default async function handler(req, res) {
       const socketsData   = profile?.itemComponents?.sockets?.data ?? {};
       const statsData     = profile?.itemComponents?.stats?.data ?? {};
       const plugsData     = profile?.itemComponents?.reusablePlugs?.data ?? {};
+
+      // Debug: hoeveel items hebben sockets?
+      const socketCount = Object.keys(socketsData).length;
+      const plugCount   = Object.keys(plugsData).length;
+      console.log('[vault] socketsData items:', socketCount, '| plugsData items:', plugCount);
 
       // Vault bucket hash
       const VAULT_BUCKET = 138197802;
