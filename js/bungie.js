@@ -279,9 +279,9 @@ async function loadFavWeapons(membership, charIds) {
   try {
     // Haal recent gebruikte wapens op via activiteiten van laatste 30 dagen
     var allWeapons = {};
-    var thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    var dateStr = thirtyDaysAgo.toISOString().split('T')[0];
+    var sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    var dateStr = sevenDaysAgo.toISOString().split('T')[0];
 
     await Promise.all(charIds.map(function(charId) {
       return bungieGet(
@@ -316,6 +316,7 @@ async function loadFavWeapons(membership, charIds) {
       return bungieGet('/Destiny2/Manifest/DestinyInventoryItemDefinition/' + w.ref + '/').then(async function(def) {
         if (!def) return;
         var tierType = def.inventory && def.inventory.tierType || 5;
+        console.log('[favWeapons] item:', def.displayProperties && def.displayProperties.name, 'tier:', tierType, 'kills:', w.kills);
         var iconPath = def.displayProperties && def.displayProperties.icon;
         var watermark = def.iconWatermark || def.iconWatermarkShelved || null;
 
