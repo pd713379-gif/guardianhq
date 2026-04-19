@@ -108,8 +108,15 @@ function updateCharStatBars(charId, characterStats) {
   var container = document.getElementById('charStats');
   if (!container) return;
 
-  var stats = characterStats && characterStats[charId] && characterStats[charId].stats;
-  if (!stats) return;
+  var rawStats = characterStats && characterStats[charId] && characterStats[charId].stats;
+  if (!rawStats) return;
+
+  // Normaliseer: char.stats geeft directe getallen, component 300 geeft {value:X}
+  var stats = {};
+  Object.keys(rawStats).forEach(function(k) {
+    var v = rawStats[k];
+    stats[k] = typeof v === 'object' ? v : { value: v };
+  });
 
   // Bungie stat hashes
   var statMap = {
@@ -123,7 +130,7 @@ function updateCharStatBars(charId, characterStats) {
 
   var rows = Object.entries(statMap).map(function(entry) {
     var hash = entry[0], label = entry[1];
-    var val = stats[hash] ? stats[hash].value : 0;
+    var val = stats[hash] !== undefined ? (typeof stats[hash] === 'object' ? stats[hash].value : stats[hash]) : 0;
     // Balk: max 100 = 100%, boven 100 = goud/neon kleur
     var barPct = Math.min(val, 100);
     var isOver100 = val > 100;
