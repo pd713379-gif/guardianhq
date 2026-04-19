@@ -476,13 +476,47 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 1.5rem}
 .toast.show{transform:translateX(0)}
 
 /* RESPONSIVE */
+/* HAMBURGER BUTTON */
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;
+  width:36px;height:36px;cursor:pointer;background:none;border:none;padding:4px;
+  border-radius:8px;transition:background 0.2s;}
+.hamburger:hover{background:rgba(255,255,255,0.07)}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);
+  border-radius:2px;transition:all 0.3s;transform-origin:center;}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* MOBILE DROPDOWN MENU */
+.nav-mobile-menu{
+  display:none;position:fixed;top:70px;left:1rem;right:1rem;z-index:99;
+  background:rgba(10,12,20,0.97);backdrop-filter:blur(20px);
+  border:1px solid var(--border);border-radius:16px;padding:12px;
+  flex-direction:column;gap:4px;
+}
+.nav-mobile-menu.open{display:flex}
+.nav-mobile-menu a{
+  color:var(--text2);font-size:0.9rem;font-weight:500;
+  padding:10px 14px;border-radius:10px;text-decoration:none;
+  transition:all 0.15s;display:flex;align-items:center;gap:8px;
+}
+.nav-mobile-menu a:hover,.nav-mobile-menu a.active{background:var(--bg3);color:var(--text)}
+.nav-mobile-menu .discord-link{
+  background:#5865F2;color:#fff !important;-webkit-text-fill-color:#fff !important;font-weight:700;
+}
+.nav-mobile-menu .mobile-divider{height:1px;background:var(--border);margin:4px 0}
+.nav-mobile-menu .mobile-auth{display:flex;gap:8px;padding:8px 14px 4px;}
+.nav-mobile-menu .mobile-auth a{flex:1;justify-content:center}
+
 @media(max-width:768px){
   .feat-grid{grid-template-columns:1fr}
   .d-grid-2{grid-template-columns:1fr}
   .d-grid-3{grid-template-columns:1fr}
   .char-cards{grid-template-columns:1fr}
   .weapon-grid{grid-template-columns:1fr}
-  .nav-links{display:none}
+  .nav-center{display:none}
+  .nav-auth{display:none}
+  .hamburger{display:flex}
   .hero-stats{gap:1.5rem}
   .dim-open-btn{margin-left:0;width:100%;justify-content:center}
   .dim-banner-img{height:160px;}
