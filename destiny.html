@@ -3075,10 +3075,39 @@
     function selectStaticChar(el, idx) {
       document.querySelectorAll('.char-card').forEach(function(c){ c.classList.remove('active-char'); });
       if (el && el.classList) el.classList.add('active-char');
+      // Demo wapens en armor voor niet-gekoppelde bezoekers
+      var DEMO_WEAPONS = [
+        { name:'Osteo Striga',    type:'Exotic SMG',           tier:'exotic',    element:'Strand',   power:2087, icon:'https://www.bungie.net/common/destiny2_content/icons/12e5e3ce5b4c16f82c41bbecbc0fc64c.jpg', perks:'Toxic Overload · Worm Byproduct', slot:'kinetic' },
+        { name:'Hawkmoon',        type:'Exotic Hand Cannon',   tier:'exotic',    element:'Kinetic',  power:2087, icon:'https://www.bungie.net/common/destiny2_content/icons/deb38c0de0a9c7dc79e8f58b9f49a78a.jpg', perks:'Paracausal Shot · Transformative', slot:'kinetic' },
+        { name:'Gjallarhorn',     type:'Exotic Rocket Launcher',tier:'exotic',   element:'Solar',    power:2087, icon:'https://www.bungie.net/common/destiny2_content/icons/bffe0f0c5efde5e8c90d7bbe2fa78d13.jpg', perks:'Wolfpack Rounds · Pack Hunter', slot:'heavy' },
+      ];
+      var DEMO_ARMOR_HUNTER = [
+        { name:'Celestial Nighthawk', type:'Exotic Helmet',    tier:'exotic',    element:'Solar',    power:2087, icon:'https://www.bungie.net/common/destiny2_content/icons/c08d9d1a5b3d4fa75b5b9e91e45dc6ed.jpg', slot:'helmet' },
+        { name:"Mechaneer's Tricksleeves", type:'Exotic Gauntlets', tier:'exotic', element:'Solar', power:2084, icon:'https://www.bungie.net/common/destiny2_content/icons/8773d0887c67b8fdc7ee07cc42c35fe4.jpg', slot:'arms' },
+        { name:"Assassin's Cowl",    type:'Exotic Helmet',    tier:'exotic',    element:'Void',     power:2081, icon:'https://www.bungie.net/common/destiny2_content/icons/e49c8b7fe4a9c7f6aa4a9b5e8b5e4f2a.jpg', slot:'chest' },
+        { name:"Dragon's Shadow",    type:'Exotic Chest',     tier:'exotic',    element:'Void',     power:2079, icon:'https://www.bungie.net/common/destiny2_content/icons/3b2d07e08f2c6fb37f7a4c8aa5d7d11a.jpg', slot:'legs' },
+      ];
+      var DEMO_ARMOR_WARLOCK = [
+        { name:"Nezarec's Sin",  type:'Exotic Helmet',        tier:'exotic',    element:'Void',     power:2071, icon:'https://www.bungie.net/common/destiny2_content/icons/3b2d07e08f2c6fb37f7a4c8aa5d7d11a.jpg', slot:'helmet' },
+        { name:'Ophidian Aspect', type:'Exotic Gauntlets',     tier:'exotic',    element:'Void',     power:2068, icon:'https://www.bungie.net/common/destiny2_content/icons/6b2d3f1c8e9d4a2b7c5e1f3a9b8d6e4c.jpg', slot:'arms' },
+        { name:'Rain of Fire',    type:'Exotic Boots',         tier:'exotic',    element:'Solar',    power:2065, icon:'https://www.bungie.net/common/destiny2_content/icons/4a8c2e7f1b3d5c9e6a2b8d4f7c1e3a5b.jpg', slot:'legs' },
+        { name:"Verity's Brow",  type:'Exotic Helmet',        tier:'exotic',    element:'Strand',   power:2062, icon:'https://www.bungie.net/common/destiny2_content/icons/2c4e8a1f6b3d7c5e9a2b4d8f1c3e5a7b.jpg', slot:'chest' },
+      ];
+      var DEMO_ARMOR_TITAN = [
+        { name:'Eternal Warrior', type:'Exotic Helmet',        tier:'exotic',    element:'Arc',      power:2094, icon:'https://www.bungie.net/common/destiny2_content/icons/8f2d8f47c1fce4e6c43e5c7e94f75694.jpg', slot:'helmet' },
+        { name:"Stronghold",      type:'Exotic Gauntlets',     tier:'exotic',    element:'Void',     power:2091, icon:'https://www.bungie.net/common/destiny2_content/icons/1c3e5a7b9d2f4c8e6a1b3d5f7c9e2a4b.jpg', slot:'arms' },
+        { name:'Hoarfrost-Z',     type:'Exotic Chest',         tier:'exotic',    element:'Stasis',   power:2088, icon:'https://www.bungie.net/common/destiny2_content/icons/9b7d5c3e1a4f2b8d6c4e2a8b1d3f5c7e.jpg', slot:'chest' },
+        { name:"Dunemarchers",    type:'Exotic Boots',         tier:'exotic',    element:'Arc',      power:2085, icon:'https://www.bungie.net/common/destiny2_content/icons/5a3c1e7b9d4f2a8c6e4b2d8f1c5e3a7b.jpg', slot:'legs' },
+      ];
+      var DEMO_SUBCLASSES = {
+        Hunter:  { element:'solar',    name:'Gunslinger' },
+        Warlock: { element:'void',     name:'Voidwalker' },
+        Titan:   { element:'arc',      name:'Striker'    },
+      };
       var STATIC_CHARS = [
-        { className:'Hunter', light:2087, subclass:{ element:'no_bungie', name:'Verbind Bungie' }, weapons:[], armor:[], ghost:null, ship:null, sparrow:null },
-        { className:'Warlock',light:2071, subclass:{ element:'no_bungie', name:'Verbind Bungie' }, weapons:[], armor:[], ghost:null, ship:null, sparrow:null },
-        { className:'Titan',  light:2094, subclass:{ element:'no_bungie', name:'Verbind Bungie' }, weapons:[], armor:[], ghost:null, ship:null, sparrow:null },
+        { className:'Hunter',  light:2087, subclass:DEMO_SUBCLASSES.Hunter,  weapons:DEMO_WEAPONS, armor:DEMO_ARMOR_HUNTER, ghost:null, ship:null, sparrow:null },
+        { className:'Warlock', light:2071, subclass:DEMO_SUBCLASSES.Warlock, weapons:DEMO_WEAPONS, armor:DEMO_ARMOR_WARLOCK, ghost:null, ship:null, sparrow:null },
+        { className:'Titan',   light:2094, subclass:DEMO_SUBCLASSES.Titan,   weapons:DEMO_WEAPONS, armor:DEMO_ARMOR_TITAN, ghost:null, ship:null, sparrow:null },
       ];
       var char = STATIC_CHARS[idx] || STATIC_CHARS[0];
       renderBuildPanel(char);
