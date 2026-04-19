@@ -1087,6 +1087,23 @@ export default async function handler(req, res) {
   }
 
   // IMAGE PROXY — laadt Bungie afbeeldingen via eigen server (voorkomt CORB)
+  if (action === 'manifest') {
+    const hash = req.query.hash;
+    const type = req.query.type || 'DestinyInventoryItemDefinition';
+    if (!hash) return res.status(400).json({ error: 'hash required' });
+    try {
+      const r = await fetch(
+        `https://www.bungie.net/Platform/Destiny2/Manifest/${type}/${hash}/`,
+        { headers: { 'X-API-Key': API_KEY } }
+      );
+      const d = await r.json();
+      res.setHeader('Cache-Control', 's-maxage=86400');
+      return res.status(200).json(d);
+    } catch(e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
   if (action === 'img') {
     const imgUrl = req.query.url;
     if (!imgUrl || !imgUrl.startsWith('https://www.bungie.net/')) {
