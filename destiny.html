@@ -3067,9 +3067,9 @@
     function renderStaticChars() {
       var charCards = document.getElementById('charCards');
       var STATIC = [
-        { className:'Hunter', light:550, element:'no_bungie', subclassName:'Verbind Bungie', emblemBg:null },
+        { className:'Hunter', light:550, element:'void',      subclassName:'Nightstalker',  emblemBg:null },
         { className:'Warlock',light:550, element:'arc',       subclassName:'Stormcaller',    emblemBg:null },
-        { className:'Titan',  light:550, element:'no_bungie', subclassName:'Verbind Bungie', emblemBg:null },
+        { className:'Titan',  light:525, element:'strand',    subclassName:'Berserker',      emblemBg:null },
       ];
       charCards.innerHTML = STATIC.map(function(c, idx) {
         var theme = CLASS_THEMES[c.className];
@@ -3138,11 +3138,65 @@
             });
           }, 500);
         });
+      } else if (idx === 0) {
+        // Hunter demo — Nightstalker
+        var hunterWeapons = [
+          { name:'All or Nothing',   typeName:'Pulse Rifle',    tier:'legendary', isExotic:false, tierType:5, slot:'kinetic', power:550, icon:'/img/icons/hunter/allornoothing.webp' },
+          { name:'Graviton Lance',   typeName:'Pulse Rifle',    tier:'exotic',    isExotic:true,  tierType:6, slot:'energy',  power:550, icon:'/img/icons/hunter/gravitonlance.webp' },
+          { name:'Chain of Command', typeName:'Machine Gun',    tier:'legendary', isExotic:false, tierType:5, slot:'heavy',   power:550, icon:'/img/icons/hunter/chainofcommand.webp' },
+        ];
+        var hunterArmor = [
+          { name:'Techsec Mask',       typeName:'Helmet',  tier:'legendary', isExotic:false, tierType:5, slot:'helmet', power:550, icon:'/img/icons/hunter/techsecmask.webp' },
+          { name:"Ketchkiller's Grips",typeName:'Gauntlets',tier:'legendary',isExotic:false, tierType:5, slot:'arms',   power:550, icon:'/img/icons/hunter/ketchkillersgrips.webp' },
+          { name:'Lustrous Vest',      typeName:'Chest',   tier:'legendary', isExotic:false, tierType:5, slot:'chest',  power:550, icon:'/img/icons/hunter/lustrousvest.webp' },
+          { name:"Fortune's Favor",    typeName:'Boots',   tier:'exotic',    isExotic:true,  tierType:6, slot:'legs',   power:550, icon:'/img/icons/hunter/fortunesfavor.webp' },
+          { name:'Techsec Cloak',      typeName:'Cloak',   tier:'legendary', isExotic:false, tierType:5, slot:'class',  power:550, icon:'/img/icons/hunter/techseccloak.webp' },
+        ];
+        var hunterChar = {
+          className:'Hunter', light:550,
+          subclass:{ element:'void', name:'Nightstalker', icon:null },
+          weapons:hunterWeapons, armor:hunterArmor,
+          ghost:  { name:'Slasher Shell',     typeName:'Ghost Shell', tier:'exotic', isExotic:true,  tierType:6, slot:'ghost',   power:550, icon:'/img/icons/hunter/slashershell.webp' },
+          ship:   { name:'Swift Persistence', typeName:'Ship',        tier:'exotic', isExotic:true,  tierType:6, slot:'ship',    power:550, icon:'/img/icons/hunter/swiftpersistence.webp' },
+          sparrow:{ name:'The Xûrfboard',     typeName:'Sparrow',     tier:'exotic', isExotic:true,  tierType:6, slot:'sparrow', power:550, icon:'/img/icons/hunter/thexurfboard_h.webp' },
+          stats:{ resilience:14, strength:71, discipline:116, intellect:28, mobility:96, recovery:62 },
+          demo:true
+        };
+        renderBuildPanel(hunterChar);
+        setTimeout(function() {
+          var bp = document.getElementById('buildPanel');
+          if (bp) bp.querySelectorAll('[onclick]').forEach(function(el){ el.setAttribute('onclick',''); el.style.cursor='default'; });
+        }, 300);
+
       } else {
-        var emptyChar = { className: idx===0?'Hunter':'Titan', light:550,
-          subclass:{ element:'no_bungie', name:'Verbind Bungie' },
-          weapons:[], armor:[], ghost:null, ship:null, sparrow:null };
-        renderBuildPanel(emptyChar);
+        // Titan demo — Berserker
+        var titanWeapons = [
+          { name:'Mint Retrograde',   typeName:'Pulse Rifle',  tier:'legendary', isExotic:false, tierType:5, slot:'kinetic', power:353, icon:'/img/icons/titan/mintretrograde.webp' },
+          { name:'Psi Aeterna IV',    typeName:'Pulse Rifle',  tier:'legendary', isExotic:false, tierType:5, slot:'energy',  power:550, icon:'/img/icons/titan/psiaternav.webp' },
+          { name:'Service of Luzaku', typeName:'Machine Gun',  tier:'exotic',    isExotic:true,  tierType:6, slot:'heavy',   power:547, icon:'/img/icons/titan/serviceofluzaku.webp' },
+        ];
+        var titanArmor = [
+          { name:'Ferropotent Head',       typeName:'Helmet',  tier:'legendary', isExotic:false, tierType:5, slot:'helmet', power:550, icon:'/img/icons/titan/ferropotenthead.webp' },
+          { name:'Stronghold',             typeName:'Gauntlets',tier:'exotic',   isExotic:true,  tierType:6, slot:'arms',   power:550, icon:'/img/icons/titan/stronghold.webp' },
+          { name:'Thriving Survivor Plate',typeName:'Chest',   tier:'legendary', isExotic:false, tierType:5, slot:'chest',  power:550, icon:'/img/icons/titan/thrivingsurvivorplate.webp' },
+          { name:'Wild Anthem Greaves',    typeName:'Boots',   tier:'legendary', isExotic:false, tierType:5, slot:'legs',   power:550, icon:'/img/icons/titan/wildanthemgreaves.webp' },
+          { name:'Ferropotent Mark',       typeName:'Mark',    tier:'legendary', isExotic:false, tierType:5, slot:'class',  power:550, icon:'/img/icons/titan/ferropotentmark.webp' },
+        ];
+        var titanChar = {
+          className:'Titan', light:525,
+          subclass:{ element:'strand', name:'Berserker', icon:null },
+          weapons:titanWeapons, armor:titanArmor,
+          ghost:  { name:'Fundament Shell',      typeName:'Ghost Shell', tier:'exotic', isExotic:true, tierType:6, slot:'ghost',   power:550, icon:'/img/icons/titan/fundamentshell.webp' },
+          ship:   { name:'Constellation Tracer', typeName:'Ship',        tier:'exotic', isExotic:true, tierType:6, slot:'ship',    power:550, icon:'/img/icons/titan/constellationtracer.webp' },
+          sparrow:{ name:'The Xûrfboard',        typeName:'Sparrow',     tier:'exotic', isExotic:true, tierType:6, slot:'sparrow', power:550, icon:'/img/icons/titan/thexurfboard_t.webp' },
+          stats:{ resilience:130, strength:64, discipline:65, intellect:27, mobility:96, recovery:62 },
+          demo:true
+        };
+        renderBuildPanel(titanChar);
+        setTimeout(function() {
+          var bp = document.getElementById('buildPanel');
+          if (bp) bp.querySelectorAll('[onclick]').forEach(function(el){ el.setAttribute('onclick',''); el.style.cursor='default'; });
+        }, 300);
       }
     }
 
