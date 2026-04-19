@@ -1957,6 +1957,7 @@
       if (!raw) return;
       var item;
       try { item = JSON.parse(raw.replace(/&#39;/g,"'").replace(/&quot;/g,'"')); } catch(e) { return; }
+      console.log('[vault popup] item:', item.name, '| perks:', (item.perks||[]).length, '| intrinsics:', (item.intrinsics||[]).length, '| stats:', (item.stats||[]).length, '| armorStats:', (item.armorStatList||[]).length);
 
       // ── Tier kleuren ──
       var isExotic = !!item.isExotic;
