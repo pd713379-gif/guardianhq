@@ -3049,9 +3049,9 @@
     function renderStaticChars() {
       var charCards = document.getElementById('charCards');
       var STATIC = [
-        { className:'Hunter', light:2087, element:'no_bungie', subclassName:'Verbind Bungie',  emblemBg:null },
-        { className:'Warlock',light:2071, element:'no_bungie', subclassName:'Verbind Bungie',  emblemBg:null },
-        { className:'Titan',  light:2094, element:'no_bungie', subclassName:'Verbind Bungie',  emblemBg:null },
+        { className:'Hunter', light:550, element:'no_bungie', subclassName:'Verbind Bungie', emblemBg:null },
+        { className:'Warlock',light:550, element:'arc',       subclassName:'Stormcaller',    emblemBg:null },
+        { className:'Titan',  light:550, element:'no_bungie', subclassName:'Verbind Bungie', emblemBg:null },
       ];
       charCards.innerHTML = STATIC.map(function(c, idx) {
         var theme = CLASS_THEMES[c.className];
@@ -3068,20 +3068,37 @@
           + '</div>'
           + '</div>';
       }).join('');
-      // Toon Hunter build als default
-      selectStaticChar(charCards.children[0], 0);
+      // Toon Warlock als demo
+      selectStaticChar(charCards.children[1], 1);
     }
 
     function selectStaticChar(el, idx) {
       document.querySelectorAll('.char-card').forEach(function(c){ c.classList.remove('active-char'); });
       if (el && el.classList) el.classList.add('active-char');
-      var STATIC_CHARS = [
-        { className:'Hunter', light:2087, subclass:{ element:'no_bungie', name:'Verbind Bungie' }, weapons:[], armor:[], ghost:null, ship:null, sparrow:null },
-        { className:'Warlock',light:2071, subclass:{ element:'no_bungie', name:'Verbind Bungie' }, weapons:[], armor:[], ghost:null, ship:null, sparrow:null },
-        { className:'Titan',  light:2094, subclass:{ element:'no_bungie', name:'Verbind Bungie' }, weapons:[], armor:[], ghost:null, ship:null, sparrow:null },
-      ];
-      var char = STATIC_CHARS[idx] || STATIC_CHARS[0];
-      renderBuildPanel(char);
+      if (idx === 1) {
+        // Warlock demo — laad iconen en toon build (niet klikbaar)
+        var warlockDemo = buildStaticChars()[1];
+        loadDemoItems().then(function() {
+          var wl = buildStaticChars()[1];
+          wl.demo = true;
+          renderBuildPanel(wl);
+          // Zet alle item slots op pointer-events:none zodat popups niet openen
+          setTimeout(function() {
+            var panel = document.getElementById('buildPanel');
+            if (panel) {
+              panel.querySelectorAll('.item-slot,.gear-slot,.inv-slot,[onclick*="openItemPopup"],[onclick*="openGearPopup"]').forEach(function(el) {
+                el.style.pointerEvents = 'none';
+                el.style.cursor = 'default';
+              });
+            }
+          }, 300);
+        });
+      } else {
+        var emptyChar = { className: idx===0?'Hunter':'Titan', light:550,
+          subclass:{ element:'no_bungie', name:'Verbind Bungie' },
+          weapons:[], armor:[], ghost:null, ship:null, sparrow:null };
+        renderBuildPanel(emptyChar);
+      }
     }
 
     function initDimTab() {
