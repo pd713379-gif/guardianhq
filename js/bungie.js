@@ -120,12 +120,12 @@ function updateCharStatBars(charId, characterStats) {
 
   // Bungie stat hashes
   var statMap = {
-    2996146975: 'Mobiliteit',
-    392767087:  'Veerkracht',
-    1943323491: 'Herstel',
-    1735777505: 'Discipline',
-    144602215:  'Intellect',
-    4244567218: 'Kracht',
+    2996146975: 'Mobility',
+    392767087:  'Health',
+    1943323491: 'Recovery',
+    1735777505: 'Grenade',
+    144602215:  'Super',
+    4244567218: 'Melee',
   };
 
   var rows = Object.entries(statMap).map(function(entry) {
