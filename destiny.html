@@ -3080,22 +3080,56 @@
       document.querySelectorAll('.char-card').forEach(function(c){ c.classList.remove('active-char'); });
       if (el && el.classList) el.classList.add('active-char');
       if (idx === 1) {
-        // Warlock demo — laad iconen en toon build (niet klikbaar)
-        var warlockDemo = buildStaticChars()[1];
-        loadDemoItems().then(function() {
-          var wl = buildStaticChars()[1];
-          wl.demo = true;
-          renderBuildPanel(wl);
-          // Zet alle item slots op pointer-events:none zodat popups niet openen
+        // Warlock demo — haal iconen op via manifest proxy dan render
+        var demoWeapons = [
+          { name:'Praxic Blade',       typeName:'Exotic · Sword',            tier:'exotic',    slot:'kinetic', power:550, hash:3974307727 },
+          { name:'IKELOS_SMG_v1.0.3',  typeName:'Legendary · Submachine Gun',tier:'legendary', slot:'energy',  power:550, hash:2149683300 },
+          { name:'Retrofit Escapade',  typeName:'Legendary · Machine Gun',   tier:'legendary', slot:'heavy',   power:550, hash:3103325054 },
+        ];
+        var demoArmor = [
+          { name:'Ferropotent Cover',  typeName:'Legendary · Helmet',  tier:'legendary', slot:'helmet', power:550, hash:1111198543 },
+          { name:'Getaway Artist',     typeName:'Exotic · Gauntlets',  tier:'exotic',    slot:'arms',   power:550, hash:3281285293 },
+          { name:'Smoke Jumper Vest',  typeName:'Legendary · Chest',   tier:'legendary', slot:'chest',  power:550, hash:2481390928 },
+          { name:'Wild Anthem Boots',  typeName:'Legendary · Boots',   tier:'legendary', slot:'legs',   power:550, hash:1723933487 },
+          { name:'Ferropotent Bond',   typeName:'Legendary · Bond',    tier:'legendary', slot:'class',  power:550, hash:3490601661 },
+        ];
+        var demoGhost   = { name:'Phantasmal Shell',     typeName:'Exotic · Ghost Shell', tier:'exotic', slot:'ghost',   power:550, hash:3722427125 };
+        var demoShip    = { name:'Constellation Tracer', typeName:'Exotic · Ship',        tier:'exotic', slot:'ship',    power:550, hash:2919046972 };
+        var demoSparrow = { name:'Allstar Vector',       typeName:'Exotic · Sparrow',     tier:'exotic', slot:'sparrow', power:550, hash:1528020510 };
+        var demoStats   = { 392767087:123, 4244567218:39, 1735777505:40, 144602215:101, 2996146975:119, 1943323491:62 };
+
+        var warlockChar = {
+          className:'Warlock', light:550,
+          subclass:{ element:'arc', name:'Stormcaller', icon:null },
+          weapons:demoWeapons, armor:demoArmor,
+          ghost:demoGhost, ship:demoShip, sparrow:demoSparrow,
+          stats:demoStats, demo:true
+        };
+
+        // Laad iconen via manifest
+        var allItems = demoWeapons.concat(demoArmor).concat([demoGhost, demoShip, demoSparrow]);
+        Promise.allSettled(allItems.map(function(item) {
+          return fetch('/api/bungie-proxy?action=manifest&hash=' + item.hash + '&type=DestinyInventoryItemDefinition')
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+              var def = d && d.Response;
+              if (def && def.displayProperties && def.displayProperties.icon) {
+                item.icon = 'https://www.bungie.net' + def.displayProperties.icon;
+              }
+              if (def && (def.iconWatermark || def.iconWatermarkShelved)) {
+                item.iconOverlay = 'https://www.bungie.net' + (def.iconWatermark || def.iconWatermarkShelved);
+              }
+            }).catch(function(){});
+        })).then(function() {
+          renderBuildPanel(warlockChar);
+          // Blokkeer klikken op items
           setTimeout(function() {
-            var panel = document.getElementById('buildPanel');
-            if (panel) {
-              panel.querySelectorAll('.item-slot,.gear-slot,.inv-slot,[onclick*="openItemPopup"],[onclick*="openGearPopup"]').forEach(function(el) {
-                el.style.pointerEvents = 'none';
-                el.style.cursor = 'default';
-              });
-            }
-          }, 300);
+            var bp = document.getElementById('buildPanel');
+            if (bp) bp.querySelectorAll('[onclick]').forEach(function(el){
+              el.setAttribute('onclick','');
+              el.style.cursor = 'default';
+            });
+          }, 500);
         });
       } else {
         var emptyChar = { className: idx===0?'Hunter':'Titan', light:550,
