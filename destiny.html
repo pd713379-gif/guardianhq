@@ -3102,20 +3102,20 @@
       if (idx === 1) {
         // Warlock demo — haal iconen op via manifest proxy dan render
         var demoWeapons = [
-          { name:'Praxic Blade',       typeName:'Sword',          tier:'exotic', isExotic:true,  tierType:6, slot:'kinetic', power:550, hash:3974307727 },
-          { name:'IKELOS_SMG_v1.0.3',  typeName:'Submachine Gun', tier:'legendary', isExotic:false, tierType:5, slot:'energy',  power:550, hash:2149683300 },
-          { name:'Retrofit Escapade',  typeName:'Machine Gun',    tier:'legendary', isExotic:false, tierType:5, slot:'heavy',   power:550, hash:3103325054 },
+          { name:'Praxic Blade',       typeName:'Sword',          tier:'exotic', isExotic:true,  tierType:6, slot:'kinetic', power:550, icon:'/img/icons/praxicblade.webp' },
+          { name:'IKELOS_SMG_v1.0.3',  typeName:'Submachine Gun', tier:'legendary', isExotic:false, tierType:5, slot:'energy',  power:550, icon:'/img/icons/ikelos.webp' },
+          { name:'Retrofit Escapade',  typeName:'Machine Gun',    tier:'legendary', isExotic:false, tierType:5, slot:'heavy',   power:550, icon:'/img/icons/retrofit.webp' },
         ];
         var demoArmor = [
-          { name:'Ferropotent Cover',  typeName:'Helmet',         tier:'legendary', isExotic:false, tierType:5, slot:'helmet', power:550, hash:1111198543 },
-          { name:'Getaway Artist',     typeName:'Gauntlets',      tier:'exotic',    isExotic:true,  tierType:6, slot:'arms',   power:550, hash:3281285293 },
-          { name:'Smoke Jumper Vest',  typeName:'Chest Armor',    tier:'legendary', isExotic:false, tierType:5, slot:'chest',  power:550, hash:2481390928 },
-          { name:'Wild Anthem Boots',  typeName:'Leg Armor',      tier:'legendary', isExotic:false, tierType:5, slot:'legs',   power:550, hash:1723933487 },
-          { name:'Ferropotent Bond',   typeName:'Warlock Bond',   tier:'legendary', isExotic:false, tierType:5, slot:'class',  power:550, hash:3490601661 },
+          { name:'Ferropotent Cover',  typeName:'Helmet',         tier:'legendary', isExotic:false, tierType:5, slot:'helmet', power:550, icon:'/img/icons/ferropotentcover.webp' },
+          { name:'Getaway Artist',     typeName:'Gauntlets',      tier:'exotic',    isExotic:true,  tierType:6, slot:'arms',   power:550, icon:'/img/icons/getawayartist.webp' },
+          { name:'Smoke Jumper Vest',  typeName:'Chest Armor',    tier:'legendary', isExotic:false, tierType:5, slot:'chest',  power:550, icon:'/img/icons/smokejumper.webp' },
+          { name:'Wild Anthem Boots',  typeName:'Leg Armor',      tier:'legendary', isExotic:false, tierType:5, slot:'legs',   power:550, icon:'/img/icons/wildanthem.webp' },
+          { name:'Ferropotent Bond',   typeName:'Warlock Bond',   tier:'legendary', isExotic:false, tierType:5, slot:'class',  power:550, icon:'/img/icons/ferropotentbond.webp' },
         ];
-        var demoGhost   = { name:'Phantasmal Shell',     typeName:'Ghost Shell',     tier:'exotic', isExotic:true,  tierType:6, slot:'ghost',   power:550, hash:3722427125 };
-        var demoShip    = { name:'Constellation Tracer', typeName:'Ship',            tier:'exotic', isExotic:true,  tierType:6, slot:'ship',    power:550, hash:2919046972 };
-        var demoSparrow = { name:'Allstar Vector',       typeName:'Sparrow',         tier:'exotic', isExotic:true,  tierType:6, slot:'sparrow', power:550, hash:1528020510 };
+        var demoGhost   = { name:'Phantasmal Shell',     typeName:'Ghost Shell',     tier:'exotic', isExotic:true,  tierType:6, slot:'ghost',   power:550, icon:'/img/icons/phantasmalshell.webp' };
+        var demoShip    = { name:'Constellation Tracer', typeName:'Ship',            tier:'exotic', isExotic:true,  tierType:6, slot:'ship',    power:550, icon:'/img/icons/constellationtracer.webp' };
+        var demoSparrow = { name:'Allstar Vector',       typeName:'Sparrow',         tier:'exotic', isExotic:true,  tierType:6, slot:'sparrow', power:550, icon:'/img/icons/allstarvector.webp' };
         var demoStats   = { resilience:123, strength:39, discipline:40, intellect:101, mobility:119, recovery:62 };
 
         var warlockChar = {
@@ -3126,29 +3126,8 @@
           stats:demoStats, demo:true
         };
 
-        // Laad iconen via manifest
-        var allItems = demoWeapons.concat(demoArmor).concat([demoGhost, demoShip, demoSparrow]);
-        Promise.allSettled(allItems.map(function(item) {
-          return fetch('/api/bungie-proxy?action=manifest&hash=' + item.hash + '&type=DestinyInventoryItemDefinition')
-            .then(function(r){ return r.json(); })
-            .then(function(d){
-              var def = d && d.Response;
-              if (def && def.displayProperties && def.displayProperties.icon) {
-                var rawIcon = 'https://www.bungie.net' + def.displayProperties.icon;
-                // Laad via proxy om CORB te vermijden (geen OAuth bij demo)
-                item.icon = '/api/bungie-proxy?action=img&url=' + encodeURIComponent(rawIcon);
-              }
-              if (def && (def.iconWatermark || def.iconWatermarkShelved)) {
-                var rawOverlay = 'https://www.bungie.net' + (def.iconWatermark || def.iconWatermarkShelved);
-                item.iconOverlay = '/api/bungie-proxy?action=img&url=' + encodeURIComponent(rawOverlay);
-              }
-              // Tier uit manifest
-              if (def && def.inventory) {
-                var t = def.inventory.tierType;
-                item.tier = (t === 6) ? 'exotic' : (t === 5 ? 'legendary' : 'legendary');
-              }
-            }).catch(function(){});
-        })).then(function() {
+        // Iconen zijn lokaal — direct renderen
+        Promise.resolve().then(function() {
           renderBuildPanel(warlockChar);
           // Blokkeer klikken op items
           setTimeout(function() {
