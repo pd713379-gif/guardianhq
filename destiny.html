@@ -277,6 +277,21 @@
         </div>
 
         <!-- ── BUNGIE CONNECT BANNER ── -->
+        <!-- DEMO PROMO BANNER -->
+        <div id="demoPromoBanner" style="display:none;margin-bottom:16px;">
+          <div style="background:linear-gradient(135deg,rgba(88,101,242,0.12),rgba(155,114,207,0.08));border:1px solid rgba(155,114,207,0.3);border-radius:16px;padding:16px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:relative;overflow:hidden;">
+            <div style="position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(155,114,207,0.04),transparent);pointer-events:none;"></div>
+            <div style="font-size:1.8rem;flex-shrink:0;">⚡</div>
+            <div style="flex:1;min-width:200px;">
+              <div style="font-weight:800;font-size:0.95rem;margin-bottom:4px;background:linear-gradient(90deg,#fff,#9b72cf);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Dit is een voorbeeldweergave</div>
+              <div style="font-size:0.78rem;color:rgba(255,255,255,0.45);line-height:1.5;">Je ziet de Warlock loadout van <strong style="color:rgba(255,255,255,0.7);">RemainsNL</strong>. Koppel je eigen Bungie account om jouw Guardian, gear, stats en vault live te zien.</div>
+            </div>
+            <button onclick="startBungieOAuth()" style="background:linear-gradient(135deg,#5865F2,#7c5cff);color:#fff;border:none;padding:11px 22px;border-radius:12px;font-weight:700;font-size:0.85rem;cursor:pointer;white-space:nowrap;box-shadow:0 4px 15px rgba(88,101,242,0.4);transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+              🔗 Koppel Bungie Account
+            </button>
+          </div>
+        </div>
+
         <div id="bungieConnectBanner" style="display:none;margin-bottom:16px;">
           <div style="background:rgba(88,101,242,0.08);border:1px solid rgba(88,101,242,0.25);border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
             <div style="flex:1;min-width:200px;">
@@ -3000,6 +3015,9 @@
       var charCards = document.getElementById('charCards');
       if (!charCards || !_liveChars.length) return;
 
+      // Verberg promo banner bij live data
+      var pb = document.getElementById('demoPromoBanner');
+      if (pb) pb.style.display = 'none';
       charCards.innerHTML = _liveChars.map(function(c, idx) {
         var ei = ELEMENT_ICONS[c.subclass && c.subclass.element] || ELEMENT_ICONS.void;
         var isActive = idx === _activeCharIdx;
@@ -3068,9 +3086,11 @@
           + '</div>'
           + '</div>';
       }).join('');
-      // Toon Warlock als demo + verberg connect banner
+      // Toon Warlock als demo + verberg connect banner, toon promo banner
       var banner = document.getElementById('bungieConnectBanner');
       if (banner) banner.style.display = 'none';
+      var promoBanner = document.getElementById('demoPromoBanner');
+      if (promoBanner) promoBanner.style.display = 'block';
       var panel = document.getElementById('buildPanel');
       if (panel) panel.style.display = 'block';
       selectStaticChar(charCards.children[1], 1);
@@ -3082,21 +3102,21 @@
       if (idx === 1) {
         // Warlock demo — haal iconen op via manifest proxy dan render
         var demoWeapons = [
-          { name:'Praxic Blade',       typeName:'Exotic · Sword',            tier:'exotic',    slot:'kinetic', power:550, hash:3974307727 },
-          { name:'IKELOS_SMG_v1.0.3',  typeName:'Legendary · Submachine Gun',tier:'legendary', slot:'energy',  power:550, hash:2149683300 },
-          { name:'Retrofit Escapade',  typeName:'Legendary · Machine Gun',   tier:'legendary', slot:'heavy',   power:550, hash:3103325054 },
+          { name:'Praxic Blade',       typeName:'Sword',                     tier:'exotic',    slot:'kinetic', power:550, hash:3974307727 },
+          { name:'IKELOS_SMG_v1.0.3',  typeName:'Submachine Gun',            tier:'legendary', slot:'energy',  power:550, hash:2149683300 },
+          { name:'Retrofit Escapade',  typeName:'Machine Gun',               tier:'legendary', slot:'heavy',   power:550, hash:3103325054 },
         ];
         var demoArmor = [
           { name:'Ferropotent Cover',  typeName:'Legendary · Helmet',  tier:'legendary', slot:'helmet', power:550, hash:1111198543 },
-          { name:'Getaway Artist',     typeName:'Exotic · Gauntlets',  tier:'exotic',    slot:'arms',   power:550, hash:3281285293 },
+          { name:'Getaway Artist',     typeName:'Gauntlets',           tier:'exotic',    slot:'arms',   power:550, hash:3281285293 },
           { name:'Smoke Jumper Vest',  typeName:'Legendary · Chest',   tier:'legendary', slot:'chest',  power:550, hash:2481390928 },
           { name:'Wild Anthem Boots',  typeName:'Legendary · Boots',   tier:'legendary', slot:'legs',   power:550, hash:1723933487 },
           { name:'Ferropotent Bond',   typeName:'Legendary · Bond',    tier:'legendary', slot:'class',  power:550, hash:3490601661 },
         ];
-        var demoGhost   = { name:'Phantasmal Shell',     typeName:'Exotic · Ghost Shell', tier:'exotic', slot:'ghost',   power:550, hash:3722427125 };
-        var demoShip    = { name:'Constellation Tracer', typeName:'Exotic · Ship',        tier:'exotic', slot:'ship',    power:550, hash:2919046972 };
-        var demoSparrow = { name:'Allstar Vector',       typeName:'Exotic · Sparrow',     tier:'exotic', slot:'sparrow', power:550, hash:1528020510 };
-        var demoStats   = { 392767087:123, 4244567218:39, 1735777505:40, 144602215:101, 2996146975:119, 1943323491:62 };
+        var demoGhost   = { name:'Phantasmal Shell',     typeName:'Ghost Shell',          tier:'exotic', slot:'ghost',   power:550, hash:3722427125 };
+        var demoShip    = { name:'Constellation Tracer', typeName:'Ship',                 tier:'exotic', slot:'ship',    power:550, hash:2919046972 };
+        var demoSparrow = { name:'Allstar Vector',       typeName:'Sparrow',              tier:'exotic', slot:'sparrow', power:550, hash:1528020510 };
+        var demoStats   = { resilience:123, strength:39, discipline:40, intellect:101, mobility:119, recovery:62 };
 
         var warlockChar = {
           className:'Warlock', light:550,
