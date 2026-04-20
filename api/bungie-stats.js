@@ -257,7 +257,9 @@ export default async function handler(req, res) {
             // Skip armor mods maar niet armor intrinsics/perks
             if (pt.startsWith('enhancements.') || pt.includes('armor.mods')) return;
             const name = pd.displayProperties.name;
+            const desc = pd.displayProperties.description ?? '';
             if (!name || name.startsWith('Empty') || name.startsWith('Default') || name.startsWith('Deprecated')) return;
+            if (desc.includes('No mod currently selected') || desc.includes('not currently selected')) return;
             perks.push({ name: pd.displayProperties.name, desc: pd.displayProperties.description ?? '', icon: pd.displayProperties.icon ? 'https://www.bungie.net' + pd.displayProperties.icon : null });
           } catch {}
         }));
