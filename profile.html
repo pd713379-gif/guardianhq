@@ -69,7 +69,7 @@
     }
     .pstat-label{font-size:0.72rem;color:var(--text3);letter-spacing:1px;text-transform:uppercase}
     .profile-content{max-width:1100px;margin:0 auto;padding:2rem;position:relative;z-index:2}
-    .profile-grid{display:grid;grid-template-columns:1fr 2fr;gap:1.5rem;align-items:stretch}
+    .profile-grid{display:grid;grid-template-columns:1fr 2fr;gap:1.5rem}
     .p-card{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:20px;padding:1.5rem;margin-bottom:1.5rem}
     .p-card:hover{border-color:var(--border2)}
     .p-card-title{font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:1.25rem;display:flex;align-items:center;gap:8px}
@@ -476,14 +476,14 @@
         <!-- Favoriete Wapens -->
         <div class="p-card">
           <div class="p-card-title">🔫 Favoriete Wapens</div>
-          <div id="favWeaponsList" style="max-height:320px;overflow-y:auto;padding-right:4px;">
+          <div id="favWeaponsList" style="max-height:400px;overflow-y:auto;padding-right:4px;">
             <div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Koppel je Bungie account om je favoriete wapens te zien</div>
           </div>
         </div>
       </div>
 
       <!-- RIGHT COLUMN -->
-      <div style="display:flex;flex-direction:column;height:100%;">
+      <div>
         <!-- Loadouts -->
         <div class="p-card">
           <div class="p-card-title">⚡ Mijn Loadouts</div>
@@ -494,9 +494,9 @@
         </div>
 
         <!-- Activiteiten History -->
-        <div class="p-card" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+        <div class="p-card">
           <div class="p-card-title">📊 Recente Activiteiten</div>
-          <div id="recentActivitiesList" style="flex:1;overflow-y:auto;padding-right:4px;min-height:0;">
+          <div id="recentActivitiesList" style="max-height:400px;overflow-y:auto;padding-right:4px;">
             <div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Koppel je Bungie account om je activiteiten te zien</div>
           </div>
         </div>
