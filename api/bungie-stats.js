@@ -240,10 +240,51 @@ export default async function handler(req, res) {
           .sort((a,b) => b.value - a.value)
           .slice(0,9);
       }
+      // Exotic perk lookup — hardcoded voor bekende Xur armor items
+      // Bron: xurtracker.com + Bungie manifest
+      const EXOTIC_PERKS = {
+        "Caliban's Hand":          { name: "Roast 'Em",           desc: "Your Proximity Knife scorches targets it damages with its explosions, or ignites targets on final blow." },
+        "Mechaneer's Tricksleeves":{ name: "Spring-Loaded Mounting", desc: "Increases Sidearm airborne effectiveness, ready speed, and reload speed." },
+        "Rain of Fire":            { name: "Soaring Fusilier",    desc: "Air dodge reloads all of your weapons and improves the airborne effectiveness of Fusion Rifles and Linear Fusion Rifles; final blows with these weapons make you radiant." },
+        "Ophidian Aspect":         { name: "Cobra Totemic",       desc: "Improves melee range as well as ready speed and reload for weapons." },
+        "Hoarfrost-Z":             { name: "Glacial Fortification", desc: "While you have a Stasis Super equipped, your Barricade becomes a wall of Stasis crystals that slows nearby targets when created." },
+        "Eternal Warrior":         { name: "Resolute",            desc: "Arc final blows grant an escalating damage bonus with Arc weapons." },
+        "Getaway Artist":          { name: "Eletromagnetic Capacitor", desc: "Consume your grenade energy to supercharge your Arc Soul, causing it to fly alongside you and fire more rapidly." },
+        "Smoke Jumper Vest":       { name: "Smoke and Mirrors",   desc: "Adds an extra charge to your Smoke Bomb. Defeating targets with Smoke Bomb increases your airborne effectiveness for a brief time." },
+        "Wild Anthem Boots":       { name: "Overland Motion",     desc: "Sprinting on the ground increases your airborne effectiveness and handling when you next go airborne." },
+        "Ferropotent Bond":        { name: "Harmonic Resonance",  desc: "Collecting an Orb of Power or using your class ability significantly improves your weapon handling and reload speed for a brief time." },
+        "Ferropotent Cover":       { name: "Iron Palisade",       desc: "Gain bonus armor while using your class ability. Bonus is greater on harder difficulties." },
+        "Relativism":              { name: "Relativistic Stride", desc: "Dodging near enemies allows you to blink short distances. Using this ability or your dodge reloads your equipped weapon." },
+        "Stoicism":                { name: "Bulwark Charge",      desc: "While Rallying to your Barricade, you gain a temporary overshield. Using your class ability fully reloads your equipped weapons." },
+        "Solipsism":               { name: "Void Recursion",      desc: "Finishers and picking up Void Breach allow you to cast your Rift faster and without interruption." },
+        // Voeg hier wekelijks nieuwe Xur armor toe
+      };
+
       async function getPerks(def) {
+        const itemName = def.displayProperties?.name ?? '';
+        // Probeer eerst hardcoded exotic perk
+        if (EXOTIC_PERKS[itemName]) {
+          const ep = EXOTIC_PERKS[itemName];
+          // Haal icoon op via intrinsic socket hash
+          let icon = null;
+          try {
+            const intrinsicHash = def.sockets?.socketEntries?.find(s =>
+              s.socketTypeHash && s.singleInitialItemHash
+            )?.singleInitialItemHash;
+            if (intrinsicHash) {
+              const r = await fetch(`https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/${intrinsicHash}/`, { headers: { 'X-API-Key': API_KEY } });
+              const d = await r.json();
+              if (d?.Response?.displayProperties?.icon) {
+                icon = 'https://www.bungie.net' + d.Response.displayProperties.icon;
+              }
+            }
+          } catch {}
+          return [{ name: ep.name, desc: ep.desc, icon }];
+        }
+        // Fallback: haal perks op via manifest sockets (voor wapens)
         if (!def.sockets?.socketEntries) return [];
         const hashes = def.sockets.socketEntries
-          .slice(0,8).map(s => s.singleInitialItemHash).filter(Boolean);
+          .slice(0,10).map(s => s.singleInitialItemHash).filter(Boolean);
         const perks = [];
         await Promise.allSettled(hashes.map(async h => {
           try {
@@ -253,17 +294,16 @@ export default async function handler(req, res) {
             if (!pd?.displayProperties?.name) return;
             const pt = pd.plug?.plugCategoryIdentifier ?? '';
             if (pt.includes('tracker') || pt.includes('masterwork') || pt.includes('shader') || pt.includes('ornament') || pt.includes('transmat')) return;
-            if (pt.includes('barrels') || pt.includes('magazines') || pt.includes('scopes') || pt.includes('stocks') || pt.includes('grips') || pt.includes('batteries') || pt.includes('guards') || pt.includes('tubes')) return;
-            // Skip armor mods maar niet armor intrinsics/perks
             if (pt.startsWith('enhancements.') || pt.includes('armor.mods')) return;
+            if (pt.includes('barrels') || pt.includes('magazines') || pt.includes('scopes') || pt.includes('stocks') || pt.includes('grips') || pt.includes('batteries') || pt.includes('guards') || pt.includes('tubes')) return;
             const name = pd.displayProperties.name;
             const desc = pd.displayProperties.description ?? '';
             if (!name || name.startsWith('Empty') || name.startsWith('Default') || name.startsWith('Deprecated')) return;
             if (desc.includes('No mod currently selected') || desc.includes('not currently selected')) return;
-            perks.push({ name: pd.displayProperties.name, desc: pd.displayProperties.description ?? '', icon: pd.displayProperties.icon ? 'https://www.bungie.net' + pd.displayProperties.icon : null });
+            perks.push({ name, desc, icon: pd.displayProperties.icon ? 'https://www.bungie.net' + pd.displayProperties.icon : null });
           } catch {}
         }));
-        return perks.filter(p => p.name.length > 1).slice(0,6);
+        return perks.filter(p => p.name.length > 1).slice(0, 4);
       }
   // Stap 1: probeer live items via GetPublicVendors (armor werkt, wapens soms niet)
   // Stap 2: vul aan met bekende wapen hashes van deze week via Bungie Manifest
