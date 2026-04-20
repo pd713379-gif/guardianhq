@@ -733,7 +733,7 @@ export default async function handler(req, res) {
       //    302 = ItemSockets (uitgeruste perks/mods per item)
       //    304 = ItemStats (weapon stats: RPM, Range, etc.)
       const profile = await bFetch(
-        `/Destiny2/${mType}/Profile/${mId}/?components=102,201,300,302,304,309`,
+        `/Destiny2/${mType}/Profile/${mId}/?components=102,201,300,302,304,305,309`,
         token
       );
 
@@ -743,6 +743,11 @@ export default async function handler(req, res) {
       const socketsData   = profile?.itemComponents?.sockets?.data ?? {};
       const statsData     = profile?.itemComponents?.stats?.data ?? {};
       const plugsData     = profile?.itemComponents?.reusablePlugs?.data ?? {};
+
+      // Debug: hoeveel items hebben sockets?
+      const socketCount = Object.keys(socketsData).length;
+      const plugCount   = Object.keys(plugsData).length;
+      console.log('[vault] socketsData items:', socketCount, '| plugsData items:', plugCount);
 
       // Vault bucket hash
       const VAULT_BUCKET = 138197802;
@@ -840,8 +845,18 @@ export default async function handler(req, res) {
         const damageType  = instance.damageType ?? def.defaultDamageType ?? 0;
         const bucketHash  = def.inventory?.bucketTypeHash ?? 0;
 
-        // ── Perks via sockets ──────────────────────────────────
-        const sockets     = socketsData[raw.itemInstanceId]?.sockets ?? [];
+        // ── Perks via sockets of manifest definitie ──────────
+        // Vault items zijn niet uitgerust → live sockets zijn leeg
+        // Gebruik manifest sockets als primaire bron, live sockets als aanvulling
+        const liveSockets = socketsData[raw.itemInstanceId]?.sockets ?? [];
+        const manifestSockets = def.sockets?.socketEntries ?? [];
+
+        // Combineer: haal plugHash uit live socket (uitgeruste perk) of manifest (default plug)
+        const sockets = manifestSockets.map((entry, idx) => {
+          const live = liveSockets[idx];
+          return { plugHash: live?.plugHash ?? entry.singleInitialItemHash ?? null };
+        }).filter(s => s.plugHash);
+
         const perks        = [];
         const intrinsicPerk = null;
 
@@ -1054,7 +1069,10 @@ export default async function handler(req, res) {
           perks:          regularPerks.slice(0, 6),
           mods:           vaultMods.filter(Boolean),
           cosmetics:      vaultCosmetics,
+          flavorText:     def.flavorText ?? '',
+          slotName:       BUCKET_NAMES[bucketHash] ?? '',
           // stats
+          stats:          weaponStats,
           weaponStats,
           armorStatList,
           armorTotal,
@@ -1087,6 +1105,23 @@ export default async function handler(req, res) {
   }
 
   // IMAGE PROXY — laadt Bungie afbeeldingen via eigen server (voorkomt CORB)
+  if (action === 'manifest') {
+    const hash = req.query.hash;
+    const type = req.query.type || 'DestinyInventoryItemDefinition';
+    if (!hash) return res.status(400).json({ error: 'hash required' });
+    try {
+      const r = await fetch(
+        `https://www.bungie.net/Platform/Destiny2/Manifest/${type}/${hash}/`,
+        { headers: { 'X-API-Key': API_KEY } }
+      );
+      const d = await r.json();
+      res.setHeader('Cache-Control', 's-maxage=86400');
+      return res.status(200).json(d);
+    } catch(e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
   if (action === 'img') {
     const imgUrl = req.query.url;
     if (!imgUrl || !imgUrl.startsWith('https://www.bungie.net/')) {
