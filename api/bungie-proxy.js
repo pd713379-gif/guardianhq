@@ -780,27 +780,58 @@ export default async function handler(req, res) {
       // Haal alle unieke itemHashes op
       const hashSet = new Set(rawItems.map(i => i.itemHash));
 
-      // Voeg ook alle socket plug hashes toe (sockets + reusablePlugs) zodat we perk/mod namen hebben
+      // Voeg ook alle socket plug hashes toe zodat we perk/mod namen hebben
       const plugHashSet = new Set();
       for (const raw of rawItems) {
-        // Uitgeruste sockets (302)
+        // Uitgeruste sockets via component 302 (live)
         const sockets = socketsData[raw.itemInstanceId]?.sockets ?? [];
         for (const s of sockets) {
           if (s.plugHash) plugHashSet.add(s.plugHash);
         }
-        // Alle beschikbare plugs per socket (304 reusablePlugs) — voor wapen-traits
+        // Alle beschikbare plugs via component 305 reusablePlugs
         const plugSlots = plugsData[raw.itemInstanceId]?.plugs ?? {};
         for (const plugArr of Object.values(plugSlots)) {
           for (const p of (plugArr ?? [])) {
             if (p?.plugItemHash) plugHashSet.add(p.plugItemHash);
           }
         }
+
       }
 
-      const allHashes = [...new Set([...hashSet, ...plugHashSet])];
-
-      // 3. Manifest ophalen voor alle hashes in chunks van 80
+      // 3a. Haal eerst item defs op zodat we manifest sockets kunnen lezen
       const defs = {};
+      const CHUNK = 80;
+      await Promise.allSettled([...hashSet].map(async hash => {
+        try {
+          const r = await fetch(
+            `https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/${hash}/`,
+            { headers: { 'X-API-Key': API_KEY } }
+          );
+          const d = await r.json();
+          if (d?.Response) defs[hash] = d.Response;
+        } catch {}
+      }));
+
+      // 3b. Nu manifest socket default plugs toevoegen aan plugHashSet
+      for (const raw of rawItems) {
+        const itemDef = defs[raw.itemHash];
+        if (!itemDef?.sockets?.socketEntries) continue;
+        for (const entry of itemDef.sockets.socketEntries) {
+          if (entry.singleInitialItemHash) plugHashSet.add(entry.singleInitialItemHash);
+          for (const r of (entry.reusablePlugItems ?? [])) {
+            if (r.plugItemHash) plugHashSet.add(r.plugItemHash);
+          }
+        }
+      }
+
+      // Haal nu ook de plug defs op
+      const plugOnlyHashes = [...plugHashSet].filter(h => !defs[h]);
+      console.log('[vault] plugHashSet size:', plugHashSet.size, '| nieuwe plug hashes:', plugOnlyHashes.length);
+
+      const allHashes = plugOnlyHashes;
+
+      // 3. Manifest ophalen voor alle plug hashes
+      const CHUNK = 80;
       const CHUNK = 80;
       for (let i = 0; i < allHashes.length; i += CHUNK) {
         const chunk = allHashes.slice(i, i + CHUNK);
