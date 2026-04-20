@@ -442,7 +442,7 @@
     <div class="profile-grid">
 
       <!-- LEFT COLUMN -->
-      <div style="display:flex;flex-direction:column;">
+      <div>
         <!-- Characters -->
         <div class="p-card">
           <div class="p-card-title">⚔️ Characters</div>
@@ -474,7 +474,7 @@
         </div>
 
         <!-- Favoriete Wapens -->
-        <div class="p-card" style="flex:1;">
+        <div class="p-card">
           <div class="p-card-title">🔫 Favoriete Wapens</div>
           <div id="favWeaponsList" style="max-height:320px;overflow-y:auto;padding-right:4px;">
             <div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Koppel je Bungie account om je favoriete wapens te zien</div>
@@ -483,7 +483,7 @@
       </div>
 
       <!-- RIGHT COLUMN -->
-      <div>
+      <div style="display:flex;flex-direction:column;height:100%;">
         <!-- Loadouts -->
         <div class="p-card">
           <div class="p-card-title">⚡ Mijn Loadouts</div>
@@ -494,9 +494,9 @@
         </div>
 
         <!-- Activiteiten History -->
-        <div class="p-card" style="display:flex;flex-direction:column;flex:1;">
+        <div class="p-card" style="flex:1;display:flex;flex-direction:column;min-height:0;">
           <div class="p-card-title">📊 Recente Activiteiten</div>
-          <div id="recentActivitiesList" style="max-height:320px;overflow-y:auto;padding-right:4px;">
+          <div id="recentActivitiesList" style="flex:1;overflow-y:auto;padding-right:4px;min-height:0;">
             <div style="color:rgba(255,255,255,0.3);font-size:0.8rem;padding:12px 0;text-align:center;">Koppel je Bungie account om je activiteiten te zien</div>
           </div>
         </div>
