@@ -254,11 +254,10 @@ export default async function handler(req, res) {
             const pt = pd.plug?.plugCategoryIdentifier ?? '';
             if (pt.includes('tracker') || pt.includes('masterwork') || pt.includes('shader') || pt.includes('ornament') || pt.includes('transmat')) return;
             if (pt.includes('barrels') || pt.includes('magazines') || pt.includes('scopes') || pt.includes('stocks') || pt.includes('grips') || pt.includes('batteries') || pt.includes('guards') || pt.includes('tubes')) return;
-            // Skip lege mod sockets en armor mods
-            if (pt.includes('enhancements') || pt.includes('mods') || pt.startsWith('v400.plugs.armor.mods')) return;
-            if (!pd.displayProperties.description) return; // lege sockets overslaan
+            // Skip armor mods maar niet armor intrinsics/perks
+            if (pt.startsWith('enhancements.') || pt.includes('armor.mods')) return;
             const name = pd.displayProperties.name;
-            if (name.includes('Empty') || name.includes('Default') || name.includes('Socket')) return;
+            if (!name || name.startsWith('Empty') || name.startsWith('Default') || name.startsWith('Deprecated')) return;
             perks.push({ name: pd.displayProperties.name, desc: pd.displayProperties.description ?? '', icon: pd.displayProperties.icon ? 'https://www.bungie.net' + pd.displayProperties.icon : null });
           } catch {}
         }));
