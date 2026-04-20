@@ -225,6 +225,40 @@ export default async function handler(req, res) {
   }
 
   // ── 6. XUR FEATURED WAPENS ──
+      const STAT_DEFS = {
+        4284893193:'RPM', 2523465841:'Range', 1240592695:'Impact',
+        155624089:'Stability', 1345609583:'Handling', 943549884:'Reload Speed',
+        1931675084:'Magazine', 3555269338:'Aim Assist', 2714457168:'Recoil Dir',
+        1885944937:'Accuracy', 3871231066:'Charge Time', 2961396640:'Blast Radius',
+        3461344188:'Velocity', 4043523819:'Swing Speed', 2837207746:'Guard Resistance',
+      };
+      function getStats(def) {
+        if (!def.stats?.stats) return [];
+        return Object.entries(def.stats.stats)
+          .map(([k,v]) => ({ label: STAT_DEFS[k], value: v.value }))
+          .filter(s => s.label && s.value > 0)
+          .sort((a,b) => b.value - a.value)
+          .slice(0,9);
+      }
+      async function getPerks(def) {
+        if (!def.sockets?.socketEntries) return [];
+        const hashes = def.sockets.socketEntries
+          .slice(0,8).map(s => s.singleInitialItemHash).filter(Boolean);
+        const perks = [];
+        await Promise.allSettled(hashes.map(async h => {
+          try {
+            const r = await fetch(`https://www.bungie.net/Platform/Destiny2/Manifest/DestinyInventoryItemDefinition/${h}/`, { headers: { 'X-API-Key': API_KEY } });
+            const d = await r.json();
+            const pd = d?.Response;
+            if (!pd?.displayProperties?.name) return;
+            const pt = pd.plug?.plugCategoryIdentifier ?? '';
+            if (pt.includes('tracker') || pt.includes('masterwork') || pt.includes('shader') || pt.includes('ornament')) return;
+            if (pt.includes('barrels') || pt.includes('magazines') || pt.includes('scopes') || pt.includes('stocks') || pt.includes('grips') || pt.includes('batteries') || pt.includes('guards') || pt.includes('tubes')) return;
+            perks.push({ name: pd.displayProperties.name, desc: pd.displayProperties.description ?? '', icon: pd.displayProperties.icon ? 'https://www.bungie.net' + pd.displayProperties.icon : null });
+          } catch {}
+        }));
+        return perks.filter(p => p.name.length > 1).slice(0,6);
+      }
   // Stap 1: probeer live items via GetPublicVendors (armor werkt, wapens soms niet)
   // Stap 2: vul aan met bekende wapen hashes van deze week via Bungie Manifest
   try {
@@ -274,13 +308,18 @@ export default async function handler(req, res) {
           const tierType = def.inventory?.tierType ?? 5;
           const iconPath = def.displayProperties?.icon ?? null;
           const watermark = def.iconWatermark || def.iconWatermarkShelved || null;
+          const itemStats  = getStats(def);
+          const itemPerks  = await getPerks(def);
           liveItems.push({
             hash, name: def.displayProperties?.name ?? '—',
             typeName: def.itemTypeDisplayName ?? '',
+            flavorText: def.flavorText ?? '',
             icon: iconPath ? 'https://www.bungie.net' + iconPath : null,
             iconOverlay: watermark ? 'https://www.bungie.net' + watermark : null,
             tierType, isExotic: tierType === 6,
             itemType: def.itemType,
+            stats: itemStats,
+            perks: itemPerks,
           });
         } catch {}
       }));
@@ -309,13 +348,18 @@ export default async function handler(req, res) {
         const tierType = def.inventory?.tierType ?? 5;
         const iconPath = def.displayProperties?.icon ?? null;
         const watermark = def.iconWatermark || def.iconWatermarkShelved || null;
+        const itemStats2 = getStats(def);
+        const itemPerks2 = await getPerks(def);
         liveItems.push({
           hash, name: def.displayProperties?.name ?? '—',
           typeName: def.itemTypeDisplayName ?? '',
+          flavorText: def.flavorText ?? '',
           icon: iconPath ? 'https://www.bungie.net' + iconPath : null,
           iconOverlay: watermark ? 'https://www.bungie.net' + watermark : null,
           tierType, isExotic: tierType === 6,
           itemType: def.itemType,
+          stats: itemStats2,
+          perks: itemPerks2,
         });
         console.log('[xur] wapen toegevoegd via hash:', def.displayProperties?.name);
       } catch {}
