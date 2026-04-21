@@ -1,220 +1,96 @@
 // ============================================================
-// GUARDIANHQ — AUTH.JS
-// Firebase Authentication + Firestore + EmailJS
+// GUARDIANHQ — api/bungie-auth.js
+// Vercel Serverless Function — Bungie OAuth + API proxy
 // ============================================================
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBfda3IcQk-bbYHOqKhU4r8wMtOCPjTztc",
-  authDomain: "guardianhq-db216.firebaseapp.com",
-  projectId: "guardianhq-db216",
-  storageBucket: "guardianhq-db216.firebasestorage.app",
-  messagingSenderId: "370272351292",
-  appId: "1:370272351292:web:4496bd3fbad791e0fa7f39"
-};
+export default async function handler(req, res) {
+  // ── CORS & Headers ────────────────────────────────────────
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Content-Type', 'application/json');
 
-const EMAILJS_SERVICE_ID          = "service_usefhy9";
-const EMAILJS_TEMPLATE_ID         = "template_kq2yx3d";   // Registratie-email
-const EMAILJS_CONTACT_TEMPLATE_ID = "template_f18o54r";   // Contact-formulier (guardianhq_contact)
-const EMAILJS_PUBLIC_KEY          = "Kzu6sQd_AB5cDC0nU";
-const ADMIN_EMAIL                 = "info.RemainsNL@gmail.com";
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-let auth = null;
-let db   = null;
-let firebaseReady = false;
+  // ── Configuratie ──────────────────────────────────────────
+  const CLIENT_ID     = process.env.BUNGIE_CLIENT_ID;
+  const CLIENT_SECRET = process.env.BUNGIE_CLIENT_SECRET;
+  const API_KEY       = process.env.BUNGIE_API_KEY;
 
-function initFirebase() {
+  if (!CLIENT_ID || !CLIENT_SECRET || !API_KEY) {
+    return res.status(500).json({ error: 'Server niet geconfigureerd. Omgevingsvariabelen ontbreken.' });
+  }
+
   try {
-    if (typeof firebase !== 'undefined') {
-      if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
+    let body = req.body;
+    if (typeof body === 'string') {
+      try { body = JSON.parse(body); } catch { return res.status(400).json({ error: 'Ongeldige JSON in request body.' }); }
+    }
+    if (!body || typeof body !== 'object') {
+      return res.status(400).json({ error: 'Request body ontbreekt of is ongeldig.' });
+    }
+
+    const { code, refresh_token, grant_type, action, endpoint, access_token, post_body } = body;
+
+    // ── API PROXY ─────────────────────────────────────────────
+    if (action === 'api') {
+      if (!endpoint) return res.status(400).json({ error: 'Endpoint is verplicht voor api-actie.' });
+      if (!access_token) return res.status(400).json({ error: 'access_token is verplicht voor api-actie.' });
+
+      const url = 'https://www.bungie.net/Platform' + endpoint;
+      const isPost = !!post_body;
+      console.log('[bungie-auth] API proxy:', isPost ? 'POST' : 'GET', url);
+
+      const apiRes = await fetch(url, {
+        method:  isPost ? 'POST' : 'GET',
+        headers: {
+          'X-API-Key':     API_KEY,
+          'Authorization': 'Bearer ' + access_token,
+          ...(isPost ? { 'Content-Type': 'application/json' } : {}),
+        },
+        ...(isPost ? { body: JSON.stringify(post_body) } : {}),
+      });
+
+      const ct = apiRes.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) {
+        const text = await apiRes.text();
+        console.error('[bungie-auth] Geen JSON terug. Status:', apiRes.status, text.slice(0, 300));
+        return res.status(500).json({ error: 'Bungie API stuurde geen geldige JSON terug.' });
       }
-      auth = firebase.auth();
-      db   = firebase.firestore();
-      firebaseReady = true;
-      console.log("Firebase + Firestore klaar");
+
+      const data = await apiRes.json();
+      if (!apiRes.ok) {
+        console.error('[bungie-auth] Bungie API fout:', apiRes.status, data);
+        return res.status(apiRes.status).json({ error: 'Bungie API fout.', detail: data });
+      }
+      return res.status(200).json(data);
     }
-  } catch(e) {
-    console.warn("Firebase fout:", e);
-  }
-}
 
-function initEmailJS() {
-  try {
-    if (typeof emailjs !== 'undefined') {
-      emailjs.init(EMAILJS_PUBLIC_KEY);
+    // ── TOKEN EXCHANGE ────────────────────────────────────────
+    let tokenBody;
+    if (grant_type === 'refresh_token' && refresh_token) {
+      tokenBody = new URLSearchParams({ grant_type: 'refresh_token', refresh_token, client_id: CLIENT_ID, client_secret: CLIENT_SECRET });
+    } else if (code) {
+      tokenBody = new URLSearchParams({ grant_type: 'authorization_code', code, client_id: CLIENT_ID, client_secret: CLIENT_SECRET });
+    } else {
+      return res.status(400).json({ error: 'Geen geldige actie, code of refresh_token meegestuurd.' });
     }
-  } catch(e) {}
-}
 
-async function registerUser(username, email, password) {
-
-  if (!firebaseReady) {
-    throw new Error("Verbinding met de server mislukt. Controleer je internetverbinding en probeer het opnieuw.");
-  }
-
-  // Check gebruikersnaam in Firestore
-  const doc = await db.collection('usernames').doc(username.toLowerCase()).get();
-  if (doc.exists) {
-    throw new Error("Deze gebruikersnaam is al in gebruik. Kies een andere naam.");
-  }
-
-  // Firebase account aanmaken
-  let cred;
-  try {
-    cred = await auth.createUserWithEmailAndPassword(email, password);
-    await cred.user.updateProfile({ displayName: username });
-  } catch(e) {
-    const msgs = {
-      'auth/email-already-in-use': 'Dit e-mailadres is al in gebruik.',
-      'auth/weak-password':        'Wachtwoord is te zwak (minimaal 6 tekens).',
-      'auth/invalid-email':        'Ongeldig e-mailadres.',
-    };
-    throw new Error(msgs[e.code] || e.message);
-  }
-
-  // Gebruikersnaam opslaan in Firestore
-  await db.collection('usernames').doc(username.toLowerCase()).set({
-    username:  username,
-    email:     email,
-    uid:       cred.user.uid,
-    createdAt: new Date().toISOString()
-  });
-
-  localStorage.setItem('ghq_current_user', JSON.stringify({ username, email }));
-  await sendRegistrationEmail(username, email);
-  return { username, email };
-}
-
-async function loginUser(email, password) {
-  if (!firebaseReady) {
-    throw new Error("Verbinding met de server mislukt. Controleer je internetverbinding en probeer het opnieuw.");
-  }
-
-  try {
-    const cred     = await auth.signInWithEmailAndPassword(email, password);
-    const username = cred.user.displayName || email.split('@')[0];
-    localStorage.setItem('ghq_current_user', JSON.stringify({ username, email }));
-    return { username, email };
-  } catch(e) {
-    const msgs = {
-      'auth/user-not-found':     'Geen account gevonden met dit e-mailadres.',
-      'auth/wrong-password':     'Onjuist wachtwoord.',
-      'auth/invalid-email':      'Ongeldig e-mailadres.',
-      'auth/too-many-requests':  'Te veel pogingen. Probeer later opnieuw.',
-      'auth/invalid-credential': 'E-mailadres of wachtwoord onjuist.',
-    };
-    throw new Error(msgs[e.code] || e.message);
-  }
-}
-
-async function sendRegistrationEmail(username, email) {
-  try {
-    if (typeof emailjs === 'undefined') return;
-    const siteUrl = "https://genuine-semolina-78d633.netlify.app";
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-      to_email: email, to_name: username, from_name: "GuardianHQ",
-      reply_to: ADMIN_EMAIL, subject: "Welkom bij GuardianHQ!",
-      gebruikersnaam: username, emailadres: email, site_url: siteUrl,
+    const tokenRes  = await fetch('https://www.bungie.net/Platform/app/oauth/token/', {
+      method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: tokenBody.toString(),
     });
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-      to_email: ADMIN_EMAIL, to_name: "Admin", from_name: "GuardianHQ Systeem",
-      reply_to: email, subject: "Nieuwe registratie: " + username,
-      gebruikersnaam: username, emailadres: email, site_url: siteUrl,
+    const tokenData = await tokenRes.json();
+    if (!tokenRes.ok) return res.status(tokenRes.status).json({ error: tokenData.error_description || 'Token exchange mislukt.' });
+
+    return res.status(200).json({
+      access_token:  tokenData.access_token,
+      refresh_token: tokenData.refresh_token,
+      expires_in:    tokenData.expires_in,
+      membership_id: tokenData.membership_id,
     });
-  } catch(e) {
-    console.warn("E-mail fout:", e);
+
+  } catch (err) {
+    console.error('[bungie-auth] Onverwachte fout:', err);
+    return res.status(500).json({ error: 'Onverwachte server fout: ' + err.message });
   }
 }
-
-// ── Contact formulier ─────────────────────────────────────────
-// Variabelen die matchen met emailtemplate_contact.html:
-//   {{from_name}}  — naam van de afzender
-//   {{reply_to}}   — e-mailadres van de afzender
-//   {{subject}}    — onderwerp
-//   {{message}}    — berichttekst
-async function sendContactEmail({ from_name, reply_to, subject, message }) {
-  if (typeof emailjs === 'undefined') throw new Error("EmailJS niet geladen.");
-  await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_CONTACT_TEMPLATE_ID, {
-    from_name,
-    reply_to,
-    subject,
-    message,
-    to_email:  ADMIN_EMAIL,
-    site_name: "GuardianHQ",
-  });
-}
-
-function logoutUser() {
-  localStorage.removeItem('ghq_current_user');
-  if (firebaseReady && auth) auth.signOut().catch(() => {});
-  window.location.href = 'index.html';
-}
-
-function getCurrentUser() {
-  try { return JSON.parse(localStorage.getItem('ghq_current_user')); }
-  catch { return null; }
-}
-
-function getNavAvatarHtml(user) {
-  const type  = localStorage.getItem('ghq_avatar_type') || 'icon';
-  const photo = localStorage.getItem('ghq_avatar_photo');
-  const emoji = localStorage.getItem('ghq_avatar') || '';
-  const initials = user ? user.username.slice(0,2).toUpperCase() : '?';
-  if (type === 'photo' && photo) {
-    return `<div class="nav-avatar" style="padding:0;overflow:hidden"><img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`;
-  } else if (emoji && emoji !== '⬡') {
-    return `<div class="nav-avatar" style="font-size:0.95rem">${emoji}</div>`;
-  } else {
-    return `<div class="nav-avatar">${initials}</div>`;
-  }
-}
-
-function updateNav() {
-  const user    = getCurrentUser();
-  const navAuth = document.getElementById('navAuth');
-  const navSpacer = document.getElementById('navSpacer');
-  if (!navAuth) return;
-
-  // Destiny 2 en Profiel alleen zichtbaar als ingelogd
-  const navLinks = document.querySelectorAll('.nav-center a');
-  navLinks.forEach(link => {
-    const href = link.getAttribute('href') || '';
-    const isProtected = href.includes('destiny.html') || href.includes('profile.html') || href.includes('item-manager.html');
-    if (isProtected) {
-      link.style.display = user ? '' : 'none';
-    }
-  });
-
-  if (user) {
-    navAuth.innerHTML = `
-      <div class="nav-user">
-        ${getNavAvatarHtml(user)}
-        <span class="nav-username">${user.username}</span>
-      </div>
-      <button class="btn btn-ghost" onclick="logoutUser()">Uitloggen</button>`;
-  } else {
-    navAuth.innerHTML = `
-      <a href="login.html" class="btn btn-ghost">Inloggen</a>
-      <a href="register.html" class="btn btn-solid">Registreren</a>`;
-  }
-}
-
-function requireLogin(redirectTo) {
-  const user = getCurrentUser();
-  if (!user) { window.location.href = redirectTo || 'login.html'; return false; }
-  return true;
-}
-
-function showToast(msg) {
-  let t = document.getElementById('ghq-toast');
-  if (!t) { t = document.createElement('div'); t.id = 'ghq-toast'; t.className = 'toast'; document.body.appendChild(t); }
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3500);
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  initFirebase();
-  initEmailJS();
-  updateNav();
-});
