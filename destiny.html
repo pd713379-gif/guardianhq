@@ -105,6 +105,7 @@
         <div class="d-tab active"  onclick="switchTab('overview')">Overzicht</div>
         <div class="d-tab"         onclick="switchTab('dim')">⚔️ Guardian View</div>
         <div class="d-tab"         onclick="switchTab('loadouts')">Loadouts</div>
+        <div class="d-tab"         onclick="switchTab('itemmanager')">🎒 Item Manager</div>
         <div class="d-tab"         onclick="switchTab('vault')">Vault</div>
         <div class="d-tab"         onclick="switchTab('wishlist')">Wishlist</div>
       </div>
@@ -408,6 +409,85 @@
             <button class="btn btn-ghost"  onclick="showToast('Optimizer voor Nightfall gestart!')">⚡ Nightfall Build</button>
           </div>
         </div>
+      </div>
+
+
+      <!-- ── ITEM MANAGER ── -->
+      <div class="d-pane" id="pane-itemmanager">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:1rem">
+          <div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:4px">🎒 Item Manager</div>
+            <div style="font-size:0.875rem;color:var(--text2)">Verplaats en equip wapens & armor tussen characters en vault</div>
+          </div>
+          <button class="im-btn" onclick="imReloadAll()">🔄 Herladen</button>
+        </div>
+
+        <div class="d-card glass" style="padding:10px;margin-bottom:10px;font-size:0.78rem;color:rgba(200,220,255,0.7);background:rgba(79,143,255,0.06);border-color:rgba(79,143,255,0.2)">
+          ℹ️ Klik op een item om het te selecteren. Gebruik dan de actie-balk onderaan om te verplaatsen of equippen. De speler moet in Orbit of Tower zijn.
+        </div>
+
+        <!-- Geen Bungie koppeling -->
+        <div id="imLockedMsg" style="display:none;text-align:center;padding:4rem 2rem">
+          <div style="font-size:2.5rem;margin-bottom:1rem">🔗</div>
+          <div style="font-size:1.1rem;font-weight:700;margin-bottom:0.5rem">Bungie account vereist</div>
+          <div style="color:var(--text2);font-size:0.9rem;margin-bottom:1.5rem">Koppel je Bungie account via je Profiel om de Item Manager te gebruiken.</div>
+          <a href="profile.html" class="btn btn-solid" style="padding:10px 24px">Naar Profiel →</a>
+        </div>
+
+        <!-- Loading -->
+        <div id="imLoadingMsg" style="display:none;text-align:center;padding:4rem 2rem">
+          <div class="im-spinner" style="margin:0 auto 1rem"></div>
+          <div style="color:var(--text2);font-size:0.85rem" id="imLoadingText">Inventory laden...</div>
+        </div>
+
+        <!-- Content -->
+        <div id="imMainContent" style="display:none">
+          <!-- Character tabs -->
+          <div class="im-char-tabs" id="imCharTabs" style="margin-bottom:1rem"></div>
+
+          <!-- Layout: character links, vault rechts -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+
+            <!-- Character panel -->
+            <div class="d-card glass" style="padding:1rem">
+              <div style="font-size:0.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:0.8rem">
+                👤 Character Inventory
+              </div>
+              <div id="imCharContent"></div>
+            </div>
+
+            <!-- Vault panel -->
+            <div class="d-card glass" style="padding:1rem">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem">
+                <div style="font-size:0.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2)">
+                  🏦 Vault <span id="imVaultCount" style="background:rgba(255,255,255,0.08);border-radius:20px;padding:1px 8px;font-size:0.68rem;color:var(--text3)">0</span>
+                </div>
+              </div>
+              <div style="display:flex;gap:5px;margin-bottom:0.7rem;flex-wrap:wrap">
+                <input type="text" id="imVaultSearch" placeholder="🔍 Zoek vault..." oninput="imFilterVault()"
+                  style="flex:1;min-width:100px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:7px;padding:5px 9px;color:#fff;font-size:0.78rem;outline:none;">
+                <button class="vf-btn active" onclick="imSetVaultFilter('all',this)">Alles</button>
+                <button class="vf-btn"        onclick="imSetVaultFilter('weapons',this)">Wapens</button>
+                <button class="vf-btn"        onclick="imSetVaultFilter('armor',this)">Armor</button>
+              </div>
+              <div id="imVaultGrid" style="display:flex;flex-wrap:wrap;gap:5px;max-height:400px;overflow-y:auto"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Actie balk -->
+        <div id="imActionBar" style="display:none;margin-top:1rem">
+          <div class="d-card glass" style="padding:0.8rem 1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;border-color:rgba(212,168,67,0.3)">
+            <img id="imActionIcon" src="" style="width:40px;height:40px;border-radius:7px;object-fit:cover" onerror="this.style.display='none'">
+            <div style="flex:1">
+              <div id="imActionName" style="font-weight:700;font-size:0.9rem">—</div>
+              <div id="imActionSub" style="font-size:0.75rem;color:var(--text2)">—</div>
+            </div>
+            <div id="imActionBtns" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+          </div>
+        </div>
+
       </div>
 
       <!-- ── VAULT ── -->
@@ -3775,6 +3855,421 @@
       strand:    `<svg viewBox="0 0 32 32" width="32" height="32"><path d="M5 16 Q9 7 16 12 Q23 17 27 8" stroke="#31c48d" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M5 20 Q9 11 16 16 Q23 21 27 12" stroke="#31c48d" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.6"/><path d="M5 24 Q9 15 16 20 Q23 25 27 16" stroke="#31c48d" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.35"/></svg>`,
     };
 
+  </script>
+
+
+  <!-- ============================================================ -->
+  <!-- ITEM MANAGER JS (inline in destiny.html)                     -->
+  <!-- ============================================================ -->
+  <script>
+  var IM = {
+    characters:    [],
+    activeCharId:  null,
+    charInventory: {},
+    vaultItems:    [],
+    selectedItem:  null,
+    vaultFilter:   'all',
+    manifestCache: {},
+    IMG:           '/api/bungie-proxy?action=img&url=',
+    BUCKETS: {
+      1498876634: { label: 'Kinetic',    group: 'weapons' },
+      2465295065: { label: 'Energy',     group: 'weapons' },
+      953998645:  { label: 'Power',      group: 'weapons' },
+      3448274439: { label: 'Helmet',     group: 'armor'   },
+      3551918588: { label: 'Gauntlets',  group: 'armor'   },
+      14239492:   { label: 'Chest',      group: 'armor'   },
+      20886954:   { label: 'Legs',       group: 'armor'   },
+      1585787867: { label: 'Class Item', group: 'armor'   },
+    },
+    CLASS_NAMES: { 0: 'Titan', 1: 'Hunter', 2: 'Warlock' },
+    CLASS_ICONS: { 0: 'img/icons/titanicon.png', 1: 'img/icons/huntericon.png', 2: 'img/icons/warlockicon.png' },
+  };
+
+  function imImg(path) {
+    if (!path) return '';
+    return IM.IMG + encodeURIComponent('https://www.bungie.net' + path);
+  }
+
+  async function imGetManifest(hash) {
+    if (IM.manifestCache[hash]) return IM.manifestCache[hash];
+    try {
+      var d = await bungieGet('/Destiny2/Manifest/DestinyInventoryItemDefinition/' + hash + '/');
+      IM.manifestCache[hash] = d;
+      return d;
+    } catch(e) { return null; }
+  }
+
+  function imRenderItemCard(item, source, charId) {
+    var sel     = IM.selectedItem && IM.selectedItem.item.itemInstanceId === item.itemInstanceId;
+    var classes = 'im-item' + (sel ? ' selected' : '') + (item.isEquipped ? ' equipped' : '');
+    var icon    = item.icon ? imImg(item.icon) : '';
+    var wm      = item.iconWatermark ? imImg(item.iconWatermark) : '';
+    return '<div class="' + classes + '" '
+      + 'onclick="imSelectItem(this,'' + item.itemInstanceId + '','' + source + '','' + (charId||'') + '')"'
+      + ' title="' + (item.name||'') + (item.primaryStat ? ' · ⚡'+item.primaryStat : '') + '">'
+      + (icon ? '<img class="item-icon" src="' + icon + '" loading="lazy">' : '')
+      + (wm   ? '<img class="item-watermark" src="' + wm   + '" loading="lazy">' : '')
+      + (item.isEquipped  ? '<div class="item-equipped-badge"></div>' : '')
+      + (item.tierType===6 ? '<div class="item-exotic-border"></div>'  : '')
+      + (item.primaryStat ? '<div class="item-power">' + item.primaryStat + '</div>' : '')
+      + '</div>';
+  }
+
+  function imRenderChar(charId) {
+    var el  = document.getElementById('imCharContent');
+    var inv = IM.charInventory[charId];
+    if (!inv) { el.innerHTML = '<div style="color:var(--text3);padding:1rem;font-size:0.82rem">Geen data</div>'; return; }
+
+    var weaponBuckets = [1498876634, 2465295065, 953998645];
+    var armorBuckets  = [3448274439, 3551918588, 14239492, 20886954, 1585787867];
+    var slots = {};
+    Object.keys(IM.BUCKETS).forEach(function(b) { slots[b] = { eq: [], inv: [] }; });
+    (inv.equipped||[]).forEach(function(i) { if (slots[i.bucketHash]) slots[i.bucketHash].eq.push(i); });
+    (inv.inventory||[]).forEach(function(i) { if (slots[i.bucketHash]) slots[i.bucketHash].inv.push(i); });
+
+    function renderGroup(label, buckets) {
+      var h = '<div style="margin-bottom:0.8rem"><div style="font-size:0.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:6px">' + label + '</div>';
+      buckets.forEach(function(bh) {
+        var slot = slots[bh]; if (!slot) return;
+        var all = slot.eq.concat(slot.inv); if (!all.length) return;
+        h += '<div style="margin-bottom:5px"><div style="font-size:0.62rem;color:var(--text3);margin-bottom:3px;padding-left:2px">' + IM.BUCKETS[bh].label + '</div>';
+        h += '<div style="display:flex;flex-wrap:wrap;gap:5px">';
+        all.forEach(function(item) { h += imRenderItemCard(item, 'char', charId); });
+        h += '</div></div>';
+      });
+      return h + '</div>';
+    }
+    el.innerHTML = renderGroup('⚔️ Wapens', weaponBuckets) + renderGroup('🛡️ Armor', armorBuckets);
+  }
+
+  function imRenderVault() {
+    var grid    = document.getElementById('imVaultGrid');
+    var countEl = document.getElementById('imVaultCount');
+    var search  = (document.getElementById('imVaultSearch').value||'').toLowerCase();
+    var items   = IM.vaultItems.filter(function(i) {
+      if (IM.vaultFilter === 'weapons' && i.itemType !== 3) return false;
+      if (IM.vaultFilter === 'armor'   && i.itemType !== 2) return false;
+      if (search && !(i.name||'').toLowerCase().includes(search)) return false;
+      return true;
+    });
+    if (countEl) countEl.textContent = items.length;
+    grid.innerHTML = items.length
+      ? items.map(function(i) { return imRenderItemCard(i, 'vault', null); }).join('')
+      : '<div style="color:var(--text3);font-size:0.78rem;padding:1rem;text-align:center">Geen items</div>';
+  }
+
+  function imSelectItem(el, instanceId, source, charId) {
+    if (IM.selectedItem && IM.selectedItem.item.itemInstanceId === instanceId) {
+      IM.selectedItem = null;
+      document.querySelectorAll('.im-item.selected').forEach(function(e) { e.classList.remove('selected'); });
+      document.getElementById('imActionBar').style.display = 'none';
+      return;
+    }
+    var item = null;
+    if (source === 'vault') {
+      item = IM.vaultItems.find(function(i) { return i.itemInstanceId === instanceId; });
+    } else {
+      var inv = IM.charInventory[charId];
+      if (inv) item = (inv.equipped||[]).concat(inv.inventory||[]).find(function(i) { return i.itemInstanceId === instanceId; });
+    }
+    if (!item) return;
+    IM.selectedItem = { item: item, source: source, charId: charId };
+    document.querySelectorAll('.im-item.selected').forEach(function(e) { e.classList.remove('selected'); });
+    el.classList.add('selected');
+    imShowActionBar(item, source, charId);
+  }
+
+  function imShowActionBar(item, source, fromCharId) {
+    var bar = document.getElementById('imActionBar');
+    document.getElementById('imActionIcon').src  = item.icon ? imImg(item.icon) : '';
+    document.getElementById('imActionName').textContent = item.name || 'Onbekend';
+    document.getElementById('imActionSub').textContent  = (item.typeName||'') + (item.primaryStat ? ' · ⚡'+item.primaryStat : '');
+    var btns = '';
+    if (source === 'vault') {
+      IM.characters.forEach(function(c) {
+        btns += '<button class="vf-btn" onclick="imDoTransfer('' + item.itemInstanceId + '',true,'' + c.characterId + '')">'
+              + '→ ' + (IM.CLASS_NAMES[c.classType]||'Guardian') + '</button>';
+      });
+    } else {
+      btns += '<button class="vf-btn" onclick="imDoTransfer('' + item.itemInstanceId + '',false,'' + fromCharId + '')">→ Vault</button>';
+      IM.characters.forEach(function(c) {
+        if (c.characterId === fromCharId) return;
+        btns += '<button class="vf-btn" onclick="imDoTransferChars('' + item.itemInstanceId + '','' + fromCharId + '','' + c.characterId + '')">'
+              + '→ ' + (IM.CLASS_NAMES[c.classType]||'Guardian') + '</button>';
+      });
+      if (!item.isEquipped) {
+        btns += '<button class="vf-btn" style="border-color:rgba(76,175,130,0.4);color:#4caf82" onclick="imDoEquip('' + item.itemInstanceId + '','' + fromCharId + '')">✓ Equip</button>';
+      }
+    }
+    btns += '<button class="vf-btn" style="border-color:rgba(224,90,90,0.3);color:var(--red)" onclick="imDeselect()">✕</button>';
+    document.getElementById('imActionBtns').innerHTML = btns;
+    bar.style.display = 'block';
+  }
+
+  function imDeselect() {
+    IM.selectedItem = null;
+    document.querySelectorAll('.im-item.selected').forEach(function(e) { e.classList.remove('selected'); });
+    document.getElementById('imActionBar').style.display = 'none';
+  }
+
+  async function imDoTransfer(instanceId, fromVault, charId) {
+    var item = IM.selectedItem && IM.selectedItem.item;
+    if (!item) return;
+    imSetBtnsDisabled(true);
+    showToast('⏳ Verplaatsen...');
+    try {
+      var token    = await getValidToken();
+      var platform = parseInt(localStorage.getItem('bungie_platform')||'0');
+      var r = await fetch('/api/bungie-auth', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'api', endpoint: '/Destiny2/Actions/Items/TransferItem/',
+          access_token: token,
+          post_body: {
+            itemReferenceHash: item.itemHash, stackSize: 1,
+            transferToVault: !fromVault,
+            itemId: instanceId, characterId: charId, membershipType: platform,
+          },
+        }),
+      });
+      var d = await r.json();
+      if (d.ErrorCode && d.ErrorCode !== 1) throw new Error(d.Message || 'Fout ' + d.ErrorCode);
+      showToast('✓ Item verplaatst!');
+      imDeselect();
+      setTimeout(imReloadAll, 800);
+    } catch(e) {
+      var msg = e.message||'';
+      if (msg.includes('1642') || msg.toLowerCase().includes('ingame')) showToast('❌ Ga eerst naar Orbit of Tower');
+      else showToast('❌ ' + msg.slice(0,60));
+      imSetBtnsDisabled(false);
+    }
+  }
+
+  async function imDoTransferChars(instanceId, fromCharId, toCharId) {
+    var item = IM.selectedItem && IM.selectedItem.item;
+    if (!item) return;
+    imSetBtnsDisabled(true);
+    showToast('⏳ Verplaatsen via vault...');
+    var platform = parseInt(localStorage.getItem('bungie_platform')||'0');
+    try {
+      var token = await getValidToken();
+      var r1 = await fetch('/api/bungie-auth', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'api', endpoint:'/Destiny2/Actions/Items/TransferItem/', access_token:token,
+          post_body:{ itemReferenceHash:item.itemHash, stackSize:1, transferToVault:true, itemId:instanceId, characterId:fromCharId, membershipType:platform }}),
+      });
+      var d1 = await r1.json();
+      if (d1.ErrorCode && d1.ErrorCode !== 1) throw new Error(d1.Message||'Vault fout');
+      var r2 = await fetch('/api/bungie-auth', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'api', endpoint:'/Destiny2/Actions/Items/TransferItem/', access_token:token,
+          post_body:{ itemReferenceHash:item.itemHash, stackSize:1, transferToVault:false, itemId:instanceId, characterId:toCharId, membershipType:platform }}),
+      });
+      var d2 = await r2.json();
+      if (d2.ErrorCode && d2.ErrorCode !== 1) throw new Error(d2.Message||'Char fout');
+      showToast('✓ Verplaatst naar andere character!');
+      imDeselect();
+      setTimeout(imReloadAll, 800);
+    } catch(e) {
+      var msg = e.message||'';
+      if (msg.includes('1642') || msg.toLowerCase().includes('ingame')) showToast('❌ Ga eerst naar Orbit of Tower');
+      else showToast('❌ ' + msg.slice(0,60));
+      imSetBtnsDisabled(false);
+    }
+  }
+
+  async function imDoEquip(instanceId, charId) {
+    imSetBtnsDisabled(true);
+    showToast('⏳ Equippen...');
+    var platform = parseInt(localStorage.getItem('bungie_platform')||'0');
+    try {
+      var token = await getValidToken();
+      var r = await fetch('/api/bungie-auth', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'api', endpoint:'/Destiny2/Actions/Items/EquipItem/', access_token:token,
+          post_body:{ itemId:instanceId, characterId:charId, membershipType:platform }}),
+      });
+      var d = await r.json();
+      if (d.ErrorCode && d.ErrorCode !== 1) throw new Error(d.Message||'Fout '+d.ErrorCode);
+      showToast('✓ Item geëquipped!');
+      imDeselect();
+      setTimeout(imReloadAll, 800);
+    } catch(e) {
+      var msg = e.message||'';
+      if (msg.includes('1642') || msg.toLowerCase().includes('ingame')) showToast('❌ Ga eerst naar Orbit of Tower');
+      else showToast('❌ ' + msg.slice(0,60));
+      imSetBtnsDisabled(false);
+    }
+  }
+
+  function imSetBtnsDisabled(dis) {
+    document.querySelectorAll('#imActionBtns button').forEach(function(b) { b.disabled = dis; });
+  }
+
+  function imSetVaultFilter(f, btn) {
+    IM.vaultFilter = f;
+    document.querySelectorAll('#pane-itemmanager .vf-btn').forEach(function(b) { b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    imRenderVault();
+  }
+
+  function imFilterVault() { imRenderVault(); }
+
+  function imSwitchChar(charId) {
+    IM.activeCharId = charId;
+    document.querySelectorAll('.im-char-tab').forEach(function(t) { t.classList.remove('active'); });
+    var tab = document.getElementById('imtab-' + charId);
+    if (tab) tab.classList.add('active');
+    imDeselect();
+    if (IM.charInventory[charId]) {
+      imRenderChar(charId);
+    } else {
+      document.getElementById('imCharContent').innerHTML = '<div style="text-align:center;padding:2rem"><div class="im-spinner" style="margin:0 auto 0.5rem"></div><div style="color:var(--text2);font-size:0.8rem">Laden...</div></div>';
+      imLoadCharInv(charId).then(function() { imRenderChar(charId); });
+    }
+  }
+
+  async function imLoadCharInv(charId) {
+    try {
+      var platform  = localStorage.getItem('bungie_platform');
+      var destinyId = localStorage.getItem('bungie_destiny_id');
+      var profile   = await bungieGet('/Destiny2/'+platform+'/Profile/'+destinyId+'/?components=201,205,304');
+      var eq   = profile.characterEquipment&&profile.characterEquipment.data&&profile.characterEquipment.data[charId]&&profile.characterEquipment.data[charId].items||[];
+      var inv  = profile.characterInventories&&profile.characterInventories.data&&profile.characterInventories.data[charId]&&profile.characterInventories.data[charId].items||[];
+      var inst = profile.itemComponents&&profile.itemComponents.instances&&profile.itemComponents.instances.data||{};
+      async function enrich(items, equipped) {
+        return Promise.all(items.map(async function(raw) {
+          var def = await imGetManifest(raw.itemHash);
+          var ins = inst[raw.itemInstanceId]||{};
+          return {
+            itemInstanceId: raw.itemInstanceId||(raw.itemHash+'_'+Math.random()),
+            itemHash:       raw.itemHash,
+            bucketHash:     raw.bucketHash,
+            name:           def&&def.displayProperties&&def.displayProperties.name||'—',
+            typeName:       def&&def.itemTypeDisplayName||'',
+            itemType:       def&&def.itemType||0,
+            tierType:       def&&def.inventory&&def.inventory.tierType||5,
+            icon:           def&&def.displayProperties&&def.displayProperties.icon||null,
+            iconWatermark:  def&&(def.iconWatermark||def.iconWatermarkShelved)||null,
+            primaryStat:    ins.primaryStat&&ins.primaryStat.value||null,
+            isEquipped:     equipped,
+          };
+        }));
+      }
+      IM.charInventory[charId] = {
+        equipped:  await enrich(eq, true),
+        inventory: await enrich(inv, false),
+      };
+    } catch(e) {
+      console.error('imLoadCharInv:', e);
+      IM.charInventory[charId] = { equipped:[], inventory:[] };
+    }
+  }
+
+  async function imLoadVault() {
+    try {
+      var platform  = localStorage.getItem('bungie_platform');
+      var destinyId = localStorage.getItem('bungie_destiny_id');
+      var profile   = await bungieGet('/Destiny2/'+platform+'/Profile/'+destinyId+'/?components=102,304');
+      var raw  = profile.profileInventory&&profile.profileInventory.data&&profile.profileInventory.data.items||[];
+      var inst = profile.itemComponents&&profile.itemComponents.instances&&profile.itemComponents.instances.data||{};
+      var items = await Promise.all(raw.map(async function(r) {
+        var def = await imGetManifest(r.itemHash);
+        if (!def || (def.itemType !== 3 && def.itemType !== 2)) return null;
+        if (r.bucketHash !== 138197802) return null; // vault bucket
+        var ins = inst[r.itemInstanceId]||{};
+        return {
+          itemInstanceId: r.itemInstanceId||(r.itemHash+'_'+Math.random()),
+          itemHash:       r.itemHash,
+          bucketHash:     def.inventory&&def.inventory.bucketTypeHash||r.bucketHash,
+          name:           def.displayProperties&&def.displayProperties.name||'—',
+          typeName:       def.itemTypeDisplayName||'',
+          itemType:       def.itemType||0,
+          tierType:       def.inventory&&def.inventory.tierType||5,
+          icon:           def.displayProperties&&def.displayProperties.icon||null,
+          iconWatermark:  def.iconWatermark||def.iconWatermarkShelved||null,
+          primaryStat:    ins.primaryStat&&ins.primaryStat.value||null,
+          isEquipped:     false,
+        };
+      }));
+      IM.vaultItems = items.filter(Boolean);
+      imRenderVault();
+    } catch(e) {
+      console.error('imLoadVault:', e);
+      document.getElementById('imVaultGrid').innerHTML = '<div style="color:var(--text3);font-size:0.78rem;padding:1rem;text-align:center">Vault kon niet geladen worden</div>';
+    }
+  }
+
+  async function imReloadAll() {
+    if (!document.getElementById('pane-itemmanager').classList.contains('active')) return;
+    IM.charInventory = {}; IM.vaultItems = []; IM.selectedItem = null;
+    imDeselect();
+
+    var locked  = document.getElementById('imLockedMsg');
+    var loading = document.getElementById('imLoadingMsg');
+    var main    = document.getElementById('imMainContent');
+    locked.style.display = 'none'; loading.style.display = 'flex'; main.style.display = 'none';
+    document.getElementById('imVaultGrid').innerHTML = '';
+    document.getElementById('imCharContent').innerHTML = '';
+
+    if (!isBungieLinked()) {
+      loading.style.display = 'none'; locked.style.display = 'block'; return;
+    }
+
+    // Membership laden als nodig
+    if (!localStorage.getItem('bungie_platform')) {
+      try {
+        var user = await bungieGet('/User/GetMembershipsForCurrentUser/');
+        var mems = user.destinyMemberships||[];
+        var m = mems[0];
+        for (var i=0;i<mems.length;i++) { if (mems[i].crossSaveOverride===mems[i].membershipType){m=mems[i];break;} }
+        localStorage.setItem('bungie_platform',   m.membershipType.toString());
+        localStorage.setItem('bungie_destiny_id', m.membershipId);
+      } catch(e) { showToast('❌ Bungie profiel kon niet geladen worden'); loading.style.display='none'; return; }
+    }
+
+    // Characters laden
+    if (IM.characters.length === 0) {
+      try {
+        var platform  = localStorage.getItem('bungie_platform');
+        var destinyId = localStorage.getItem('bungie_destiny_id');
+        var profile   = await bungieGet('/Destiny2/'+platform+'/Profile/'+destinyId+'/?components=200');
+        var charData  = profile.characters&&profile.characters.data||{};
+        IM.characters = Object.values(charData).sort(function(a,b) { return new Date(b.dateLastPlayed)-new Date(a.dateLastPlayed); });
+      } catch(e) { showToast('❌ Characters niet geladen'); loading.style.display='none'; return; }
+    }
+
+    // Character tabs bouwen
+    var tabsEl = document.getElementById('imCharTabs');
+    tabsEl.innerHTML = IM.characters.map(function(c) {
+      return '<div class="im-char-tab" id="imtab-'+c.characterId+'" onclick="imSwitchChar(''+c.characterId+')">'
+           + '<img src="'+(IM.CLASS_ICONS[c.classType]||'')+'" onerror="this.style.display='none'" style="width:26px;height:26px;border-radius:5px">'
+           + '<div><div style="font-size:0.8rem;font-weight:600">'+(IM.CLASS_NAMES[c.classType]||'Guardian')+'</div>'
+           + '<div style="font-size:0.68rem;color:var(--text2)">⚡'+(c.light||'')+'</div>'
+           + '</div></div>';
+    }).join('');
+
+    loading.style.display = 'none'; main.style.display = 'block';
+
+    if (IM.characters.length > 0) {
+      var firstId = IM.characters[0].characterId;
+      document.getElementById('imtab-'+firstId).classList.add('active');
+      IM.activeCharId = firstId;
+      await Promise.all([
+        imLoadCharInv(firstId).then(function() { imRenderChar(firstId); }),
+        imLoadVault(),
+      ]);
+    }
+  }
+
+  // Laad IM als naar de tab gewisseld wordt
+  var _origSwitchTab2 = window.switchTab;
+  window.switchTab = function(tab) {
+    if (typeof _origSwitchTab2 === 'function') _origSwitchTab2(tab);
+    if (tab === 'itemmanager' && isBungieLinked()) {
+      imReloadAll();
+    }
+  };
   </script>
 
 </body>
