@@ -1002,36 +1002,36 @@
   </script>
 
   <script>
-  // Auth init + check
-  firebase.initializeApp(window._ghqFirebaseConfig || {
-    apiKey:            "AIzaSyDRmMBRo5rOYE1bKvGb1ioCVHikKiMVmuk",
-    authDomain:        "guardianhq-bf249.firebaseapp.com",
-    projectId:         "guardianhq-bf249",
-    storageBucket:     "guardianhq-bf249.firebasestorage.app",
-    messagingSenderId: "788946413625",
-    appId:             "1:788946413625:web:50d039e9c7c9f1c19e5e18",
-  });
-
-  firebase.auth().onAuthStateChanged(function(user) {
-    document.documentElement.style.visibility = '';
-
-    if (!user) {
-      // Sla huidige pagina op zodat login terug kan sturen
-      window.location.href = 'login.html?return=item-manager.html';
+  // Auth check — Firebase is al geinitialiseerd door auth.js
+  // Wacht tot Firebase klaar is, dan check login status
+  function imAuthCheck() {
+    if (typeof firebase === 'undefined' || !firebase.apps.length) {
+      setTimeout(imAuthCheck, 50);
       return;
     }
+    firebase.auth().onAuthStateChanged(function(user) {
+      document.documentElement.style.visibility = '';
 
-    // Bijwerk nav
-    if (typeof updateNav === 'function') updateNav(user);
+      if (!user) {
+        // Niet ingelogd: stuur naar login met return URL
+        window.location.href = 'login.html?return=item-manager.html';
+        return;
+      }
 
-    if (!isBungieLinked()) {
-      document.getElementById('imLocked').style.display = 'block';
-      return;
-    }
+      // Nav bijwerken
+      if (typeof updateNav === 'function') updateNav();
 
-    document.getElementById('imContent').style.display = 'block';
-    reloadAll();
-  });
+      // Bungie check
+      if (!isBungieLinked()) {
+        document.getElementById('imLocked').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('imContent').style.display = 'block';
+      reloadAll();
+    });
+  }
+  imAuthCheck();
   </script>
 
 </body>
