@@ -352,7 +352,7 @@
       <div class="im-locked-icon">🔒</div>
       <h2>Inloggen vereist</h2>
       <p>Log in op GuardianHQ om de Item Manager te gebruiken.</p>
-      <a href="login.html" class="btn btn-solid" style="padding:12px 28px;margin-top:0.5rem">Inloggen</a>
+      <a href="login.html?return=item-manager.html" class="btn btn-solid" style="padding:12px 28px;margin-top:0.5rem">Inloggen</a>
     </div>
   </div>
 
@@ -997,7 +997,7 @@
 
   // ── Init ───────────────────────────────────────────────────
   window.addEventListener('DOMContentLoaded', function() {
-    document.documentElement.style.visibility = '';
+    // visibility wordt gezet door firebase onAuthStateChanged
   });
   </script>
 
@@ -1016,7 +1016,8 @@
     document.documentElement.style.visibility = '';
 
     if (!user) {
-      document.getElementById('imNoLogin').style.display = 'block';
+      // Sla huidige pagina op zodat login terug kan sturen
+      window.location.href = 'login.html?return=item-manager.html';
       return;
     }
 
