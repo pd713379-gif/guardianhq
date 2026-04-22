@@ -596,15 +596,18 @@
     /* ══ Item Manager Tab ══════════════════════════════════════ */
     .im-btn { background:var(--bg2);border:1px solid var(--border);color:var(--text);font-size:0.78rem;font-weight:600;padding:7px 14px;border-radius:8px;cursor:pointer;transition:all 0.2s; }
     .im-btn:hover { background:var(--bg3);border-color:var(--border2); }
-    .im-item { width:54px;height:54px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;position:relative;overflow:hidden;transition:all 0.15s;flex-shrink:0;display:inline-block; }
-    .im-item:hover { transform:scale(1.07);border-color:var(--border2);z-index:2; }
-    .im-item.selected { border-color:var(--gold);box-shadow:0 0 0 2px rgba(212,168,67,0.4); }
-    .im-item.equipped { border-color:#4caf82; }
-    .im-item img.item-icon { width:100%;height:100%;object-fit:cover;display:block; }
-    .im-item img.item-watermark { position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none; }
-    .im-item .item-power { position:absolute;bottom:1px;right:3px;font-size:0.55rem;font-weight:800;color:#fff;text-shadow:0 0 4px #000; }
-    .im-item .item-equipped-badge { position:absolute;top:2px;left:2px;width:7px;height:7px;border-radius:50%;background:#4caf82;box-shadow:0 0 4px #4caf82; }
-    .im-item .item-exotic-border { position:absolute;inset:0;border-radius:7px;border:2px solid rgba(245,200,66,0.6);pointer-events:none; }
+    .im-item,.im-item2 { border-radius:7px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;position:relative;overflow:hidden;transition:all 0.15s;flex-shrink:0;display:inline-block; }
+    .im-item { width:54px;height:54px; }
+    .im-item2 { width:68px;height:68px; }
+    .im-item:hover,.im-item2:hover { transform:scale(1.06);border-color:var(--border2);z-index:2; }
+    .im-item.selected,.im-item2.selected { border-color:var(--gold);box-shadow:0 0 0 2px rgba(212,168,67,0.4); }
+    .im-item.equipped,.im-item2.equipped { border-color:#4caf82; }
+    .im-item img.item-icon,.im-item2 img.item-icon { width:100%;height:100%;object-fit:cover;display:block; }
+    .im-item img.item-watermark,.im-item2 img.item-watermark { position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none; }
+    .im-item .item-power,.im-item2 .item-power { position:absolute;bottom:1px;right:3px;font-size:0.55rem;font-weight:800;color:#fff;text-shadow:0 0 4px #000; }
+    .im-item2 .item-power2 { position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:0.62rem;font-weight:800;color:#fff;background:rgba(0,0,0,0.55);padding:1px 0; }
+    .im-item .item-equipped-badge,.im-item2 .item-equipped-badge { position:absolute;top:2px;right:2px;width:8px;height:8px;border-radius:50%;background:#4caf82;box-shadow:0 0 5px #4caf82; }
+    .im-item .item-exotic-border,.im-item2 .item-exotic-border { position:absolute;inset:0;border-radius:7px;border:2px solid rgba(245,200,66,0.7);pointer-events:none; }
     .im-spinner { width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:im-spin 0.8s linear infinite; }
     @keyframes im-spin { to { transform:rotate(360deg); } }
     .im-char-tab { display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:7px 12px;cursor:pointer;transition:all 0.2s;font-size:0.8rem;font-weight:600; }
@@ -3888,13 +3891,23 @@
     selectedItem:null, vaultFilter:'all', manifestCache:{},
     IMG: '/api/bungie-proxy?action=img&url=',
     BUCKETS: {
-      1498876634:{label:'Kinetic',group:'weapons'}, 2465295065:{label:'Energy',group:'weapons'},
-      953998645:{label:'Power',group:'weapons'},    3448274439:{label:'Helmet',group:'armor'},
-      3551918588:{label:'Gauntlets',group:'armor'}, 14239492:{label:'Chest',group:'armor'},
-      20886954:{label:'Legs',group:'armor'},         1585787867:{label:'Class Item',group:'armor'},
+      1498876634:{label:'Kinetic',group:'weapons',order:0}, 2465295065:{label:'Energy',group:'weapons',order:1},
+      953998645:{label:'Power',group:'weapons',order:2},    3448274439:{label:'Helmet',group:'armor',order:3},
+      3551918588:{label:'Gauntlets',group:'armor',order:4}, 14239492:{label:'Chest',group:'armor',order:5},
+      20886954:{label:'Legs',group:'armor',order:6},         1585787867:{label:'Class Item',group:'armor',order:7},
     },
     CLASS_NAMES:{0:'Titan',1:'Hunter',2:'Warlock'},
     CLASS_ICONS:{0:'img/icons/titanicon.png',1:'img/icons/huntericon.png',2:'img/icons/warlockicon.png'},
+    // Damage type hash -> {label, kleur, svg-pad of emoji}
+    DMG:{
+      3373582085:{c:'#c0392b',e:'🔴',l:'Thermisch'},   // Kinetic (wit)
+      1847026933:{c:'#e67e22',e:'🔥',l:'Solar'},
+      2303181850:{c:'#2980b9',e:'⚡',l:'Arc'},
+      3454344768:{c:'#8e44ad',e:'💜',l:'Void'},
+      151347233: {c:'#4ecdc4',e:'❄️',l:'Stasis'},
+      3949783978:{c:'#00e676',e:'🟢',l:'Strand'},
+      3373582085:{c:'#b0b0b0',e:'⬜',l:'Kinetic'},
+    },
   };
 
   function imImg(p) { return p ? IM.IMG + encodeURIComponent('https://www.bungie.net' + p) : ''; }
@@ -3905,17 +3918,34 @@
     catch(e) { return null; }
   }
 
+  // Damage type SVG badges
+  var IM_DMG_SVG = {
+    1847026933: '<svg viewBox="0 0 32 32" width="13" height="13"><circle cx="16" cy="16" r="7" fill="#f0621b"/><g stroke="#f0621b" stroke-width="2.5" stroke-linecap="round"><line x1="16" y1="2" x2="16" y2="6"/><line x1="16" y1="26" x2="16" y2="30"/><line x1="2" y1="16" x2="6" y2="16"/><line x1="26" y1="16" x2="30" y2="16"/><line x1="6.3" y1="6.3" x2="9.1" y2="9.1"/><line x1="22.9" y1="22.9" x2="25.7" y2="25.7"/><line x1="25.7" y1="6.3" x2="22.9" y2="9.1"/><line x1="9.1" y1="22.9" x2="6.3" y2="25.7"/></g></svg>',
+    2303181850: '<svg viewBox="0 0 32 32" width="13" height="13"><polygon points="18,2 8,18 15,18 14,30 24,14 17,14" fill="#7ecfff"/></svg>',
+    3454344768: '<svg viewBox="0 0 32 32" width="13" height="13"><circle cx="16" cy="16" r="10" fill="none" stroke="#b370db" stroke-width="3"/><circle cx="16" cy="16" r="4" fill="#b370db"/></svg>',
+    151347233:  '<svg viewBox="0 0 32 32" width="13" height="13"><polygon points="16,2 19,13 30,13 21,20 24,30 16,23 8,30 11,20 2,13 13,13" fill="#4fc3f7"/></svg>',
+    3949783978: '<svg viewBox="0 0 32 32" width="13" height="13"><path d="M4,16 Q10,6 16,16 Q22,26 28,16" stroke="#00e676" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M4,20 Q10,10 16,20 Q22,30 28,20" stroke="#00c853" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/></svg>',
+    3373582085: '<svg viewBox="0 0 32 32" width="13" height="13"><circle cx="16" cy="16" r="9" fill="none" stroke="#ccc" stroke-width="2.5"/><circle cx="16" cy="16" r="3" fill="#ccc"/></svg>',
+    0:          '<svg viewBox="0 0 32 32" width="13" height="13"><circle cx="16" cy="16" r="9" fill="none" stroke="#888" stroke-width="2.5"/><circle cx="16" cy="16" r="3" fill="#888"/></svg>',
+  };
+  function imDmgBadge(h) {
+    var svg = IM_DMG_SVG[h] || IM_DMG_SVG[0];
+    return '<div style="position:absolute;bottom:3px;left:3px;width:17px;height:17px;background:rgba(0,0,0,0.65);border-radius:3px;display:flex;align-items:center;justify-content:center">' + svg + '</div>';
+  }
+
   function imCard(item, source, charId) {
-    var sel = IM.selectedItem && IM.selectedItem.item.itemInstanceId === item.itemInstanceId;
-    var cls = 'im-item' + (sel ? ' selected' : '') + (item.isEquipped ? ' equipped' : '');
-    var icon = imImg(item.icon); var wm = imImg(item.iconWatermark);
-    var tip = (item.name||'') + (item.primaryStat ? ' \u00b7 \u26a1'+item.primaryStat : '');
-    return `<div class="${cls}" onclick="imSelect(this,'${item.itemInstanceId}','${source}','${charId||''}')" title="${tip}">
-      ${icon ? `<img class="item-icon" src="${icon}" loading="lazy">` : ''}
+    var sel  = IM.selectedItem && IM.selectedItem.item.itemInstanceId === item.itemInstanceId;
+    var cls  = 'im-item' + (sel ? ' selected' : '') + (item.isEquipped ? ' equipped' : '');
+    var icon = imImg(item.icon), wm = imImg(item.iconWatermark);
+    var pw   = item.primaryStat || '';
+    var isW  = item.itemType === 3;
+    return `<div class="${cls}" onclick="imSelect(this,'${item.itemInstanceId}','${source}','${charId||''}')" title="${item.name||''}">
+      ${icon ? `<img class="item-icon" src="${icon}" loading="lazy">` : '<div style="width:100%;height:100%;background:rgba(255,255,255,0.05)"></div>'}
       ${wm   ? `<img class="item-watermark" src="${wm}" loading="lazy">` : ''}
-      ${item.isEquipped  ? '<div class="item-equipped-badge"></div>' : ''}
+      ${item.isEquipped   ? '<div class="item-equipped-badge"></div>' : ''}
       ${item.tierType===6 ? '<div class="item-exotic-border"></div>'  : ''}
-      ${item.primaryStat ? `<div class="item-power">${item.primaryStat}</div>` : ''}
+      ${isW ? imDmgBadge(item.damageHash||0) : ''}
+      ${pw  ? `<div class="item-power2">${pw}</div>` : ''}
     </div>`;
   }
 
@@ -3928,30 +3958,40 @@
     Object.keys(IM.BUCKETS).forEach(b=>{ slots[b]={eq:[],inv:[]}; });
     (inv.equipped||[]).forEach(i=>{ if(slots[i.bucketHash]) slots[i.bucketHash].eq.push(i); });
     (inv.inventory||[]).forEach(i=>{ if(slots[i.bucketHash]) slots[i.bucketHash].inv.push(i); });
-    function grp(label, buckets) {
-      var h = `<div style="margin-bottom:0.8rem"><div style="font-size:0.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:6px">${label}</div>`;
-      buckets.forEach(bh=>{
-        var s=slots[bh]; if(!s) return;
-        var all=s.eq.concat(s.inv); if(!all.length) return;
-        h += `<div style="margin-bottom:5px"><div style="font-size:0.62rem;color:var(--text3);margin-bottom:3px">${IM.BUCKETS[bh].label}</div><div style="display:flex;flex-wrap:wrap;gap:5px">${all.map(i=>imCard(i,'char',charId)).join('')}</div></div>`;
-      });
-      return h+'</div>';
+    function renderGroup(buckets) {
+      return buckets.map(bh=>{
+        var s=slots[bh]; if(!s) return '';
+        var all=s.eq.concat(s.inv); if(!all.length) return '';
+        return `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">${all.map(i=>imCard(i,'char',charId)).join('')}</div>`;
+      }).join('');
     }
-    el.innerHTML = grp('&#9876;&#65039; Wapens', wBuckets) + grp('&#128737;&#65039; Armor', aBuckets);
+    el.innerHTML = `
+      <div style="font-size:0.66rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:6px">&#9876;&#65039; Wapens</div>
+      ${renderGroup(wBuckets)||'<div style="color:var(--text3);font-size:0.78rem;margin-bottom:8px">Geen wapens</div>'}
+      <div style="font-size:0.66rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin:8px 0 6px">&#128737;&#65039; Armor</div>
+      ${renderGroup(aBuckets)||'<div style="color:var(--text3);font-size:0.78rem">Geen armor</div>'}
+    `;
   }
 
   function imRenderVault() {
     var grid=document.getElementById('imVaultGrid'), cntEl=document.getElementById('imVaultCount');
     var q=(document.getElementById('imVaultSearch').value||'').toLowerCase();
-    var items=IM.vaultItems.filter(i=>{
+    var filtered=IM.vaultItems.filter(i=>{
       if(IM.vaultFilter==='weapons'&&i.itemType!==3) return false;
       if(IM.vaultFilter==='armor'&&i.itemType!==2)   return false;
       if(q&&!(i.name||'').toLowerCase().includes(q)) return false;
       return true;
     });
-    if(cntEl) cntEl.textContent=items.length;
-    grid.innerHTML = items.length ? items.map(i=>imCard(i,'vault','')).join('') :
-      '<div style="color:var(--text3);font-size:0.78rem;padding:1rem;text-align:center">Geen items</div>';
+    // Sorteer: wapens voor armor, binnen groep power desc
+    filtered.sort((a,b)=>{ if(a.itemType!==b.itemType) return b.itemType-a.itemType; return (b.primaryStat||0)-(a.primaryStat||0); });
+    if(cntEl) cntEl.textContent=filtered.length;
+    if(!filtered.length){ grid.innerHTML='<div style="color:var(--text3);font-size:0.78rem;padding:1rem;text-align:center">Geen items</div>'; return; }
+    var weapons=filtered.filter(i=>i.itemType===3), armor=filtered.filter(i=>i.itemType===2), other=filtered.filter(i=>i.itemType!==3&&i.itemType!==2);
+    var html='';
+    if(weapons.length) html+=`<div style="font-size:0.64rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);width:100%;margin-bottom:5px;padding-top:2px">&#9876;&#65039; Wapens (${weapons.length})</div>${weapons.map(i=>imCard(i,'vault','')).join('')}`;
+    if(armor.length)   html+=`<div style="font-size:0.64rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);width:100%;margin:10px 0 5px">&#128737;&#65039; Armor (${armor.length})</div>${armor.map(i=>imCard(i,'vault','')).join('')}`;
+    if(other.length)   html+=other.map(i=>imCard(i,'vault','')).join('');
+    grid.innerHTML=html;
   }
 
   function imSelect(el, instanceId, source, charId) {
@@ -3961,7 +4001,7 @@
     else { var inv=IM.charInventory[charId]; if(inv) item=(inv.equipped||[]).concat(inv.inventory||[]).find(i=>i.itemInstanceId===instanceId); }
     if(!item) return;
     IM.selectedItem={item,source,charId};
-    document.querySelectorAll('.im-item.selected').forEach(e=>e.classList.remove('selected'));
+    document.querySelectorAll('.im-item.selected,.im-item2.selected').forEach(e=>e.classList.remove('selected'));
     el.classList.add('selected');
     imShowBar(item, source, charId);
   }
@@ -3986,7 +4026,7 @@
 
   function imDeselect() {
     IM.selectedItem=null;
-    document.querySelectorAll('.im-item.selected').forEach(e=>e.classList.remove('selected'));
+    document.querySelectorAll('.im-item.selected,.im-item2.selected').forEach(e=>e.classList.remove('selected'));
     document.getElementById('imActionBar').style.display='none';
   }
 
@@ -4071,7 +4111,9 @@
             itemType:def&&def.itemType||0,tierType:def&&def.inventory&&def.inventory.tierType||5,
             icon:def&&def.displayProperties&&def.displayProperties.icon||null,
             iconWatermark:def&&(def.iconWatermark||def.iconWatermarkShelved)||null,
-            primaryStat:ins.primaryStat&&ins.primaryStat.value||null,isEquipped:equipped};
+            primaryStat:ins.primaryStat&&ins.primaryStat.value||null,
+            damageHash:ins.damageTypeHash||def&&def.defaultDamageTypeHash||0,
+            isEquipped:equipped};
         }));
       }
       IM.charInventory[charId]={equipped:await enrich(eq,true),inventory:await enrich(inv,false)};
@@ -4094,7 +4136,9 @@
           itemType:def.itemType||0,tierType:def.inventory&&def.inventory.tierType||5,
           icon:def.displayProperties&&def.displayProperties.icon||null,
           iconWatermark:def.iconWatermark||def.iconWatermarkShelved||null,
-          primaryStat:ins.primaryStat&&ins.primaryStat.value||null,isEquipped:false};
+          primaryStat:ins.primaryStat&&ins.primaryStat.value||null,
+          damageHash:ins.damageTypeHash||def.defaultDamageTypeHash||0,
+          isEquipped:false};
       }));
       IM.vaultItems=items.filter(Boolean); imRenderVault();
     } catch(e) {
