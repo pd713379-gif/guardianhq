@@ -3961,24 +3961,48 @@
     var el = document.getElementById('imCharContent');
     var inv = IM.charInventory[charId];
     if (!inv) { el.innerHTML='<div style="color:var(--text3);padding:1rem;font-size:0.82rem">Geen data</div>'; return; }
+
     var wBuckets=[1498876634,2465295065,953998645], aBuckets=[3448274439,3551918588,14239492,20886954,1585787867];
     var slots={};
     Object.keys(IM.BUCKETS).forEach(b=>{ slots[b]={eq:[],inv:[]}; });
     (inv.equipped||[]).forEach(i=>{ if(slots[i.bucketHash]) slots[i.bucketHash].eq.push(i); });
     (inv.inventory||[]).forEach(i=>{ if(slots[i.bucketHash]) slots[i.bucketHash].inv.push(i); });
-    function renderGroup(buckets) {
-      return buckets.map(bh=>{
-        var s=slots[bh]; if(!s) return '';
-        var all=s.eq.concat(s.inv); if(!all.length) return '';
-        return `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">${all.map(i=>imCard(i,'char',charId)).join('')}</div>`;
-      }).join('');
+
+    // Per slot: equipped LINKS groot, rest RECHTS in grid van 3 kolommen
+    function renderSlot(bh) {
+      var s = slots[bh]; if(!s) return '';
+      var equipped = s.eq[0]||null;
+      var rest     = s.inv; // niet-geëquipte items
+      if(!equipped && !rest.length) return '';
+
+      var leftHtml  = equipped
+        ? imCard(equipped, 'char', charId)
+        : '<div style="width:72px;height:72px;border-radius:6px;border:1px dashed rgba(255,255,255,0.1);background:rgba(255,255,255,0.03)"></div>';
+
+      // Rest in grid van 3 per rij
+      var restHtml = '';
+      for(var r=0; r<rest.length; r+=3) {
+        var row = rest.slice(r, r+3);
+        restHtml += '<div style="display:flex;gap:5px;margin-bottom:5px">'
+          + row.map(i=>imCard(i,'char',charId)).join('')
+          + '</div>';
+      }
+
+      return '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px">'
+           +   '<div style="flex-shrink:0">' + leftHtml + '</div>'
+           +   '<div style="flex:1">' + restHtml + '</div>'
+           + '</div>';
     }
-    el.innerHTML = `
-      <div style="font-size:0.66rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:6px">&#9876;&#65039; Wapens</div>
-      ${renderGroup(wBuckets)||'<div style="color:var(--text3);font-size:0.78rem;margin-bottom:8px">Geen wapens</div>'}
-      <div style="font-size:0.66rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin:8px 0 6px">&#128737;&#65039; Armor</div>
-      ${renderGroup(aBuckets)||'<div style="color:var(--text3);font-size:0.78rem">Geen armor</div>'}
-    `;
+
+    function renderSection(label, buckets) {
+      var html = buckets.map(renderSlot).join('');
+      if(!html) return '';
+      return '<div style="font-size:0.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:7px">' + label + '</div>'
+           + html;
+    }
+
+    el.innerHTML = renderSection('&#9876;&#65039; Wapens', wBuckets)
+                 + renderSection('&#128737;&#65039; Armor',  aBuckets);
   }
 
   function imRenderVault() {
