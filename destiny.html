@@ -596,18 +596,20 @@
     /* ══ Item Manager Tab ══════════════════════════════════════ */
     .im-btn { background:var(--bg2);border:1px solid var(--border);color:var(--text);font-size:0.78rem;font-weight:600;padding:7px 14px;border-radius:8px;cursor:pointer;transition:all 0.2s; }
     .im-btn:hover { background:var(--bg3);border-color:var(--border2); }
-    .im-item,.im-item2 { border-radius:7px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;position:relative;overflow:hidden;transition:all 0.15s;flex-shrink:0;display:inline-block; }
-    .im-item { width:54px;height:54px; }
+    /* Item kaart wrapper — plaatje + power label eronder */
+    .im-slot { display:inline-flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer; }
+    .im-slot .im-pw { font-size:0.65rem;font-weight:800;color:#d4d4d4;text-shadow:0 0 4px #000;line-height:1; }
+    .im-item,.im-item2 { border-radius:6px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;position:relative;overflow:hidden;transition:all 0.15s;flex-shrink:0; }
+    .im-item  { width:54px;height:54px; }
     .im-item2 { width:68px;height:68px; }
-    .im-item:hover,.im-item2:hover { transform:scale(1.06);border-color:var(--border2);z-index:2; }
+    .im-item:hover,.im-item2:hover { transform:scale(1.05);border-color:var(--border2);z-index:2; }
     .im-item.selected,.im-item2.selected { border-color:var(--gold);box-shadow:0 0 0 2px rgba(212,168,67,0.4); }
-    .im-item.equipped,.im-item2.equipped { border-color:#4caf82; }
+    .im-item.equipped,.im-item2.equipped { border-color:#4caf82;box-shadow:0 0 0 1px #4caf82; }
     .im-item img.item-icon,.im-item2 img.item-icon { width:100%;height:100%;object-fit:cover;display:block; }
     .im-item img.item-watermark,.im-item2 img.item-watermark { position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none; }
-    .im-item .item-power,.im-item2 .item-power { position:absolute;bottom:1px;right:3px;font-size:0.55rem;font-weight:800;color:#fff;text-shadow:0 0 4px #000; }
-    .im-item2 .item-power2 { position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:0.62rem;font-weight:800;color:#fff;background:rgba(0,0,0,0.55);padding:1px 0; }
-    .im-item .item-equipped-badge,.im-item2 .item-equipped-badge { position:absolute;top:2px;right:2px;width:8px;height:8px;border-radius:50%;background:#4caf82;box-shadow:0 0 5px #4caf82; }
-    .im-item .item-exotic-border,.im-item2 .item-exotic-border { position:absolute;inset:0;border-radius:7px;border:2px solid rgba(245,200,66,0.7);pointer-events:none; }
+    .im-item .item-equipped-badge,.im-item2 .item-equipped-badge { position:absolute;top:2px;right:2px;width:9px;height:9px;border-radius:50%;background:#4caf82;box-shadow:0 0 5px #4caf82;border:1px solid rgba(0,0,0,0.4); }
+    .im-item .item-exotic-border,.im-item2 .item-exotic-border { position:absolute;inset:0;border-radius:6px;border:2px solid rgba(245,200,66,0.8);pointer-events:none; }
+    .im-item .item-dmg,.im-item2 .item-dmg { position:absolute;bottom:3px;left:3px;width:17px;height:17px;background:rgba(0,0,0,0.7);border-radius:3px;display:flex;align-items:center;justify-content:center; }
     .im-spinner { width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:im-spin 0.8s linear infinite; }
     @keyframes im-spin { to { transform:rotate(360deg); } }
     .im-char-tab { display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:7px 12px;cursor:pointer;transition:all 0.2s;font-size:0.8rem;font-weight:600; }
@@ -3935,17 +3937,21 @@
 
   function imCard(item, source, charId) {
     var sel  = IM.selectedItem && IM.selectedItem.item.itemInstanceId === item.itemInstanceId;
-    var cls  = 'im-item' + (sel ? ' selected' : '') + (item.isEquipped ? ' equipped' : '');
+    var cls  = 'im-item2' + (sel ? ' selected' : '') + (item.isEquipped ? ' equipped' : '');
     var icon = imImg(item.icon), wm = imImg(item.iconWatermark);
     var pw   = item.primaryStat || '';
     var isW  = item.itemType === 3;
-    return `<div class="${cls}" onclick="imSelect(this,'${item.itemInstanceId}','${source}','${charId||''}')" title="${item.name||''}">
+    var inner = `
       ${icon ? `<img class="item-icon" src="${icon}" loading="lazy">` : '<div style="width:100%;height:100%;background:rgba(255,255,255,0.05)"></div>'}
       ${wm   ? `<img class="item-watermark" src="${wm}" loading="lazy">` : ''}
       ${item.isEquipped   ? '<div class="item-equipped-badge"></div>' : ''}
       ${item.tierType===6 ? '<div class="item-exotic-border"></div>'  : ''}
-      ${isW ? imDmgBadge(item.damageHash||0) : ''}
-      ${pw  ? `<div class="item-power2">${pw}</div>` : ''}
+      ${isW && item.damageHash ? `<div class="item-dmg">${IM_DMG_SVG[item.damageHash]||IM_DMG_SVG[0]}</div>` : ''}
+    `;
+    // Wrapper: kaart + power label eronder
+    return `<div class="im-slot" onclick="imSelect(this.querySelector('.im-item2'),'${item.itemInstanceId}','${source}','${charId||''}')">
+      <div class="${cls}">${inner}</div>
+      ${pw ? `<div class="im-pw">${pw}</div>` : '<div class="im-pw" style="opacity:0">0</div>'}
     </div>`;
   }
 
@@ -4001,8 +4007,9 @@
     else { var inv=IM.charInventory[charId]; if(inv) item=(inv.equipped||[]).concat(inv.inventory||[]).find(i=>i.itemInstanceId===instanceId); }
     if(!item) return;
     IM.selectedItem={item,source,charId};
-    document.querySelectorAll('.im-item.selected,.im-item2.selected').forEach(e=>e.classList.remove('selected'));
-    el.classList.add('selected');
+    document.querySelectorAll('.im-item2.selected').forEach(e=>e.classList.remove('selected'));
+    var card = el && (el.classList.contains('im-item2') ? el : el.querySelector('.im-item2'));
+    if(card) card.classList.add('selected');
     imShowBar(item, source, charId);
   }
 
@@ -4026,7 +4033,7 @@
 
   function imDeselect() {
     IM.selectedItem=null;
-    document.querySelectorAll('.im-item.selected,.im-item2.selected').forEach(e=>e.classList.remove('selected'));
+    document.querySelectorAll('.im-item2.selected').forEach(e=>e.classList.remove('selected'));
     document.getElementById('imActionBar').style.display='none';
   }
 
