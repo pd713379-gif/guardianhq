@@ -4108,7 +4108,7 @@
   async function imLoadCharInv(charId) {
     try {
       var pl=localStorage.getItem('bungie_platform'), did=localStorage.getItem('bungie_destiny_id');
-      var p=await bungieGet('/Destiny2/'+pl+'/Profile/'+did+'/?components=201,205,304');
+      var p=await bungieGet('/Destiny2/'+pl+'/Profile/'+did+'/?components=201,205,300');
       var eq  =(p.characterEquipment&&p.characterEquipment.data&&p.characterEquipment.data[charId]&&p.characterEquipment.data[charId].items)||[];
       var inv =(p.characterInventories&&p.characterInventories.data&&p.characterInventories.data[charId]&&p.characterInventories.data[charId].items)||[];
       var inst=(p.itemComponents&&p.itemComponents.instances&&p.itemComponents.instances.data)||{};
@@ -4132,7 +4132,7 @@
   async function imLoadVault() {
     try {
       var pl=localStorage.getItem('bungie_platform'), did=localStorage.getItem('bungie_destiny_id');
-      var p=await bungieGet('/Destiny2/'+pl+'/Profile/'+did+'/?components=102,304');
+      var p=await bungieGet('/Destiny2/'+pl+'/Profile/'+did+'/?components=102,300');
       var raw =(p.profileInventory&&p.profileInventory.data&&p.profileInventory.data.items)||[];
       var inst=(p.itemComponents&&p.itemComponents.instances&&p.itemComponents.instances.data)||{};
       var items=await Promise.all(raw.map(async r=>{
