@@ -3937,22 +3937,24 @@
 
   function imCard(item, source, charId) {
     var sel  = IM.selectedItem && IM.selectedItem.item.itemInstanceId === item.itemInstanceId;
-    var cls  = 'im-item2' + (sel ? ' selected' : '') + (item.isEquipped ? ' equipped' : '');
+    var brd  = sel ? '2px solid #d4a843' : item.isEquipped ? '2px solid #4caf82' : '1px solid rgba(255,255,255,0.15)';
     var icon = imImg(item.icon), wm = imImg(item.iconWatermark);
-    var pw   = item.primaryStat || '';
+    var pw   = item.primaryStat ? String(item.primaryStat) : '';
     var isW  = item.itemType === 3;
-    var inner = `
-      ${icon ? `<img class="item-icon" src="${icon}" loading="lazy">` : '<div style="width:100%;height:100%;background:rgba(255,255,255,0.05)"></div>'}
-      ${wm   ? `<img class="item-watermark" src="${wm}" loading="lazy">` : ''}
-      ${item.isEquipped   ? '<div class="item-equipped-badge"></div>' : ''}
-      ${item.tierType===6 ? '<div class="item-exotic-border"></div>'  : ''}
-      ${isW && item.damageHash ? `<div class="item-dmg">${IM_DMG_SVG[item.damageHash]||IM_DMG_SVG[0]}</div>` : ''}
-    `;
-    // Wrapper: kaart + power label eronder
-    return `<div class="im-slot" onclick="imSelect(this.querySelector('.im-item2'),'${item.itemInstanceId}','${source}','${charId||''}')">
-      <div class="${cls}">${inner}</div>
-      ${pw ? `<div class="im-pw">${pw}</div>` : '<div class="im-pw" style="opacity:0">0</div>'}
-    </div>`;
+    var dmg  = (isW && item.damageHash) ? ('<div style="position:absolute;bottom:3px;left:3px;width:18px;height:18px;background:rgba(0,0,0,0.7);border-radius:3px;display:flex;align-items:center;justify-content:center">' + (IM_DMG_SVG[item.damageHash]||IM_DMG_SVG[0]) + '</div>') : '';
+    var eq   = item.isEquipped ? '<div style="position:absolute;top:3px;right:3px;width:9px;height:9px;border-radius:50%;background:#4caf82;box-shadow:0 0 5px #4caf82"></div>' : '';
+    var exo  = item.tierType===6 ? '<div style="position:absolute;inset:0;border-radius:6px;border:2px solid rgba(245,200,66,0.85);pointer-events:none"></div>' : '';
+    var cid  = (charId||'').replace(/'/g,'');
+    var iid  = (item.itemInstanceId||'').replace(/'/g,'');
+    var src  = (source||'').replace(/'/g,'');
+    return '<div style="display:inline-flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer" onclick="imSelect(this,\'' + iid + '\',\'' + src + '\',\'' + cid + '\')">'
+         + '<div style="width:72px;height:72px;border-radius:6px;border:' + brd + ';background:#1a1c24;position:relative;overflow:hidden;flex-shrink:0">'
+         + (icon ? '<img src="' + icon + '" style="width:100%;height:100%;object-fit:cover;display:block" loading="lazy">' : '')
+         + (wm   ? '<img src="' + wm   + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none" loading="lazy">' : '')
+         + eq + exo + dmg
+         + '</div>'
+         + '<div style="font-size:0.7rem;font-weight:800;color:#e2e2e2;line-height:1;min-height:12px;text-align:center">' + pw + '</div>'
+         + '</div>';
   }
 
   function imRenderChar(charId) {
