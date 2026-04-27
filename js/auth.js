@@ -14,7 +14,7 @@ const firebaseConfig = {
 
 const EMAILJS_SERVICE_ID          = "service_usefhy9";
 const EMAILJS_TEMPLATE_ID         = "template_kq2yx3d";   // Registratie-email
-const EMAILJS_CONTACT_TEMPLATE_ID = "template_f18o54r";   // Contact-formulier (guardianhq_contact)
+const EMAILJS_CONTACT_TEMPLATE_ID = "template_0ncr5h7";   // Contact-formulier (guardianhq_contact)
 const EMAILJS_PUBLIC_KEY          = "Kzu6sQd_AB5cDC0nU";
 const ADMIN_EMAIL                 = "info.guardianhq@gmail.com";
 
