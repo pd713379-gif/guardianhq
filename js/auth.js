@@ -4,61 +4,59 @@
 // ============================================================
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBfda3IcQk-bbYHOqKhU4r8wMtOCPjTztc",
-  authDomain: "guardianhq-db216.firebaseapp.com",
-  projectId: "guardianhq-db216",
-  storageBucket: "guardianhq-db216.firebasestorage.app",
+  apiKey:            "AIzaSyBfda3IcQk-bbYHOqKhU4r8wMtOCPjTztc",
+  authDomain:        "guardianhq-db216.firebaseapp.com",
+  projectId:         "guardianhq-db216",
+  storageBucket:     "guardianhq-db216.firebasestorage.app",
   messagingSenderId: "370272351292",
-  appId: "1:370272351292:web:4496bd3fbad791e0fa7f39"
+  appId:             "1:370272351292:web:4496bd3fbad791e0fa7f39"
 };
 
-const EMAILJS_SERVICE_ID          = "service_usefhy9";
-const EMAILJS_TEMPLATE_ID         = "template_kq2yx3d";   // Registratie-email
-const EMAILJS_CONTACT_TEMPLATE_ID = "template_0ncr5h7";   // Contact-formulier (guardianhq_contact)
-const EMAILJS_PUBLIC_KEY          = "Kzu6sQd_AB5cDC0nU";
-const ADMIN_EMAIL                 = "info.guardianhq@gmail.com";
+// ── EmailJS instellingen ──────────────────────────────────────
+const EMAILJS_SERVICE_MAIN     = "service_usefhy9";
+const EMAILJS_SERVICE_RESET    = "service_ztd1ojh";
 
-let auth = null;
-let db   = null;
+const EMAILJS_TPL_WELCOME      = "template_zbd4wpc";   // Welkomstmail
+const EMAILJS_TPL_CONTACT      = "template_0ncr5h7";   // Contact Us
+const EMAILJS_TPL_RESET        = "template_fykspxb";   // Password Reset
+
+const EMAILJS_KEY_MAIN         = "Kzu6sQd_AB5cDC0nU";
+const EMAILJS_KEY_RESET        = "pWDzQDxhFe0LD8ZpI";
+
+const ADMIN_EMAIL              = "info.guardianhq@gmail.com";
+const SITE_URL                 = "https://guardianhq.vercel.app";
+
+let auth          = null;
+let db            = null;
 let firebaseReady = false;
 
 function initFirebase() {
   try {
     if (typeof firebase !== 'undefined') {
-      if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-      }
-      auth = firebase.auth();
-      db   = firebase.firestore();
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      auth          = firebase.auth();
+      db            = firebase.firestore();
       firebaseReady = true;
       console.log("Firebase + Firestore klaar");
     }
-  } catch(e) {
-    console.warn("Firebase fout:", e);
-  }
+  } catch(e) { console.warn("Firebase fout:", e); }
 }
 
 function initEmailJS() {
   try {
-    if (typeof emailjs !== 'undefined') {
-      emailjs.init(EMAILJS_PUBLIC_KEY);
-    }
+    if (typeof emailjs !== 'undefined') emailjs.init(EMAILJS_KEY_MAIN);
   } catch(e) {}
 }
 
+// ── Registreren ───────────────────────────────────────────────
 async function registerUser(username, email, password) {
+  if (!firebaseReady) throw new Error("Verbinding mislukt. Controleer je internetverbinding.");
 
-  if (!firebaseReady) {
-    throw new Error("Verbinding met de server mislukt. Controleer je internetverbinding en probeer het opnieuw.");
-  }
-
-  // Check gebruikersnaam in Firestore
+  // Gebruikersnaam beschikbaar?
   const doc = await db.collection('usernames').doc(username.toLowerCase()).get();
-  if (doc.exists) {
-    throw new Error("Deze gebruikersnaam is al in gebruik. Kies een andere naam.");
-  }
+  if (doc.exists) throw new Error("Deze gebruikersnaam is al in gebruik. Kies een andere naam.");
 
-  // Firebase account aanmaken
+  // Account aanmaken
   let cred;
   try {
     cred = await auth.createUserWithEmailAndPassword(email, password);
@@ -72,24 +70,20 @@ async function registerUser(username, email, password) {
     throw new Error(msgs[e.code] || e.message);
   }
 
-  // Gebruikersnaam opslaan in Firestore
+  // Sla gebruikersnaam op in Firestore
   await db.collection('usernames').doc(username.toLowerCase()).set({
-    username:  username,
-    email:     email,
-    uid:       cred.user.uid,
-    createdAt: new Date().toISOString()
+    username: username, email: email,
+    uid: cred.user.uid, createdAt: new Date().toISOString()
   });
 
   localStorage.setItem('ghq_current_user', JSON.stringify({ username, email }));
-  await sendRegistrationEmail(username, email);
+  await sendWelcomeMail(username, email);
   return { username, email };
 }
 
+// ── Inloggen ──────────────────────────────────────────────────
 async function loginUser(email, password) {
-  if (!firebaseReady) {
-    throw new Error("Verbinding met de server mislukt. Controleer je internetverbinding en probeer het opnieuw.");
-  }
-
+  if (!firebaseReady) throw new Error("Verbinding mislukt. Controleer je internetverbinding.");
   try {
     const cred     = await auth.signInWithEmailAndPassword(email, password);
     const username = cred.user.displayName || email.split('@')[0];
@@ -107,43 +101,83 @@ async function loginUser(email, password) {
   }
 }
 
-async function sendRegistrationEmail(username, email) {
+// ── Wachtwoord resetten ───────────────────────────────────────
+async function resetPassword(email) {
+  if (!firebaseReady) throw new Error("Verbinding mislukt.");
+  if (!email) throw new Error("Vul je e-mailadres in.");
+
+  // Firebase stuurt eigen reset link — wij sturen via EmailJS ook een nette mail
   try {
-    if (typeof emailjs === 'undefined') return;
-    const siteUrl = "https://genuine-semolina-78d633.netlify.app";
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-      to_email: email, to_name: username, from_name: "GuardianHQ",
-      reply_to: ADMIN_EMAIL, subject: "Welkom bij GuardianHQ!",
-      gebruikersnaam: username, emailadres: email, site_url: siteUrl,
-    });
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-      to_email: ADMIN_EMAIL, to_name: "Admin", from_name: "GuardianHQ Systeem",
-      reply_to: email, subject: "Nieuwe registratie: " + username,
-      gebruikersnaam: username, emailadres: email, site_url: siteUrl,
+    await auth.sendPasswordResetEmail(email, {
+      url: SITE_URL + '/login.html',
     });
   } catch(e) {
-    console.warn("E-mail fout:", e);
+    const msgs = {
+      'auth/user-not-found': 'Geen account gevonden met dit e-mailadres.',
+      'auth/invalid-email':  'Ongeldig e-mailadres.',
+    };
+    throw new Error(msgs[e.code] || e.message);
+  }
+
+  // Stuur ook onze eigen stijlvolle EmailJS mail
+  try {
+    if (typeof emailjs !== 'undefined') {
+      emailjs.init(EMAILJS_KEY_RESET);
+      await emailjs.send(EMAILJS_SERVICE_RESET, EMAILJS_TPL_RESET, {
+        to_email:  email,
+        to_name:   email.split('@')[0],
+        from_name: "GuardianHQ",
+        reply_to:  ADMIN_EMAIL,
+        site_url:  SITE_URL,
+        login_url: SITE_URL + '/login.html',
+      }, EMAILJS_KEY_RESET);
+      // Zet main key terug
+      emailjs.init(EMAILJS_KEY_MAIN);
+    }
+  } catch(e) {
+    console.warn("Reset EmailJS fout:", e);
+    // Niet gooien — Firebase reset werkt al
   }
 }
 
+// ── Welkomstmail ──────────────────────────────────────────────
+async function sendWelcomeMail(username, email) {
+  try {
+    if (typeof emailjs === 'undefined') return;
+    // Mail naar gebruiker
+    await emailjs.send(EMAILJS_SERVICE_MAIN, EMAILJS_TPL_WELCOME, {
+      to_email:       email,
+      to_name:        username,
+      from_name:      "GuardianHQ",
+      reply_to:       ADMIN_EMAIL,
+      gebruikersnaam: username,
+      emailadres:     email,
+      site_url:       SITE_URL,
+    });
+    // Notificatie naar admin
+    await emailjs.send(EMAILJS_SERVICE_MAIN, EMAILJS_TPL_WELCOME, {
+      to_email:       ADMIN_EMAIL,
+      to_name:        "Admin",
+      from_name:      "GuardianHQ Systeem",
+      reply_to:       email,
+      gebruikersnaam: username,
+      emailadres:     email,
+      site_url:       SITE_URL,
+    });
+  } catch(e) { console.warn("Welkomstmail fout:", e); }
+}
+
 // ── Contact formulier ─────────────────────────────────────────
-// Variabelen die matchen met emailtemplate_contact.html:
-//   {{from_name}}  — naam van de afzender
-//   {{reply_to}}   — e-mailadres van de afzender
-//   {{subject}}    — onderwerp
-//   {{message}}    — berichttekst
 async function sendContactEmail({ from_name, reply_to, subject, message }) {
   if (typeof emailjs === 'undefined') throw new Error("EmailJS niet geladen.");
-  await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_CONTACT_TEMPLATE_ID, {
-    from_name,
-    reply_to,
-    subject,
-    message,
+  await emailjs.send(EMAILJS_SERVICE_MAIN, EMAILJS_TPL_CONTACT, {
+    from_name, reply_to, subject, message,
     to_email:  ADMIN_EMAIL,
     site_name: "GuardianHQ",
   });
 }
 
+// ── Uitloggen ─────────────────────────────────────────────────
 function logoutUser() {
   localStorage.removeItem('ghq_current_user');
   if (firebaseReady && auth) auth.signOut().catch(() => {});
@@ -155,10 +189,15 @@ function getCurrentUser() {
   catch { return null; }
 }
 
+function isBungieLinked() {
+  return !!localStorage.getItem('bungie_access_token');
+}
+
+// ── Nav avatar ────────────────────────────────────────────────
 function getNavAvatarHtml(user) {
-  const type  = localStorage.getItem('ghq_avatar_type') || 'icon';
-  const photo = localStorage.getItem('ghq_avatar_photo');
-  const emoji = localStorage.getItem('ghq_avatar') || '';
+  const type    = localStorage.getItem('ghq_avatar_type') || 'icon';
+  const photo   = localStorage.getItem('ghq_avatar_photo');
+  const emoji   = localStorage.getItem('ghq_avatar') || '';
   const initials = user ? user.username.slice(0,2).toUpperCase() : '?';
   if (type === 'photo' && photo) {
     return `<div class="nav-avatar" style="padding:0;overflow:hidden"><img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`;
@@ -172,17 +211,13 @@ function getNavAvatarHtml(user) {
 function updateNav() {
   const user    = getCurrentUser();
   const navAuth = document.getElementById('navAuth');
-  const navSpacer = document.getElementById('navSpacer');
   if (!navAuth) return;
 
-  // Destiny 2 en Profiel alleen zichtbaar als ingelogd
   const navLinks = document.querySelectorAll('.nav-center a');
   navLinks.forEach(link => {
-    const href = link.getAttribute('href') || '';
+    const href        = link.getAttribute('href') || '';
     const isProtected = href.includes('destiny.html') || href.includes('profile.html');
-    if (isProtected) {
-      link.style.display = user ? '' : 'none';
-    }
+    if (isProtected) link.style.display = user ? '' : 'none';
   });
 
   if (user) {
