@@ -119,25 +119,7 @@ async function resetPassword(email) {
     throw new Error(msgs[e.code] || e.message);
   }
 
-  // Stuur ook onze eigen stijlvolle EmailJS mail
-  try {
-    if (typeof emailjs !== 'undefined') {
-      emailjs.init(EMAILJS_KEY_RESET);
-      await emailjs.send(EMAILJS_SERVICE_RESET, EMAILJS_TPL_RESET, {
-        to_email:  email,
-        to_name:   email.split('@')[0],
-        from_name: "GuardianHQ",
-        reply_to:  ADMIN_EMAIL,
-        site_url:  SITE_URL,
-        login_url: SITE_URL + '/login.html',
-      }, EMAILJS_KEY_RESET);
-      // Zet main key terug
-      emailjs.init(EMAILJS_KEY_MAIN);
-    }
-  } catch(e) {
-    console.warn("Reset EmailJS fout:", e);
-    // Niet gooien — Firebase reset werkt al
-  }
+  // Firebase stuurt zelf de reset mail — geen dubbele EmailJS mail nodig
 }
 
 // ── Welkomstmail ──────────────────────────────────────────────
