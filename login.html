@@ -33,7 +33,6 @@
         <a href="landing.html">Welkom</a>
         <a href="info.html">Info</a>
         <a href="destiny.html">Destiny 2</a>
-        <a href="item-manager.html">Item Manager</a>
         <a href="profile.html">Profiel</a>
         <a href="contact.html">Contact</a>
         <a href="discord.html" class="discord-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.1 18.078.11 18.1.132 18.113a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>Discord</a>
@@ -53,7 +52,6 @@
     <a href="landing.html">🏠 Welkom</a>
     <a href="info.html">ℹ️ Info</a>
     <a href="destiny.html">⚔️ Destiny 2</a>
-    <a href="item-manager.html">🎒 Item Manager</a>
     <a href="profile.html">👤 Profiel</a>
     <a href="contact.html">📬 Contact</a>
     <a href="discord.html" class="discord-link">Discord</a>
@@ -104,9 +102,25 @@
       <div class="field">
         <label class="field-label">Wachtwoord</label>
         <input class="field-input" type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" required>
+        <div style="text-align:right;margin-top:4px">
+          <a href="#" onclick="showResetForm()" style="font-size:0.78rem;color:var(--text2);text-decoration:none;opacity:0.7">Wachtwoord vergeten?</a>
+        </div>
       </div>
 
       <button class="submit-btn" id="loginBtn" onclick="handleLogin()">Inloggen</button>
+
+      <!-- Reset formulier (verborgen) -->
+      <div id="resetForm" style="display:none;margin-top:1rem;padding:1rem;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px">
+        <div style="font-size:0.82rem;font-weight:600;margin-bottom:8px;color:var(--text)">🔑 Wachtwoord resetten</div>
+        <div style="font-size:0.75rem;color:var(--text2);margin-bottom:10px">Vul je e-mailadres in. Je krijgt een resetlink via Firebase én een mail van ons.</div>
+        <input class="field-input" type="email" id="resetEmail" placeholder="jij@example.com" style="margin-bottom:8px">
+        <div style="display:flex;gap:8px">
+          <button class="submit-btn" id="resetBtn" onclick="handleReset()" style="flex:1;padding:10px;font-size:0.82rem">Versturen</button>
+          <button onclick="hideResetForm()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:var(--text2);border-radius:8px;padding:10px 14px;cursor:pointer;font-size:0.82rem">Annuleren</button>
+        </div>
+        <div class="alert alert-error"   id="resetError"   style="margin-top:8px"></div>
+        <div class="alert alert-success" id="resetSuccess" style="margin-top:8px"></div>
+      </div>
 
       <div class="auth-footer" style="margin-top:1rem">
         Nog geen account? <a href="register.html">Registreer hier</a>
@@ -152,10 +166,49 @@
     }
 
     document.addEventListener('keydown', e => {
-      if (e.key === 'Enter') handleLogin();
+      if (e.key === 'Enter') {
+        if (document.getElementById('resetForm').style.display !== 'none') handleReset();
+        else handleLogin();
+      }
     });
+
+    function showResetForm() {
+      document.getElementById('resetForm').style.display = 'block';
+      document.getElementById('resetEmail').value = document.getElementById('loginEmail').value;
+      document.getElementById('resetEmail').focus();
+    }
+
+    function hideResetForm() {
+      document.getElementById('resetForm').style.display = 'none';
+      document.getElementById('resetError').classList.remove('show');
+      document.getElementById('resetSuccess').classList.remove('show');
+    }
+
+    async function handleReset() {
+      const email = document.getElementById('resetEmail').value.trim();
+      const btn   = document.getElementById('resetBtn');
+      document.getElementById('resetError').classList.remove('show');
+      document.getElementById('resetSuccess').classList.remove('show');
+      if (!email) {
+        document.getElementById('resetError').textContent = 'Vul je e-mailadres in.';
+        document.getElementById('resetError').classList.add('show');
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Versturen...';
+      try {
+        await resetPassword(email);
+        document.getElementById('resetSuccess').textContent = '✓ Resetlink verstuurd! Controleer je inbox (en spam).';
+        document.getElementById('resetSuccess').classList.add('show');
+        btn.textContent = '✓ Verstuurd';
+      } catch(e) {
+        document.getElementById('resetError').textContent = e.message;
+        document.getElementById('resetError').classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Versturen';
+      }
+    }
   </script>
   <script>document.addEventListener("DOMContentLoaded",function(){document.documentElement.style.visibility="";});</script>
 </body>
 </html>
-
