@@ -105,8 +105,7 @@
         <div class="d-tab active"  onclick="switchTab('overview')">Overzicht</div>
         <div class="d-tab"         onclick="switchTab('dim')">⚔️ Guardian View</div>
         <div class="d-tab"         onclick="switchTab('loadouts')">Loadouts</div>
-        <div class="d-tab"         onclick="switchTab('itemmanager')">🎒 Item Manager</div>
-        <div class="d-tab"         onclick="switchTab('vault')">Vault</div>
+        <div class="d-tab"         onclick="switchTab('tracker')">📊 Tracker</div>
         <div class="d-tab"         onclick="switchTab('wishlist')">Wishlist</div>
       </div>
 
@@ -412,131 +411,141 @@
       </div>
 
 
-      <!-- ── ITEM MANAGER ── -->
-      <div class="d-pane" id="pane-itemmanager">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:1rem">
-          <div>
-            <div style="font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:4px">🎒 Item Manager</div>
-            <div style="font-size:0.875rem;color:var(--text2)">Verplaats en equip wapens & armor tussen characters en vault</div>
+
+
+      <!-- ── TRACKER ── -->
+      <div class="d-pane" id="pane-tracker">
+
+        <!-- Zoekbalk -->
+        <div style="max-width:560px;margin:0 auto 2rem">
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:700;text-align:center;margin-bottom:6px">
+            📊 Destiny 2 <span style="color:var(--gold2)">Tracker</span>
           </div>
-          <button class="im-btn" onclick="imReloadAll()">🔄 Herladen</button>
+          <div style="text-align:center;color:var(--text2);font-size:0.85rem;margin-bottom:1.2rem">
+            Stats, KD, activiteiten en meer — zoek op Bungie naam
+          </div>
+          <div style="display:flex;gap:8px">
+            <input id="trackerInput" type="text" placeholder="Bungie naam  bijv. Guardian#1234"
+              style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:11px 16px;color:#fff;font-size:0.9rem;outline:none;font-family:'Inter',sans-serif;"
+              onkeydown="if(event.key==='Enter') trackerSearch()">
+            <button onclick="trackerSearch()" style="
+              background:linear-gradient(135deg,var(--gold),var(--gold2));
+              color:#000;font-weight:800;font-size:0.85rem;
+              border:none;border-radius:10px;padding:11px 20px;cursor:pointer;white-space:nowrap;
+            ">🔍 Zoeken</button>
+          </div>
+          <div id="trackerError" style="color:var(--red);font-size:0.8rem;margin-top:8px;text-align:center;display:none"></div>
         </div>
 
-        <div class="d-card glass" style="padding:10px;margin-bottom:10px;font-size:0.78rem;color:rgba(200,220,255,0.7);background:rgba(79,143,255,0.06);border-color:rgba(79,143,255,0.2)">
-          ℹ️ Klik op een item om het te selecteren. Gebruik dan de actie-balk onderaan om te verplaatsen of equippen. De speler moet in Orbit of Tower zijn.
-        </div>
-
-        <!-- Geen Bungie koppeling -->
-        <div id="imLockedMsg" style="display:none;text-align:center;padding:4rem 2rem">
-          <div style="font-size:2.5rem;margin-bottom:1rem">🔗</div>
-          <div style="font-size:1.1rem;font-weight:700;margin-bottom:0.5rem">Bungie account vereist</div>
-          <div style="color:var(--text2);font-size:0.9rem;margin-bottom:1.5rem">Koppel je Bungie account via je Profiel om de Item Manager te gebruiken.</div>
-          <a href="profile.html" class="btn btn-solid" style="padding:10px 24px">Naar Profiel →</a>
+        <!-- Mijn stats knop (als Bungie gekoppeld) -->
+        <div id="trackerMyBtn" style="text-align:center;margin-bottom:1.5rem;display:none">
+          <button onclick="trackerLoadSelf()" style="
+            background:rgba(212,168,67,0.12);border:1px solid rgba(212,168,67,0.35);
+            color:var(--gold2);font-size:0.82rem;font-weight:700;
+            padding:8px 18px;border-radius:8px;cursor:pointer;
+          ">⚡ Mijn eigen stats laden</button>
         </div>
 
         <!-- Loading -->
-        <div id="imLoadingMsg" style="display:none;text-align:center;padding:4rem 2rem">
+        <div id="trackerLoading" style="display:none;text-align:center;padding:3rem">
           <div class="im-spinner" style="margin:0 auto 1rem"></div>
-          <div style="color:var(--text2);font-size:0.85rem" id="imLoadingText">Inventory laden...</div>
+          <div style="color:var(--text2);font-size:0.85rem" id="trackerLoadingText">Stats ophalen...</div>
         </div>
 
-        <!-- Content -->
-        <div id="imMainContent" style="display:none">
-          <!-- Character tabs -->
-          <div class="im-char-tabs" id="imCharTabs" style="margin-bottom:1rem"></div>
+        <!-- Resultaat -->
+        <div id="trackerResult" style="display:none">
 
-          <!-- Layout: character links, vault rechts -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:stretch">
+          <!-- Profiel header -->
+          <div class="d-card glass" style="padding:1.2rem;margin-bottom:1rem">
+            <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+              <div id="trackerEmblem" style="width:64px;height:64px;border-radius:10px;background:var(--bg3);overflow:hidden;flex-shrink:0">
+                <img id="trackerEmblemImg" src="" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">
+              </div>
+              <div style="flex:1">
+                <div style="font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:800" id="trackerName">—</div>
+                <div style="font-size:0.78rem;color:var(--text2);margin-top:2px" id="trackerPlatform">—</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:0.7rem;color:var(--text3)">SEIZOEN RANG</div>
+                <div style="font-size:1.4rem;font-weight:800;color:var(--gold2)" id="trackerSeasonRank">—</div>
+              </div>
+            </div>
+          </div>
 
-            <!-- Character panel -->
+          <!-- Stat kaarten rij 1 -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0.75rem;margin-bottom:0.75rem">
+            <div class="d-card glass tracker-stat-card">
+              <div class="tracker-stat-label">K/D RATIO</div>
+              <div class="tracker-stat-val" id="tKD">—</div>
+              <div class="tracker-stat-sub">PvP Competitief</div>
+            </div>
+            <div class="d-card glass tracker-stat-card">
+              <div class="tracker-stat-label">WINS</div>
+              <div class="tracker-stat-val" id="tWins">—</div>
+              <div class="tracker-stat-sub">Crucible</div>
+            </div>
+            <div class="d-card glass tracker-stat-card">
+              <div class="tracker-stat-label">KILLS</div>
+              <div class="tracker-stat-val" id="tKills">—</div>
+              <div class="tracker-stat-sub">Totaal PvP</div>
+            </div>
+            <div class="d-card glass tracker-stat-card">
+              <div class="tracker-stat-label">WIN RATE</div>
+              <div class="tracker-stat-val" id="tWinRate">—</div>
+              <div class="tracker-stat-sub">Crucible %</div>
+            </div>
+            <div class="d-card glass tracker-stat-card">
+              <div class="tracker-stat-label">TIME PLAYED</div>
+              <div class="tracker-stat-val" id="tTime">—</div>
+              <div class="tracker-stat-sub">Uren totaal</div>
+            </div>
+            <div class="d-card glass tracker-stat-card">
+              <div class="tracker-stat-label">RAIDS</div>
+              <div class="tracker-stat-val" id="tRaids">—</div>
+              <div class="tracker-stat-sub">Clears</div>
+            </div>
+          </div>
+
+          <!-- PvE + PvP blokken -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem">
+
+            <!-- PvE -->
             <div class="d-card glass" style="padding:1rem">
-              <div style="font-size:0.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:0.8rem">
-                👤 Character Inventory
-              </div>
-              <div id="imCharContent"></div>
+              <div style="font-size:0.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:0.8rem">🤖 PvE Stats</div>
+              <div class="tracker-row"><span>Strikes voltooid</span><span id="tStrikes">—</span></div>
+              <div class="tracker-row"><span>Dungeons</span><span id="tDungeons">—</span></div>
+              <div class="tracker-row"><span>Nightfall clears</span><span id="tNF">—</span></div>
+              <div class="tracker-row"><span>Public Events</span><span id="tPE">—</span></div>
+              <div class="tracker-row"><span>PvE Kills</span><span id="tPvEKills">—</span></div>
+              <div class="tracker-row"><span>Orbs gegenereerd</span><span id="tOrbs">—</span></div>
             </div>
 
-            <!-- Vault panel: zelfde hoogte als character panel, grid vult de rest -->
-            <div class="d-card glass" style="padding:1rem;display:flex;flex-direction:column">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;flex-shrink:0">
-                <div style="font-size:0.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2)">
-                  🏦 Vault <span id="imVaultCount" style="background:rgba(255,255,255,0.08);border-radius:20px;padding:1px 8px;font-size:0.68rem;color:var(--text3)">0</span>
-                </div>
-              </div>
-              <div style="display:flex;gap:5px;margin-bottom:0.7rem;flex-wrap:wrap;flex-shrink:0">
-                <input type="text" id="imVaultSearch" placeholder="🔍 Zoek vault..." oninput="imFilterVault()"
-                  style="flex:1;min-width:100px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:7px;padding:5px 9px;color:#fff;font-size:0.78rem;outline:none;">
-                <button class="vf-btn active" onclick="imSetVaultFilter('all',this)">Alles</button>
-                <button class="vf-btn"        onclick="imSetVaultFilter('weapons',this)">Wapens</button>
-                <button class="vf-btn"        onclick="imSetVaultFilter('armor',this)">Armor</button>
-              </div>
-              <div id="imVaultGrid" style="display:flex;flex-wrap:wrap;gap:5px;flex:1;overflow-y:auto;align-content:flex-start"></div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Actie balk -->
-        <div id="imActionBar" style="display:none;margin-top:1rem">
-          <div class="d-card glass" style="padding:0.8rem 1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;border-color:rgba(212,168,67,0.3)">
-            <img id="imActionIcon" src="" style="width:40px;height:40px;border-radius:7px;object-fit:cover" onerror="this.style.display='none'">
-            <div style="flex:1">
-              <div id="imActionName" style="font-weight:700;font-size:0.9rem">—</div>
-              <div id="imActionSub" style="font-size:0.75rem;color:var(--text2)">—</div>
-            </div>
-            <div id="imActionBtns" style="display:flex;gap:6px;flex-wrap:wrap"></div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- ── VAULT ── -->
-      <div class="d-pane" id="pane-vault">
-        <!-- Header -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:1rem">
-          <div>
-            <div style="font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:4px">Vault Overzicht</div>
-            <div style="font-size:0.875rem;color:var(--text2)">
-              <span class="val-gold" style="font-weight:700" id="vaultCount">—</span> items
-              <span id="vaultFilterCount" style="color:var(--text3);margin-left:6px"></span>
+            <!-- PvP -->
+            <div class="d-card glass" style="padding:1rem">
+              <div style="font-size:0.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:0.8rem">⚔️ PvP Stats</div>
+              <div class="tracker-row"><span>Gespeelde games</span><span id="tGames">—</span></div>
+              <div class="tracker-row"><span>Assists</span><span id="tAssists">—</span></div>
+              <div class="tracker-row"><span>Deaths</span><span id="tDeaths">—</span></div>
+              <div class="tracker-row"><span>Longest kill spree</span><span id="tSpree">—</span></div>
+              <div class="tracker-row"><span>Best single game kills</span><span id="tBest">—</span></div>
+              <div class="tracker-row"><span>Supers als kill</span><span id="tSupers">—</span></div>
             </div>
           </div>
-          <input id="vaultSearch" type="text" placeholder="🔍 Zoek op naam..." oninput="applyVaultFilter()"
-            style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:7px 12px;color:#fff;font-size:0.82rem;width:200px;outline:none;">
-        </div>
 
-        <!-- Hoofd filter: Alles / Wapens / Armor per klasse -->
-        <div class="vault-filters" id="vaultMainFilters">
-          <button class="vf-btn active" data-main="all"            onclick="setVaultMain(this,'all')">Alles</button>
-          <button class="vf-btn"        data-main="weapons"        onclick="setVaultMain(this,'weapons')">🔫 Wapens</button>
-          <button class="vf-btn"        data-main="armor-hunter"   onclick="setVaultMain(this,'armor-hunter')">🏹 Hunter Armor</button>
-          <button class="vf-btn"        data-main="armor-warlock"  onclick="setVaultMain(this,'armor-warlock')">🔮 Warlock Armor</button>
-          <button class="vf-btn"        data-main="armor-titan"    onclick="setVaultMain(this,'armor-titan')">🛡️ Titan Armor</button>
-        </div>
+          <!-- Characters -->
+          <div class="d-card glass" style="padding:1rem;margin-bottom:0.75rem">
+            <div style="font-size:0.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:0.8rem">👤 Characters</div>
+            <div id="trackerChars" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+          </div>
 
-        <!-- Sub filter wapens: Kinetic / Energy / Power -->
-        <div class="vault-filters" id="vaultWeaponFilters" style="display:none;margin-top:6px;">
-          <button class="vf-btn active" data-sub="all"     onclick="setVaultSub(this,'all')">Alle Slots</button>
-          <button class="vf-btn"        data-sub="kinetic" onclick="setVaultSub(this,'kinetic')">⚪ Kinetic</button>
-          <button class="vf-btn"        data-sub="energy"  onclick="setVaultSub(this,'energy')">🔵 Energy</button>
-          <button class="vf-btn"        data-sub="power"   onclick="setVaultSub(this,'power')">🟡 Power</button>
-        </div>
+          <!-- Recente activiteiten -->
+          <div class="d-card glass" style="padding:1rem">
+            <div style="font-size:0.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:0.8rem">🕹️ Recente Activiteiten</div>
+            <div id="trackerActivities">
+              <div style="color:var(--text3);font-size:0.82rem">Selecteer een character om activiteiten te zien</div>
+            </div>
+          </div>
 
-        <!-- Sub filter armor: slot type -->
-        <div class="vault-filters" id="vaultArmorFilters" style="display:none;margin-top:6px;">
-          <button class="vf-btn active" data-sub="all"      onclick="setVaultSub(this,'all')">Alle Slots</button>
-          <button class="vf-btn"        data-sub="helmet"   onclick="setVaultSub(this,'helmet')">⛑️ Helmet</button>
-          <button class="vf-btn"        data-sub="gauntlets" onclick="setVaultSub(this,'gauntlets')">🥊 Gauntlets</button>
-          <button class="vf-btn"        data-sub="chest"    onclick="setVaultSub(this,'chest')">👕 Chest</button>
-          <button class="vf-btn"        data-sub="legs"     onclick="setVaultSub(this,'legs')">👖 Legs</button>
-          <button class="vf-btn"        data-sub="classitem" onclick="setVaultSub(this,'classitem')">🎗️ Class Item</button>
-          <button class="vf-btn"        data-sub="exotic"   onclick="setVaultSub(this,'exotic')">⭐ Exotic</button>
-          <button class="vf-btn"        data-sub="artifice" onclick="setVaultSub(this,'artifice')" title="Master Dungeon armor met extra mod slot">🔱 Artifice</button>
-        </div>
-
-        <div class="d-card glass" style="min-height:200px;margin-top:10px;">
-          <div id="vaultState" style="color:var(--text3);font-size:0.85rem;padding:16px;text-align:center;display:none"></div>
-          <div id="vaultGrid"></div>
         </div>
       </div>
 
@@ -4217,6 +4226,345 @@
       await Promise.all([imLoadCharInv(fid).then(()=>imRenderChar(fid)), imLoadVault()]);
     }
   }
+  </script>
+
+    /* ══ Tracker Tab ════════════════════════════════════════════ */
+    .tracker-stat-card { padding:1rem;text-align:center; }
+    .tracker-stat-label { font-size:0.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:4px; }
+    .tracker-stat-val { font-size:1.6rem;font-weight:900;color:var(--gold2);line-height:1;margin-bottom:2px;font-family:'Space Grotesk',sans-serif; }
+    .tracker-stat-sub { font-size:0.65rem;color:var(--text3); }
+    .tracker-row { display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.82rem; }
+    .tracker-row:last-child { border-bottom:none; }
+    .tracker-row span:last-child { font-weight:700;color:var(--gold2); }
+    .tracker-char-card { background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;min-width:130px;cursor:pointer;transition:all 0.2s; }
+    .tracker-char-card:hover { border-color:var(--gold);background:rgba(212,168,67,0.08); }
+    .tracker-char-card.active { border-color:var(--gold);background:rgba(212,168,67,0.12); }
+    #trackerInput:focus { border-color:rgba(212,168,67,0.5);box-shadow:0 0 0 2px rgba(212,168,67,0.1); }
+
+
+  <!-- TRACKER JS -->
+  <script>
+  var TR = {
+    membershipType: null,
+    membershipId:   null,
+    characters:     [],
+    activeCharId:   null,
+    bungieName:     null,
+  };
+
+  var CLASS_NAMES = {0:'Titan',1:'Hunter',2:'Warlock'};
+  var CLASS_ICONS = {
+    0:'img/icons/titanicon.png',
+    1:'img/icons/huntericon.png',
+    2:'img/icons/warlockicon.png'
+  };
+  var PLATFORM_NAMES = {1:'Xbox',2:'PlayStation',3:'Steam',5:'Stadia',6:'Epic'};
+
+  function fmt(n) {
+    if (n == null || n === undefined) return '—';
+    var num = parseInt(n);
+    if (isNaN(num)) return '—';
+    if (num >= 1000000) return (num/1000000).toFixed(1) + 'M';
+    if (num >= 1000)    return (num/1000).toFixed(1)    + 'K';
+    return num.toLocaleString('nl-NL');
+  }
+  function fmtKD(kills, deaths) {
+    if (!deaths || deaths == 0) return kills > 0 ? '∞' : '—';
+    return (kills / deaths).toFixed(2);
+  }
+  function fmtTime(mins) {
+    if (!mins) return '—';
+    var h = Math.round(mins / 60);
+    if (h >= 1000) return (h/1000).toFixed(1) + 'K u';
+    return h + ' u';
+  }
+  function fmtWinRate(wins, games) {
+    if (!games || games == 0) return '—';
+    return Math.round((wins/games)*100) + '%';
+  }
+
+  // Zoek speler op naam
+  async function trackerSearch() {
+    var input = document.getElementById('trackerInput').value.trim();
+    if (!input) { trackerShowError('Vul een Bungie naam in — bijv. Guardian#1234'); return; }
+    trackerShowError('');
+
+    // Bungie naam opsplitsen in naam + code
+    var parts = input.split('#');
+    if (parts.length < 2) { trackerShowError('Gebruik het formaat: Naam#1234'); return; }
+    var name = parts[0].trim();
+    var code = parts[1].trim();
+
+    document.getElementById('trackerLoading').style.display = 'block';
+    document.getElementById('trackerResult').style.display  = 'none';
+    document.getElementById('trackerLoadingText').textContent = 'Speler zoeken...';
+
+    try {
+      // Zoek via Bungie name search
+      var searchResult = await bungiePost('/Destiny2/SearchDestinyPlayerByBungieName/-1/', {
+        displayName:     name,
+        displayNameCode: parseInt(code),
+      });
+
+      if (!searchResult || !searchResult.length) {
+        throw new Error('Speler niet gevonden. Controleer de Bungie naam en code.');
+      }
+
+      // Kies crosssave of eerste
+      var profile = searchResult[0];
+      for (var i = 0; i < searchResult.length; i++) {
+        if (searchResult[i].crossSaveOverride && searchResult[i].crossSaveOverride === searchResult[i].membershipType) {
+          profile = searchResult[i]; break;
+        }
+      }
+
+      TR.membershipType = profile.membershipType;
+      TR.membershipId   = profile.membershipId;
+      TR.bungieName     = (profile.bungieGlobalDisplayName || name) + '#' + (profile.bungieGlobalDisplayNameCode || code);
+
+      await trackerLoadProfile();
+    } catch(e) {
+      document.getElementById('trackerLoading').style.display = 'none';
+      trackerShowError(e.message || 'Fout bij zoeken');
+    }
+  }
+
+  // Laad eigen profiel als Bungie gekoppeld
+  async function trackerLoadSelf() {
+    var platform  = localStorage.getItem('bungie_platform');
+    var destinyId = localStorage.getItem('bungie_destiny_id');
+    if (!platform || !destinyId) { trackerShowError('Koppel eerst je Bungie account via Profiel'); return; }
+    TR.membershipType = parseInt(platform);
+    TR.membershipId   = destinyId;
+
+    document.getElementById('trackerLoading').style.display = 'block';
+    document.getElementById('trackerResult').style.display  = 'none';
+    document.getElementById('trackerLoadingText').textContent = 'Jouw stats laden...';
+
+    try { await trackerLoadProfile(); }
+    catch(e) { document.getElementById('trackerLoading').style.display='none'; trackerShowError(e.message); }
+  }
+
+  async function trackerLoadProfile() {
+    document.getElementById('trackerLoadingText').textContent = 'Profiel ophalen...';
+
+    // Haal profiel op: characters (200), aggregateStats (1000), metrics (1100)
+    var profile = await bungieGet(
+      '/Destiny2/' + TR.membershipType + '/Profile/' + TR.membershipId +
+      '/?components=100,200,202,900'
+    );
+
+    var chars    = profile.characters && profile.characters.data || {};
+    TR.characters = Object.values(chars).sort((a,b) => new Date(b.dateLastPlayed) - new Date(a.dateLastPlayed));
+
+    // Profiel info
+    var profData = profile.profile && profile.profile.data || {};
+    TR.bungieName = TR.bungieName || profData.userInfo && (profData.userInfo.bungieGlobalDisplayName + '#' + profData.userInfo.bungieGlobalDisplayNameCode) || 'Guardian';
+
+    document.getElementById('trackerName').textContent     = TR.bungieName;
+    document.getElementById('trackerPlatform').textContent = PLATFORM_NAMES[TR.membershipType] || 'Platform ' + TR.membershipType;
+
+    // Seizoen rang
+    var seasonRank = profData.seasonRank || profData.characterProgressions && '—' || '—';
+    document.getElementById('trackerSeasonRank').textContent = seasonRank || '—';
+
+    // Characters renderen
+    trackerRenderChars();
+
+    // Stats ophalen voor eerste character
+    if (TR.characters.length > 0) {
+      TR.activeCharId = TR.characters[0].characterId;
+      await trackerLoadStats(TR.activeCharId);
+    }
+
+    document.getElementById('trackerLoading').style.display = 'none';
+    document.getElementById('trackerResult').style.display  = 'block';
+  }
+
+  function trackerRenderChars() {
+    var container = document.getElementById('trackerChars');
+    container.innerHTML = TR.characters.map(c => {
+      var cn  = CLASS_NAMES[c.classType]  || 'Guardian';
+      var ico = CLASS_ICONS[c.classType]  || '';
+      var light = c.light || '—';
+      var emblem = c.emblemBackgroundPath ? ('/api/bungie-proxy?action=img&url=' + encodeURIComponent('https://www.bungie.net' + c.emblemBackgroundPath)) : '';
+      var isActive = c.characterId === TR.activeCharId;
+      return `<div class="tracker-char-card ${isActive?'active':''}" onclick="trackerSelectChar('${c.characterId}')">
+        ${emblem ? `<img src="${emblem}" style="width:100%;height:32px;object-fit:cover;border-radius:6px;margin-bottom:6px" onerror="this.style.display='none'">` : ''}
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+          <img src="${ico}" style="width:20px;height:20px;border-radius:4px" onerror="this.style.display='none'">
+          <span style="font-weight:700;font-size:0.85rem">${cn}</span>
+        </div>
+        <div style="font-size:0.72rem;color:var(--gold2);font-weight:700">⚡ ${light}</div>
+      </div>`;
+    }).join('');
+  }
+
+  async function trackerSelectChar(charId) {
+    TR.activeCharId = charId;
+    trackerRenderChars();
+    document.getElementById('trackerActivities').innerHTML =
+      '<div style="color:var(--text3);font-size:0.82rem;text-align:center;padding:1rem"><div class="im-spinner" style="margin:0 auto 8px"></div>Activiteiten laden...</div>';
+    await trackerLoadStats(charId);
+  }
+
+  async function trackerLoadStats(charId) {
+    try {
+      // Haal alle PvP stats op (mode 5 = allPvP, mode 7 = allPvE)
+      var pvpData = await bungieGet(
+        '/Destiny2/' + TR.membershipType + '/Account/' + TR.membershipId +
+        '/Character/' + charId + '/Stats/?modes=5,7,4,18,46,82&groups=1,2,3'
+      );
+
+      var pvp = pvpData.allPvP && pvpData.allPvP.allTime || {};
+      var pve = pvpData.allPvE && pvpData.allPvE.allTime || {};
+      var raid= pvpData.raid   && pvpData.raid.allTime   || {};
+
+      function sv(obj, key) { return obj[key] && obj[key].basic && obj[key].basic.value || 0; }
+      function sd(obj, key) { return obj[key] && obj[key].basic && obj[key].basic.displayValue || '—'; }
+
+      // PvP
+      var kills  = sv(pvp, 'kills');
+      var deaths = sv(pvp, 'deaths');
+      var wins   = sv(pvp, 'activitiesWon');
+      var games  = sv(pvp, 'activitiesEntered');
+
+      document.getElementById('tKD').textContent      = fmtKD(kills, deaths);
+      document.getElementById('tWins').textContent    = fmt(wins);
+      document.getElementById('tKills').textContent   = fmt(kills);
+      document.getElementById('tWinRate').textContent = fmtWinRate(wins, games);
+      document.getElementById('tGames').textContent   = fmt(games);
+      document.getElementById('tAssists').textContent = fmt(sv(pvp, 'assists'));
+      document.getElementById('tDeaths').textContent  = fmt(deaths);
+      document.getElementById('tSpree').textContent   = fmt(sv(pvp, 'longestKillSpree'));
+      document.getElementById('tBest').textContent    = fmt(sv(pvp, 'bestSingleGameKills'));
+      document.getElementById('tSupers').textContent  = fmt(sv(pvp, 'weaponKillsSuper'));
+
+      // PvE
+      var pveKills    = sv(pve, 'kills');
+      var timePlayed  = sv(pve, 'secondsPlayed') + sv(pvp, 'secondsPlayed');
+      document.getElementById('tTime').textContent    = fmtTime(timePlayed / 60);
+      document.getElementById('tStrikes').textContent = fmt(sv(pvpData.allStrikes && pvpData.allStrikes.allTime || {}, 'activitiesCleared') || sv(pve,'activitiesCleared'));
+      document.getElementById('tDungeons').textContent= fmt(sv(pvpData.dungeon && pvpData.dungeon.allTime || {}, 'activitiesCleared'));
+      document.getElementById('tNF').textContent      = fmt(sv(pvpData.scored_nightfall && pvpData.scored_nightfall.allTime || {}, 'activitiesCleared'));
+      document.getElementById('tPE').textContent      = fmt(sv(pve, 'publicEventsCompleted'));
+      document.getElementById('tPvEKills').textContent= fmt(pveKills);
+      document.getElementById('tOrbs').textContent    = fmt(sv(pve, 'orbsDropped'));
+      document.getElementById('tRaids').textContent   = fmt(sv(raid, 'activitiesCleared'));
+
+      // Embleem van eerste character
+      var char = TR.characters.find(c => c.characterId === charId);
+      if (char && char.emblemPath) {
+        document.getElementById('trackerEmblemImg').src =
+          '/api/bungie-proxy?action=img&url=' + encodeURIComponent('https://www.bungie.net' + char.emblemPath);
+      }
+
+      // Recente activiteiten
+      await trackerLoadActivities(charId);
+
+    } catch(e) {
+      console.error('trackerLoadStats fout:', e);
+      document.getElementById('trackerActivities').innerHTML =
+        '<div style="color:var(--red);font-size:0.82rem">Stats konden niet geladen worden: ' + e.message + '</div>';
+    }
+  }
+
+  async function trackerLoadActivities(charId) {
+    try {
+      var acts = await bungieGet(
+        '/Destiny2/' + TR.membershipType + '/Account/' + TR.membershipId +
+        '/Character/' + charId + '/Stats/Activities/?count=10&mode=0'
+      );
+      var activities = acts.activities || [];
+      if (!activities.length) {
+        document.getElementById('trackerActivities').innerHTML =
+          '<div style="color:var(--text3);font-size:0.82rem">Geen recente activiteiten</div>';
+        return;
+      }
+
+      var modeIcons = {
+        4:'⚔️',5:'🏆',6:'🏆',7:'🤖',10:'🌑',18:'🔥',46:'⚡',82:'🗡️',
+      };
+
+      document.getElementById('trackerActivities').innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${activities.map(a => {
+            var vals    = a.values || {};
+            var mode    = a.activityDetails && a.activityDetails.mode || 0;
+            var icon    = modeIcons[mode] || '🎮';
+            var ref     = a.activityDetails && a.activityDetails.referenceId || 0;
+            var kills   = vals.kills   && vals.kills.basic   && vals.kills.basic.value   || 0;
+            var deaths  = vals.deaths  && vals.deaths.basic  && vals.deaths.basic.value  || 0;
+            var assists = vals.assists  && vals.assists.basic  && vals.assists.basic.value  || 0;
+            var kd      = fmtKD(kills, deaths);
+            var completed = vals.completed && vals.completed.basic && vals.completed.basic.value;
+            var won     = vals.standing && vals.standing.basic && vals.standing.basic.value === 0;
+            var period  = a.period ? new Date(a.period).toLocaleDateString('nl-NL',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+            var result  = completed ? (won ? '<span style="color:#4caf82">Gewonnen</span>' : '<span style="color:var(--text3)">Verloren</span>') : '<span style="color:var(--text3)">DNF</span>';
+            return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid rgba(255,255,255,0.06);font-size:0.8rem">
+              <span style="font-size:1.1rem">${icon}</span>
+              <div style="flex:1">
+                <div style="font-weight:600">${a.activityDetails && a.activityDetails.modeName || 'Activiteit'}</div>
+                <div style="color:var(--text3);font-size:0.72rem">${period}</div>
+              </div>
+              <div style="text-align:right">
+                <div>${result}</div>
+                <div style="color:var(--text2);font-size:0.72rem">K/D: ${kd} &nbsp; K:${fmt(kills)} D:${fmt(deaths)}</div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>`;
+    } catch(e) {
+      document.getElementById('trackerActivities').innerHTML =
+        '<div style="color:var(--text3);font-size:0.82rem">Activiteiten konden niet geladen worden</div>';
+    }
+  }
+
+  function trackerShowError(msg) {
+    var el = document.getElementById('trackerError');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.display = msg ? 'block' : 'none';
+  }
+
+  // Voeg bungiePost toe als die nog niet bestaat
+  if (typeof bungiePost === 'undefined') {
+    window.bungiePost = async function(endpoint, body) {
+      var token = null;
+      try { token = await getValidToken(); } catch(e) {}
+      var resp = await fetch('/api/bungie-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action:       'api',
+          endpoint:     endpoint,
+          access_token: token || '',
+          post_body:    body,
+        }),
+      });
+      var data = await resp.json();
+      if (data.ErrorCode && data.ErrorCode !== 1) throw new Error(data.Message || 'Bungie API fout ' + data.ErrorCode);
+      return data.Response;
+    };
+  }
+
+  // Toon "Mijn stats" knop als Bungie gekoppeld
+  window.addEventListener('DOMContentLoaded', function() {
+    if (typeof isBungieLinked === 'function' && isBungieLinked()) {
+      var btn = document.getElementById('trackerMyBtn');
+      if (btn) btn.style.display = 'block';
+    }
+  });
+
+  // Hook in switchTab
+  var _trOrigSwitch = window.switchTab;
+  window.switchTab = function(tab) {
+    if (typeof _trOrigSwitch === 'function') _trOrigSwitch(tab);
+    if (tab === 'tracker' && typeof isBungieLinked === 'function' && isBungieLinked()) {
+      var btn = document.getElementById('trackerMyBtn');
+      if (btn) btn.style.display = 'block';
+    }
+  };
   </script>
 </body>
 </html>
