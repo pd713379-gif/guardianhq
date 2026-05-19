@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Destiny 2 Gids — GuardianHQ</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>document.documentElement.style.visibility="hidden";</script>
+  <style>
+    /* ── GIDS-ONLY STYLES ── */
+    .gids-hero {
+      padding: 7rem 1.5rem 3rem;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .gids-hero h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+    .gids-hero p {
+      color: var(--text2);
+      max-width: 580px;
+      margin: 0 auto 2rem;
+      font-size: 1rem;
+      line-height: 1.65;
+    }
+
+    /* quick nav pills */
+    .quick-pills {
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 0.5rem; margin-bottom: 0.5rem;
+    }
+    .quick-pills a {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      text-decoration: none;
+      font-size: 0.8rem; font-weight: 600;
+      padding: 0.35rem 0.85rem;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .quick-pills a:hover {
+      border-color: var(--gold);
+      color: var(--gold2);
+      background: rgba(212,168,67,0.08);
+    }
+
+    /* ── PAGE BODY ── */
+    .gids-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem 6rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* section heading */
+    .g-section { margin-bottom: 4.5rem; }
+    .g-head {
+      display: flex; align-items: center; gap: 0.9rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .g-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      background: linear-gradient(135deg, rgba(212,168,67,0.2), rgba(245,200,66,0.1));
+      border: 1px solid rgba(212,168,67,0.25);
+      flex-shrink: 0;
+    }
+    .g-head h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.5rem; font-weight: 700;
+    }
+    .g-head h2 span { background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* divider */
+    .g-divider {
+      border: none; border-top: 1px solid var(--border);
+      margin: 0 0 4.5rem;
+      position: relative;
+    }
+    .g-divider::before {
+      content: '⬡';
+      position: absolute; top: -0.65rem; left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg); color: var(--gold);
+      padding: 0 0.5rem; font-size: 0.75rem;
+    }
+
+    /* card grids */
+    .g-grid { display: grid; gap: 1rem; }
+    .g-grid.c3 { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+    .g-grid.c2 { grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); }
+
+    /* glass card (uses existing .glass from style.css but we define fallback) */
+    .g-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.4rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .g-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .g-card:hover {
+      border-color: rgba(212,168,67,0.3);
+      box-shadow: 0 4px 24px rgba(212,168,67,0.08);
+    }
+    .g-card:hover::before { opacity: 1; }
+    .g-card h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .g-card p { color: var(--text2); font-size: 0.88rem; line-height: 1.6; }
+
+    /* tag badge */
+    .g-tag {
+      display: inline-block;
+      font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 0.18rem 0.55rem; border-radius: 6px;
+      margin-bottom: 0.65rem;
+    }
+    .tg  { background: rgba(212,168,67,0.15); color: var(--gold2);   border: 1px solid rgba(212,168,67,0.3); }
+    .tb  { background: rgba(79,143,255,0.12); color: var(--blue);    border: 1px solid rgba(79,143,255,0.25); }
+    .tr  { background: rgba(224,90,90,0.12);  color: var(--red);     border: 1px solid rgba(224,90,90,0.25); }
+    .tgr { background: rgba(76,175,130,0.12); color: var(--green);   border: 1px solid rgba(76,175,130,0.25); }
+    .tp  { background: rgba(155,114,207,0.12);color: var(--purple);  border: 1px solid rgba(155,114,207,0.25); }
+
+    /* stat pills */
+    .g-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.9rem; }
+    .g-pill {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 6px; padding: 0.2rem 0.55rem;
+      font-size: 0.77rem; color: var(--text2);
+    }
+    .g-pill b { color: var(--text); }
+
+    /* steps */
+    .g-steps { display: flex; flex-direction: column; gap: 0.9rem; }
+    .g-step {
+      display: flex; gap: 1.1rem; align-items: flex-start;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.2rem 1.4rem;
+      transition: border-color 0.2s;
+    }
+    .g-step:hover { border-color: rgba(79,143,255,0.3); }
+    .g-step-num {
+      width: 36px; height: 36px; flex-shrink: 0;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(79,143,255,0.2), rgba(123,94,167,0.2));
+      border: 1px solid rgba(79,143,255,0.3);
+      color: var(--blue);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .g-step-body h4 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.95rem; font-weight: 700;
+      margin-bottom: 0.3rem;
+    }
+    .g-step-body p { color: var(--text2); font-size: 0.88rem; line-height: 1.6; }
+
+    /* tip / warn boxes */
+    .g-tip {
+      background: rgba(79,143,255,0.06);
+      border-left: 3px solid var(--blue);
+      border-radius: 0 10px 10px 0;
+      padding: 0.9rem 1.2rem; margin: 1.2rem 0;
+      color: var(--text2); font-size: 0.9rem; line-height: 1.6;
+    }
+    .g-tip strong { color: var(--blue); }
+    .g-warn {
+      background: rgba(212,168,67,0.07);
+      border-left: 3px solid var(--gold);
+      border-radius: 0 10px 10px 0;
+      padding: 0.9rem 1.2rem; margin: 1.2rem 0;
+      color: var(--text2); font-size: 0.9rem; line-height: 1.6;
+    }
+    .g-warn strong { color: var(--gold2); }
+
+    /* build card (2-col) */
+    .build-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.6rem;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1.4rem; margin-bottom: 1.2rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .build-card:hover { border-color: rgba(212,168,67,0.3); box-shadow: 0 4px 28px rgba(212,168,67,0.08); }
+    @media(max-width:640px){ .build-card { grid-template-columns: 1fr; } }
+    .build-main h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem; font-weight: 700; margin-bottom: 0.4rem;
+    }
+    .build-main p { color: var(--text2); font-size: 0.88rem; margin-bottom: 1rem; line-height: 1.6; }
+    .gear-list { display: flex; flex-direction: column; gap: 0.4rem; }
+    .gear-item {
+      display: flex; align-items: center; gap: 0.6rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.4rem 0.8rem;
+    }
+    .gear-ico {
+      width: 26px; height: 26px; border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem; flex-shrink: 0;
+    }
+    .ico-exotic  { background: rgba(212,168,67,0.2); }
+    .ico-leg     { background: rgba(79,143,255,0.12); }
+    .gear-name { font-weight: 600; font-size: 0.85rem; font-family: 'Space Grotesk', sans-serif; }
+    .gear-perk { color: var(--text2); font-size: 0.75rem; margin-left: auto; text-align: right; max-width: 150px; }
+
+    .build-side h4 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.82rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--text2); margin-bottom: 0.6rem;
+    }
+    .perk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+    .perk-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.5rem 0.65rem;
+    }
+    .perk-box .pn { font-weight: 700; font-size: 0.81rem; font-family: 'Space Grotesk', sans-serif; }
+    .perk-box .pd { color: var(--text2); font-size: 0.73rem; margin-top: 0.1rem; }
+
+    /* table */
+    .g-table-wrap { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .g-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .g-table th {
+      background: rgba(255,255,255,0.05);
+      color: var(--gold2);
+      font-family: 'Space Grotesk', sans-serif; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      padding: 0.7rem 1rem; text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .g-table td {
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text2);
+    }
+    .g-table tr:last-child td { border-bottom: none; }
+    .g-table tr:hover td { background: rgba(212,168,67,0.03); }
+    .g-table td strong { color: var(--text); }
+
+    /* CTA banner (reuse existing style) */
+    .gids-cta {
+      background: linear-gradient(135deg, rgba(212,168,67,0.08), rgba(79,143,255,0.06));
+      border: 1px solid rgba(212,168,67,0.2);
+      border-radius: 20px; padding: 2.5rem 2rem;
+      text-align: center; margin-top: 4rem;
+    }
+    .gids-cta h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.6rem; font-weight: 800; margin-bottom: 0.6rem;
+    }
+    .gids-cta p { color: var(--text2); margin-bottom: 1.4rem; font-size: 0.95rem; }
+    .gids-cta-btns { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+
+    @media(max-width:700px){
+      .g-grid.c3,.g-grid.c2 { grid-template-columns: 1fr; }
+      .gids-wrap { padding: 0 1rem 4rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MESH -->
+  <div class="mesh">
+    <div class="blob blob1"></div>
+    <div class="blob blob2"></div>
+    <div class="blob blob3"></div>
+  </div>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-wrap">
+      <a class="logo" href="index.html">
+        <div class="logo-icon">G</div>
+        <span class="logo-text">GuardianHQ</span>
+      </a>
+      <div class="nav-center">
+        <a href="landing.html">Welkom</a>
+        <a href="info.html">Info</a>
+        <a href="destiny.html">Destiny 2</a>
+        <a href="gids.html" class="active">Gids</a>
+        <a href="profile.html">Profiel</a>
+        <a href="contact.html">Contact</a>
+        <a href="discord.html" class="discord-link"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.1 18.078.11 18.1.132 18.113a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>Discord</a>
+      </div>
+      <button class="hamburger" id="hamburgerBtn" aria-label="Menu" onclick="toggleMobileMenu()">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-auth" id="navAuth">
+        <a href="login.html" class="btn btn-ghost">Inloggen</a>
+        <a href="register.html" class="btn btn-solid">Registreren</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MOBILE NAV -->
+  <div class="nav-mobile-menu" id="navMobileMenu">
+    <a href="landing.html">🏠 Welkom</a>
+    <a href="info.html">ℹ️ Info</a>
+    <a href="destiny.html">⚔️ Destiny 2</a>
+    <a href="gids.html" class="active">📖 Gids</a>
+    <a href="profile.html">👤 Profiel</a>
+    <a href="contact.html">📬 Contact</a>
+    <a href="discord.html" class="discord-link">Discord</a>
+    <div class="mobile-divider"></div>
+    <div class="mobile-auth" id="mobileAuth">
+      <a href="login.html" class="btn btn-ghost">Inloggen</a>
+      <a href="register.html" class="btn btn-solid">Registreren</a>
+    </div>
+  </div>
+
+  <script>
+  function toggleMobileMenu() {
+    var btn  = document.getElementById('hamburgerBtn');
+    var menu = document.getElementById('navMobileMenu');
+    btn.classList.toggle('open');
+    menu.classList.toggle('open');
+  }
+  document.addEventListener('click', function(e) {
+    var btn  = document.getElementById('hamburgerBtn');
+    var menu = document.getElementById('navMobileMenu');
+    if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+      btn.classList.remove('open');
+      menu.classList.remove('open');
+    }
+  });
+  </script>
+
+  <!-- HERO -->
+  <div class="gids-hero">
+    <div class="section-label">⬡ GuardianHQ Kennisbank</div>
+    <h1>De Ultieme <span class="grad-text">Destiny 2</span><br>Gids voor Guardians</h1>
+    <p>Van je eerste stappen op de Tower tot het clearen van Master Raids — alles wat je nodig hebt op één plek.</p>
+    <div class="quick-pills">
+      <a href="#beginners">🛡️ Beginners</a>
+      <a href="#classes">⚔️ Classes</a>
+      <a href="#builds">🔥 Builds</a>
+      <a href="#wapens">🔫 Wapens</a>
+      <a href="#raids">🏰 Raids</a>
+      <a href="#activiteiten">⚡ Activiteiten</a>
+      <a href="#tips">💡 Tips</a>
+    </div>
+  </div>
+
+  <!-- ═══════════ MAIN CONTENT ═══════════ -->
+  <div class="gids-wrap">
+
+    <!-- ── BEGINNERS ── -->
+    <section class="g-section" id="beginners">
+      <div class="g-head">
+        <div class="g-icon">🛡️</div>
+        <h2>Beginnen als <span>Guardian</span></h2>
+      </div>
+
+      <div class="g-tip">
+        <strong>Nieuw in Destiny 2?</strong> Het spel is gratis te spelen op Steam, PlayStation en Xbox. Je begint als Guardian die terug van de dood wordt gebracht door een Ghost. De campagne "The Final Shape" is het beste startpunt voor nieuwe spelers.
+      </div>
+
+      <div class="g-steps">
+        <div class="g-step">
+          <div class="g-step-num">1</div>
+          <div class="g-step-body">
+            <h4>Kies je Klasse</h4>
+            <p>Destiny 2 heeft drie klassen: <strong>Hunter</strong> (behendig, evasief), <strong>Titan</strong> (sterk, frontliner) en <strong>Warlock</strong> (krachtig, support). Elke klasse heeft een unieke class ability en playstyle. Je kunt later meerdere characters aanmaken.</p>
+          </div>
+        </div>
+        <div class="g-step">
+          <div class="g-step-num">2</div>
+          <div class="g-step-body">
+            <h4>Volg de Campaign</h4>
+            <p>Start met de New Light campaign voor een introductie op de wereld. Daarna raden we "The Witch Queen" of "The Final Shape" aan voor het verhaal en de beste loot. DLC campaigns geven ook goede startgear.</p>
+          </div>
+        </div>
+        <div class="g-step">
+          <div class="g-step-num">3</div>
+          <div class="g-step-body">
+            <h4>Begrijp Power Level</h4>
+            <p>Je Power Level (PL) bepaalt hoe sterk je bent in high-end content. Er is een <strong>Soft Cap</strong>, een <strong>Powerful Cap</strong> en een <strong>Pinnacle Cap</strong>. Elke week kun je Powerful en Pinnacle rewards verdienen om sneller omhoog te gaan.</p>
+          </div>
+        </div>
+        <div class="g-step">
+          <div class="g-step-num">4</div>
+          <div class="g-step-body">
+            <h4>Unlock je Subclass</h4>
+            <p>Elke klasse heeft meerdere subclasses op element: Solar, Arc, Void, Stasis en Strand. Elke subclass heeft unieke Aspects, Fragments en Grenades. Experimenteer om jouw stijl te vinden.</p>
+          </div>
+        </div>
+        <div class="g-step">
+          <div class="g-step-num">5</div>
+          <div class="g-step-body">
+            <h4>Ga naar de Tower</h4>
+            <p>De Tower is je sociale hub. Hier vind je vendors: <strong>Banshee-44</strong> (wapens), <strong>Ada-1</strong> (armor mods), <strong>Lord Shaxx</strong> (Crucible) en <strong>Zavala</strong> (Vanguard Strikes). Doe wekelijkse vendor challenges voor extra XP en currency.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="g-divider" />
+
+    <!-- ── CLASSES ── -->
+    <section class="g-section" id="classes">
+      <div class="g-head">
+        <div class="g-icon">⚔️</div>
+        <h2>Classes & <span>Subclasses</span></h2>
+      </div>
+
+      <div class="g-grid c3">
+        <div class="g-card">
+          <div class="g-tag tg">Hunter</div>
+          <h3>🏹 Hunter</h3>
+          <p>De meest evasieve klasse. Hunters gebruiken hun <strong>Dodge</strong> als class ability om snel te ontwijken of te herladen. Ideaal voor solo play en PvP.</p>
+          <div class="g-pills">
+            <span class="g-pill"><b>Solar</b> Gunslinger</span>
+            <span class="g-pill"><b>Arc</b> Arcstrider</span>
+            <span class="g-pill"><b>Void</b> Nightstalker</span>
+            <span class="g-pill"><b>Stasis</b> Revenant</span>
+            <span class="g-pill"><b>Strand</b> Threadrunner</span>
+            <span class="g-pill"><b>Prismatic</b> ✦</span>
+          </div>
+        </div>
+        <div class="g-card">
+          <div class="g-tag tb">Titan</div>
+          <h3>🛡️ Titan</h3>
+          <p>De tank van Destiny 2. Titans plaatsen <strong>Barricades</strong> als class ability voor bescherming van het team. Sterk als frontline fighter in raids en PvP.</p>
+          <div class="g-pills">
+            <span class="g-pill"><b>Solar</b> Sunbreaker</span>
+            <span class="g-pill"><b>Arc</b> Striker</span>
+            <span class="g-pill"><b>Void</b> Sentinel</span>
+            <span class="g-pill"><b>Stasis</b> Behemoth</span>
+            <span class="g-pill"><b>Strand</b> Berserker</span>
+            <span class="g-pill"><b>Prismatic</b> ✦</span>
+          </div>
+        </div>
+        <div class="g-card">
+          <div class="g-tag tp">Warlock</div>
+          <h3>🔮 Warlock</h3>
+          <p>Support en damage hybride. Warlocks plaatsen <strong>Rifts</strong> als class ability — Healing Rift of Empowering Rift. Ideaal voor raids en team-content.</p>
+          <div class="g-pills">
+            <span class="g-pill"><b>Solar</b> Dawnblade</span>
+            <span class="g-pill"><b>Arc</b> Stormcaller</span>
+            <span class="g-pill"><b>Void</b> Voidwalker</span>
+            <span class="g-pill"><b>Stasis</b> Shadebinder</span>
+            <span class="g-pill"><b>Strand</b> Broodweaver</span>
+            <span class="g-pill"><b>Prismatic</b> ✦</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="g-warn">
+        <strong>✦ Prismatic:</strong> Prismatic combineert Aspects en Fragments van meerdere elementen. Het is een van de krachtigste subclasses in het spel. Vereist The Final Shape DLC.
+      </div>
+    </section>
+
+    <hr class="g-divider" />
+
+    <!-- ── BUILDS ── -->
+    <section class="g-section" id="builds">
+      <div class="g-head">
+        <div class="g-icon">🔥</div>
+        <h2>Top <span>Builds</span> 2025</h2>
+      </div>
+
+      <p style="color:var(--text2);margin-bottom:1.8rem;font-size:0.92rem;">De sterkste builds voor PvE en PvP, getest in endgame content inclusief Master Raids en GM Nightfalls.</p>
+
+      <!-- Build 1 -->
+      <div class="build-card" style="border-color:rgba(212,168,67,0.2);">
+        <div class="build-main">
+          <div class="g-tag tg">PvE — S-Tier</div>
+          <h3>🔆 Prismatic Warlock "Sunbracers Loop"</h3>
+          <p>De absolute top build voor PvE. Sunbracers geven bijna oneindige Solar grenades na een melee kill. Gecombineerd met Prismatic Transcendence onverslaanbaar tegen grote groepen vijanden.</p>
+          <div class="gear-list">
+            <div class="gear-item">
+              <div class="gear-ico ico-exotic">⭐</div>
+              <span class="gear-name">Sunbracers</span>
+              <span class="gear-perk">Infinite Solar Grenades</span>
+            </div>
+            <div class="gear-item">
+              <div class="gear-ico ico-exotic">⭐</div>
+              <span class="gear-name">Sunshot</span>
+              <span class="gear-perk">Solar Explosions</span>
+            </div>
+            <div class="gear-item">
+              <div class="gear-ico ico-leg">🔷</div>
+              <span class="gear-name">Apex Predator</span>
+              <span class="gear-perk">DPS Heavy Rocket</span>
+            </div>
+          </div>
+        </div>
+        <div class="build-side">
+          <h4>Aspects & Fragments</h4>
+          <div class="perk-grid">
+            <div class="perk-box"><div class="pn">Heat Rises</div><div class="pd">Empowered grenades in de lucht</div></div>
+            <div class="perk-box"><div class="pn">Touch of Flame</div><div class="pd">Verbeterde Solar grenades</div></div>
+            <div class="perk-box"><div class="pn">Ember of Torches</div><div class="pd">Radiant bij powered melee</div></div>
+            <div class="perk-box"><div class="pn">Ember of Char</div><div class="pd">Scorch spreidt zich</div></div>
+            <div class="perk-box"><div class="pn">Ember of Ashes</div><div class="pd">Extra Scorch stacks</div></div>
+            <div class="perk-box"><div class="pn">Ember of Solace</div><div class="pd">Langere Radiant duur</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Build 2 -->
+      <div class="build-card" style="border-color:rgba(79,143,255,0.2);">
+        <div class="build-main">
+          <div class="g-tag tb">PvE — S-Tier</div>
+          <h3>⚡ Arc Titan "Knockout Brawler"</h3>
+          <p>Extreme melee build. Met Knockout en Amplified ben je bijna onsterfelijk in close-range encounters. Ideaal voor Legend Nightfalls en Seasonal content.</p>
+          <div class="gear-list">
+            <div class="gear-item">
+              <div class="gear-ico ico-exotic">⭐</div>
+              <span class="gear-name">Synthoceps</span>
+              <span class="gear-perk">Melee Damage Buff</span>
+            </div>
+            <div class="gear-item">
+              <div class="gear-ico ico-exotic">⭐</div>
+              <span class="gear-name">Thunderlord</span>
+              <span class="gear-perk">Arc Lightning Heavy</span>
+            </div>
+            <div class="gear-item">
+              <div class="gear-ico ico-leg">🔷</div>
+              <span class="gear-name">Forbearance</span>
+              <span class="gear-perk">Chain Lightning</span>
+            </div>
+          </div>
+        </div>
+        <div class="build-side">
+          <h4>Aspects & Fragments</h4>
+          <div class="perk-grid">
+            <div class="perk-box"><div class="pn">Knockout</div><div class="pd">Melee kills = Amplified</div></div>
+            <div class="perk-box"><div class="pn">Touch of Thunder</div><div class="pd">Grenades versterkt</div></div>
+            <div class="perk-box"><div class="pn">Spark of Magnitude</div><div class="pd">Langere Arc grenades</div></div>
+            <div class="perk-box"><div class="pn">Spark of Resistance</div><div class="pd">Omringd = meer armor</div></div>
+            <div class="perk-box"><div class="pn">Spark of Ions</div><div class="pd">Ionic Traces bij kills</div></div>
+            <div class="perk-box"><div class="pn">Spark of Beacons</div><div class="pd">Superkills = Lightning</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Build 3 -->
+      <div class="build-card" style="border-color:rgba(155,114,207,0.2);">
+        <div class="build-main">
+          <div class="g-tag tp">PvP — A-Tier</div>
+          <h3>👻 Void Hunter "Omnioculus Invis"</h3>
+          <p>De klassieke Hunter PvP build. Bijna permanente Invisibility met Omnioculus en Stylish Executioner. Moeilijk te counteren in 1v1 situaties in de Crucible.</p>
+          <div class="gear-list">
+            <div class="gear-item">
+              <div class="gear-ico ico-exotic">⭐</div>
+              <span class="gear-name">Omnioculus</span>
+              <span class="gear-perk">Permanente Invis</span>
+            </div>
+            <div class="gear-item">
+              <div class="gear-ico ico-exotic">⭐</div>
+              <span class="gear-name">The Chaperone</span>
+              <span class="gear-perk">OHK Shotgun</span>
+            </div>
+            <div class="gear-item">
+              <div class="gear-ico ico-leg">🔷</div>
+              <span class="gear-name">Matador 64</span>
+              <span class="gear-perk">Close Range Shotgun</span>
+            </div>
+          </div>
+        </div>
+        <div class="build-side">
+          <h4>Aspects & Fragments</h4>
+          <div class="perk-grid">
+            <div class="perk-box"><div class="pn">Stylish Executioner</div><div class="pd">Kills = Invis trigger</div></div>
+            <div class="perk-box"><div class="pn">Vanishing Step</div><div class="pd">Dodge = Invis</div></div>
+            <div class="perk-box"><div class="pn">Echo of Obscurity</div><div class="pd">Langere Invis duur</div></div>
+            <div class="perk-box"><div class="pn">Echo of Starvation</div><div class="pd">Orbs = Devour</div></div>
+            <div class="perk-box"><div class="pn">Echo of Domineering</div><div class="pd">Suppressed = ammo</div></div>
+            <div class="perk-box"><div class="pn">Echo of Undermining</div><div class="pd">Grenades = Weaken</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="g-tip">
+        <strong>💡 Build Optimizer:</strong> Gebruik <a href="https://d2armorpicker.com" target="_blank" style="color:var(--blue);">D2 Armor Picker</a> om jouw armor stats te optimaliseren. Streef naar minimaal 100 in de primaire stat voor jouw build — Recovery (Warlock), Resilience (Titan) of Mobility (Hunter).
+      </div>
+    </section>
+
+    <hr class="g-divider" />
+
+    <!-- ── WAPENS ── -->
+    <section class="g-section" id="wapens">
+      <div class="g-head">
+        <div class="g-icon">🔫</div>
+        <h2>Beste <span>Wapens</span> 2025</h2>
+      </div>
+
+      <p style="color:var(--text2);margin-bottom:1.5rem;font-size:0.92rem;">De beste wapens per categorie voor PvE en PvP. God Rolls zijn de beste perk combinaties voor maximale effectiviteit.</p>
+
+      <div class="g-table-wrap">
+        <table class="g-table">
+          <thead>
+            <tr>
+              <th>Wapen</th>
+              <th>Type</th>
+              <th>God Roll Perks</th>
+              <th>Gebruik</th>
+              <th>Tier</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Sunshot ⭐</strong></td>
+              <td>Exotic Hand Cannon</td>
+              <td>Sunburn + Sun Explosion</td>
+              <td>PvE Add Clear</td>
+              <td><span class="g-tag tg" style="margin:0">S-Tier</span></td>
+            </tr>
+            <tr>
+              <td><strong>Outbreak Perfected ⭐</strong></td>
+              <td>Exotic Pulse Rifle</td>
+              <td>Nanite damage stacks</td>
+              <td>PvE Boss DPS</td>
+              <td><span class="g-tag tg" style="margin:0">S-Tier</span></td>
+            </tr>
+            <tr>
+              <td><strong>Apex Predator</strong></td>
+              <td>Legendary Rocket</td>
+              <td>Bait &amp; Switch + Explosive Light</td>
+              <td>PvE Heavy DPS</td>
+              <td><span class="g-tag tg" style="margin:0">S-Tier</span></td>
+            </tr>
+            <tr>
+              <td><strong>Forbearance</strong></td>
+              <td>Legendary GL</td>
+              <td>Chain Reaction + Ambitious Assassin</td>
+              <td>PvE Add Clear</td>
+              <td><span class="g-tag tg" style="margin:0">S-Tier</span></td>
+            </tr>
+            <tr>
+              <td><strong>Igneous Hammer</strong></td>
+              <td>Legendary Hand Cannon</td>
+              <td>Incandescent + Keep Away</td>
+              <td>PvP</td>
+              <td><span class="g-tag tb" style="margin:0">A-Tier</span></td>
+            </tr>
+            <tr>
+              <td><strong>IKELOS SMG</strong></td>
+              <td>Legendary SMG</td>
+              <td>Seraph Rounds + Voltshot</td>
+              <td>PvE Add Clear</td>
+              <td><span class="g-tag tb" style="margin:0">A-Tier</span></td>
+            </tr>
+            <tr>
+              <td><strong>The Chaperone ⭐</strong></td>
+              <td>Exotic Shotgun</td>
+              <td>Kinetic Tremors</td>
+              <td>PvP OHK</td>
+              <td><span class="g-tag tb" style="margin:0">A-Tier</span></td>
+            </tr>
+            <tr>
+              <td><strong>Edge Transit</strong></td>
+              <td>Legendary GL</td>
+              <td>Bait &amp; Switch + Explosive Light</td>
+              <td>PvE Heavy DPS</td>
+              <td><span class="g-tag tb" style="margin:0">A-Tier</span></td>
+            </tr>
+            <tr>
+              <td><strong>Conditional Finality ⭐</strong></td>
+              <td>Exotic Shotgun</td>
+              <td>Split Barrel</td>
+              <td>PvP / Boss</td>
+              <td><span class="g-tag tgr" style="margin:0">B-Tier</span></td>
+            </tr>
+            <tr>
+              <td><strong>The Mountaintop</strong></td>
+              <td>Legendary GL</td>
+              <td>Spike Grenades + Blowout</td>
+              <td>PvP</td>
+              <td><span class="g-tag tgr" style="margin:0">B-Tier</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="g-warn">
+        <strong>⬡ God Roll Farmen:</strong> Gebruik <a href="https://www.light.gg" target="_blank" style="color:var(--gold2);">light.gg</a> om te zien welke perks jouw wapen heeft. Wil je een specifieke God Roll farmen? Herhaal de bijbehorende activiteit totdat je de perfecte perk-combinatie hebt.
+      </div>
+    </section>
+
+    <hr class="g-divider" />
+
+    <!-- ── RAIDS ── -->
+    <section class="g-section" id="raids">
+      <div class="g-head">
+        <div class="g-icon">🏰</div>
+        <h2>Raids &amp; <span>Dungeons</span></h2>
+      </div>
+
+      <p style="color:var(--text2);margin-bottom:1.5rem;font-size:0.92rem;">Raids zijn de moeilijkste activiteiten in Destiny 2 en vereisen een fireteam van 6 personen. Dungeons zijn kleiner (1–3 spelers). Beide geven de beste loot in het spel.</p>
+
+      <div class="g-grid c2" style="margin-bottom:2rem;">
+        <div class="g-card">
+          <div class="g-tag tg">6 spelers — Nieuwste</div>
+          <h3>🏔️ Salvation's Edge</h3>
+          <p>De meest recente raid uit The Final Shape. Speelt zich af in The Pale Heart. Unieke Prismatic mechanics. Drops uitstekende raid armor met speciale perks.</p>
+          <div class="g-pills">
+            <span class="g-pill"><b>Power:</b> 1980+</span>
+            <span class="g-pill"><b>Encounters:</b> 5</span>
+            <span class="g-pill"><b>DLC:</b> Final Shape</span>
+          </div>
+        </div>
+        <div class="g-card">
+          <div class="g-tag tb">6 spelers</div>
+          <h3>🌑 Root of Nightmares</h3>
+          <p>Raids in de Witness's Pyramid. Mechanic: Strand energie verplaatsen over platforms. Relatief toegankelijke beginner raid. Drops: Exotic "Conditional Finality" shotgun.</p>
+          <div class="g-pills">
+            <span class="g-pill"><b>Power:</b> 1960+</span>
+            <span class="g-pill"><b>Encounters:</b> 4</span>
+            <span class="g-pill"><b>DLC:</b> Lightfall</span>
+          </div>
+        </div>
+        <div class="g-card">
+          <div class="g-tag tp">3 spelers — Dungeon</div>
+          <h3>⚔️ Warlord's Ruin</h3>
+          <p>Gothic dungeon op een verlaten kasteel. Goed voor solo-farming vanwege straightforward mechanics. Drops: Breachlight hand cannon. Prima voor beginners.</p>
+          <div class="g-pills">
+            <span class="g-pill"><b>Power:</b> 1960+</span>
+            <span class="g-pill"><b>Encounters:</b> 3</span>
+            <span class="g-pill"><b>Solo:</b> Mogelijk</span>
+          </div>
+        </div>
+        <div class="g-card">
+          <div class="g-tag tgr">6 spelers — Classic</div>
+          <h3>🔫 Vault of Glass</h3>
+          <p>De originele Destiny raid, teruggekeerd in D2. Tijdreizen mechanic. Iconisch en de moeite waard voor iedere Guardian. Drops: Vex Mythoclast (S-tier Exotic).</p>
+          <div class="g-pills">
+            <span class="g-pill"><b>Power:</b> 1960+</span>
+            <span class="g-pill"><b>Encounters:</b> 5</span>
+            <span class="g-pill"><b>Free to play</b></span>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:1.2rem;">
+        <div class="g-head" style="border:none;padding-bottom:0.4rem;margin-bottom:1rem;">
+          <h2 style="font-size:1.2rem;">Hoe doe je een Raid — Stap voor stap</h2>
+        </div>
+      </div>
+
+      <div class="g-steps">
+        <div class="g-step">
+          <div class="g-step-num">1</div>
+          <div class="g-step-body">
+            <h4>Vind een Fireteam</h4>
+            <p>Gebruik de in-game <strong>Fireteam Finder</strong> (Social tabblad), Discord servers zoals r/DestinyTheGame of de GuardianHQ Discord. Vertel je Power Level en of je een beginner bent — de community is vriendelijk.</p>
+          </div>
+        </div>
+        <div class="g-step">
+          <div class="g-step-num">2</div>
+          <div class="g-step-body">
+            <h4>Zorg voor Goede Loadout</h4>
+            <p>Breng een zware DPS weapon mee — Rocket Launcher met Bait &amp; Switch of een Linear Fusion Rifle. Overleg met je team welke buffs iedereen meeneemt (Radiant, Weaken, Divinity voor weaken op de boss).</p>
+          </div>
+        </div>
+        <div class="g-step">
+          <div class="g-step-num">3</div>
+          <div class="g-step-body">
+            <h4>Leer de Mechanic</h4>
+            <p>Elke Raid encounter heeft een unieke mechanic. Bekijk een YouTube guide (Datto of Fallout Plays) voor een visuele uitleg. Mechanics draaien altijd om: symbolen lezen, objecten overdragen of iets activeren in de juiste volgorde.</p>
+          </div>
+        </div>
+        <div class="g-step">
+          <div class="g-step-num">4</div>
+          <div class="g-step-body">
+            <h4>DPS Phase uitvoeren</h4>
+            <p>Na de mechanic fase begint de DPS phase op de boss. Gebruik je zwaarste wapens en schiet op de kritieke zwakke plek (glowing spot). Gebruik Supers zodra ze klaar zijn. Herhaal totdat de boss dood is.</p>
+          </div>
+        </div>
+        <div class="g-step">
+          <div class="g-step-num">5</div>
+          <div class="g-step-body">
+            <h4>Wekelijkse Chest Farming</h4>
+            <p>Je kunt de eerste chest van elke Raid elke week openen voor loot. Na een full clear kun je ook op <strong>Master</strong> spelen voor hogere tier loot en Adept weapons met extra perk slots.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="g-divider" />
+
+    <!-- ── ACTIVITEITEN ── -->
+    <section class="g-section" id="activiteiten">
+      <div class="g-head">
+        <div class="g-icon">⚡</div>
+        <h2>Andere <span>Activiteiten</span></h2>
+      </div>
+
+      <div class="g-grid c3">
+        <div class="g-card">
+          <div class="g-tag tr">Endgame PvE</div>
+          <h3>⚡ Grandmaster Nightfall</h3>
+          <p>De moeilijkste Nightfall variant. Champions spelen een grote rol. Vereist minimaal Power 1990+ en een gecoördineerd team van 3. Geeft Adept wapens als reward.</p>
+          <div class="g-pills">
+            <span class="g-pill"><b>Spelers:</b> 3</span>
+            <span class="g-pill">Endgame moeilijk</span>
+          </div>
+        </div>
+        <div class="g-card">
+          <div class="g-tag tb">PvP</div>
+          <h3>🎯 Crucible</h3>
+          <p>Quickplay voor casual, Survival voor ranked. Iron Banner is een wekelijks PvP event met exclusieve loot. Trials of Osiris elke week voor de beste PvP gear in het spel.</p>
+          <div class="g-pills">
+            <span class="g-pill">Quickplay</span>
+            <span class="g-pill">Ranked</span>
+            <span class="g-pill">Trials</span>
+          </div>
+        </div>
+        <div class="g-card">
+          <div class="g-tag tgr">Weekly</div>
+          <h3>🌀 Seasonal Activities</h3>
+          <p>Elk seizoen heeft een nieuwe activiteit met eigen mechanic en loot pool. Doe deze wekelijks voor seizoensgebonden gear en XP. Artefact perks zijn seizoensgebonden — check ze altijd.</p>
+          <div class="g-pills">
+            <span class="g-pill">Seizoen pass</span>
+            <span class="g-pill">Weekly reset</span>
+          </div>
+        </div>
+        <div class="g-card">
+          <div class="g-tag tg">Repeatable</div>
+          <h3>🔁 Vanguard Strikes</h3>
+          <p>3-speler activiteiten voor steady loot. Gebruik Vanguard bounties voor XP. Nightfall variants zijn moeilijker maar geven meer en betere loot. Goed voor beginners.</p>
+          <div class="g-pills">
+            <span class="g-pill"><b>Spelers:</b> 3</span>
+            <span class="g-pill">Beginner friendly</span>
+          </div>
+        </div>
+        <div class="g-card">
+          <div class="g-tag tp">Hybrid</div>
+          <h3>⬡ Gambit</h3>
+          <p>PvPvE mode: vecht tegen vijanden en stuur Motes naar de andere kant. Het eerste team dat hun Primeval boss doodt wint. Unieke Exotics als reward.</p>
+          <div class="g-pills">
+            <span class="g-pill">4v4 teams</span>
+            <span class="g-pill">PvPvE</span>
+          </div>
+        </div>
+        <div class="g-card">
+          <div class="g-tag tb">Patrol</div>
+          <h3>🌍 Open World Patrol</h3>
+          <p>Verken de werelden: The Pale Heart, Neomuna, Europa, The Dreaming City en meer. Public Events en Patrols voor extra XP en materials. Sommige werelden hebben geheime quests.</p>
+          <div class="g-pills">
+            <span class="g-pill">Solo friendly</span>
+            <span class="g-pill">Open world</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="g-divider" />
+
+    <!-- ── TIPS ── -->
+    <section class="g-section" id="tips">
+      <div class="g-head">
+        <div class="g-icon">💡</div>
+        <h2>Tips &amp; <span>Tricks</span></h2>
+      </div>
+
+      <div class="g-grid c2">
+        <div class="g-card">
+          <div class="g-tag tg">Economy</div>
+          <h3>💰 Glimmer & Materials</h3>
+          <p>Farm Glimmer via Public Events en Patrols. Enhancement Cores, Prisms en Ascendant Shards zijn zeldzaam — verdien ze via Master Nightfalls en wekelijkse challenges. <strong>Verkoop nooit Enhancement Cores!</strong></p>
+        </div>
+        <div class="g-card">
+          <div class="g-tag tb">Armor</div>
+          <h3>🛡️ Armor Masterworking</h3>
+          <p>Masterwork je armor naar Tier 10 voor +2 op alle stats en Resilience bonus. Doe dit alleen op God Roll armor met hoge stat totals (65+). Kost 6 Ascendant Shards per stuk — investeer slim.</p>
+        </div>
+        <div class="g-card">
+          <div class="g-tag tgr">Crafting</div>
+          <h3>🔧 Weapon Crafting</h3>
+          <p>Je kunt wapens "craften" door Deepsight Resonance patterns te verzamelen. Gecraftte wapens kunnen exact de perks hebben die jij wilt — een gegarandeerde God Roll. Ideaal voor meta wapens.</p>
+        </div>
+        <div class="g-card">
+          <div class="g-tag tp">Champions</div>
+          <h3>⚠️ Champions Counteren</h3>
+          <p><strong>Barrier:</strong> gebruik Anti-Barrier mods. <strong>Overload:</strong> gebruik Overload mods. <strong>Unstoppable:</strong> gebruik Unstoppable mods. Check de champion types van je activiteit en pas je loadout aan via Armor Mods.</p>
+        </div>
+        <div class="g-card">
+          <div class="g-tag tr">Survival</div>
+          <h3>❤️ Overleven in Endgame</h3>
+          <p>Zorg voor minimaal 70+ Resilience in PvE voor damage reduction. Healing grenades, Devour (Void) of Restoration (Solar) houden je in leven. In hogere content is Woven Mail of Frost Armor bijna verplicht.</p>
+        </div>
+        <div class="g-card">
+          <div class="g-tag tg">Meta</div>
+          <h3>📊 Meta Bijhouden</h3>
+          <p>De meta verandert elk seizoen door buffs en nerfs. Bekijk <a href="https://www.d2gunsmith.com" target="_blank" style="color:var(--blue);">D2 Gunsmith</a> voor wapen stats en <a href="https://www.light.gg" target="_blank" style="color:var(--gold2);">light.gg</a> voor tier lists. YouTube creators als Aztecross en Datto geven altijd uitleg over grote veranderingen.</p>
+        </div>
+      </div>
+
+      <div class="g-tip" style="margin-top:1.5rem;">
+        <strong>🔗 Handige Links:</strong>
+        <a href="https://www.light.gg" target="_blank" style="color:var(--blue);">light.gg</a> (wapen database) ·
+        <a href="https://d2armorpicker.com" target="_blank" style="color:var(--blue);">D2 Armor Picker</a> (build optimizer) ·
+        <a href="https://www.d2gunsmith.com" target="_blank" style="color:var(--blue);">D2 Gunsmith</a> (weapon comparison) ·
+        <a href="https://app.destinyitemmanager.com" target="_blank" style="color:var(--blue);">DIM</a> (item manager) ·
+        <a href="https://www.bungie.net" target="_blank" style="color:var(--blue);">Bungie.net</a> (officieel)
+      </div>
+    </section>
+
+    <!-- CTA BANNER -->
+    <div class="gids-cta">
+      <h2>Terug naar <span class="grad-text">GuardianHQ</span></h2>
+      <p>Nu je alles weet — ga terug naar GuardianHQ voor je live stats, vault manager en loadout builder.</p>
+      <div class="gids-cta-btns">
+        <a href="landing.html" class="btn btn-solid" style="padding:12px 28px;font-size:0.9rem;border-radius:12px;">🏠 Naar GuardianHQ</a>
+        <a href="destiny.html" class="btn btn-ghost" style="padding:12px 28px;font-size:0.9rem;border-radius:12px;">⚔️ Command Center</a>
+      </div>
+    </div>
+
+  </div><!-- /gids-wrap -->
+
+  <script src="js/auth.js"></script>
+  <script src="js/main.js"></script>
+  <script>document.addEventListener("DOMContentLoaded",function(){document.documentElement.style.visibility="";});</script>
+</body>
+</html>
