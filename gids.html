@@ -1115,38 +1115,36 @@
   <script>
   document.addEventListener("DOMContentLoaded",function(){document.documentElement.style.visibility="";});
 
-  /* ── DIRECTE BUNGIE ICON URLS (zelfde aanpak als destiny.html) ── */
-  const weaponIconCache = {
-    sunshot:     'https://www.bungie.net/common/destiny2_content/icons/4166fba96e2c6f92e27b8fbaba1c0ff8.jpg',
-    outbreak:    'https://www.bungie.net/common/destiny2_content/icons/c0fe2a31ac6432a5af71d3ef5e9f6b6a.jpg',
-    apex:        'https://www.bungie.net/common/destiny2_content/icons/e3b1d924bc8185384e79e0b8418231e5.jpg',
-    forbearance: 'https://www.bungie.net/common/destiny2_content/icons/a9d3e87c8b9a2f6f5341c89b5ea2de59.jpg',
-    igneous:     'https://www.bungie.net/common/destiny2_content/icons/2c537283828f9797b7909171a09ff3ee.jpg',
-    ikelos:      'https://www.bungie.net/common/destiny2_content/icons/5ace7abe8791ff2a65a53cd59f2f1e8b.jpg',
-    chaperone:   'https://www.bungie.net/common/destiny2_content/icons/57284d8b537c2eadadc1a838ff51cfad.jpg',
-    edgetransit: 'https://www.bungie.net/common/destiny2_content/icons/72adfdb3f061d014ebeecb6fec090a80.jpg',
-    conditional: 'https://www.bungie.net/common/destiny2_content/icons/c6f482b2bf6153c138b263227587f4bd.jpg',
-    mountaintop: 'https://www.bungie.net/common/destiny2_content/icons/8d41a4e5e2e1b9c3f7a5d2b8c4e6f0a2.jpg',
+  /* ── WAPEN ICONS via manifest proxy (zelfde aanpak als destiny.html) ── */
+  const WEAPON_HASHES = {
+    sunshot:     2907129557,   // Sunshot Exotic HC
+    outbreak:    1912364120,   // Outbreak Perfected
+    apex:        3176490485,   // Apex Predator
+    forbearance: 613334176,    // Forbearance
+    igneous:     1973107014,   // Igneous Hammer
+    ikelos:      2222560548,   // IKELOS SMG
+    chaperone:   3413860062,   // The Chaperone
+    edgetransit: 218335759,    // Edge Transit
+    conditional: 3371017761,   // Conditional Finality
+    mountaintop: 3993415705,   // The Mountaintop
   };
 
-  // Fallback: als een icon 404 geeft, probeer alsnog via manifest API
-  const WEAPON_HASHES = {
-    outbreak:    3973202132,
-    apex:        2069224589,
-    forbearance: 613334176,
-    ikelos:      2222560548,
-    mountaintop: 3993415705,
-  };
-  Object.entries(WEAPON_HASHES).forEach(([key, hash]) => {
-    const img = new Image();
-    img.src = weaponIconCache[key];
-    img.onerror = () => {
-      fetch(`/api/bungie-proxy?action=manifest&hash=${hash}`)
-        .then(r => r.json())
-        .then(d => { const p = d?.Response?.displayProperties?.icon; if (p) weaponIconCache[key] = 'https://www.bungie.net' + p; })
-        .catch(() => {});
-    };
-  });
+  const weaponIconCache = {};
+
+  // Laad icons via manifest proxy zodra pagina klaar is
+  (async function loadWeaponIcons() {
+    await Promise.allSettled(
+      Object.entries(WEAPON_HASHES).map(async ([key, hash]) => {
+        try {
+          const r = await fetch(`/api/bungie-proxy?action=manifest&hash=${hash}&type=DestinyInventoryItemDefinition`);
+          if (!r.ok) return;
+          const d = await r.json();
+          const icon = d?.Response?.displayProperties?.icon;
+          if (icon) weaponIconCache[key] = 'https://www.bungie.net' + icon;
+        } catch {}
+      })
+    );
+  })();
 
   /* ── WAPEN DATA ── */
   const WPOP_DATA = {
@@ -1406,19 +1404,34 @@
     const d = WPOP_DATA[id];
     if (!d) return;
 
-    // icon — directe Bungie URL, emoji als fallback
     const ico = document.getElementById('wpopIcon');
-    const realIcon = weaponIconCache[id];
-    if (realIcon) {
-      ico.innerHTML = `<img src="${realIcon}" alt="${d.name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" onerror="this.parentElement.textContent='${d.icon}'">`;
+    ico.className = 'wpop-icon ' + d.rarity;
+
+    function setIcon(url) {
+      ico.innerHTML = `<img src="${url}" alt="${d.name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" onerror="this.parentElement.textContent='${d.icon}';this.parentElement.style.padding='';">`;
       ico.style.padding = '0';
       ico.style.overflow = 'hidden';
+    }
+
+    if (weaponIconCache[id]) {
+      setIcon(weaponIconCache[id]);
     } else {
+      // Toon emoji tijdelijk, laad icon on-demand
       ico.textContent = d.icon;
       ico.style.padding = '';
-      ico.style.overflow = '';
+      const hash = WEAPON_HASHES[id];
+      if (hash) {
+        fetch(`/api/bungie-proxy?action=manifest&hash=${hash}&type=DestinyInventoryItemDefinition`)
+          .then(r => r.json())
+          .then(data => {
+            const iconPath = data?.Response?.displayProperties?.icon;
+            if (iconPath) {
+              weaponIconCache[id] = 'https://www.bungie.net' + iconPath;
+              setIcon(weaponIconCache[id]);
+            }
+          }).catch(() => {});
+      }
     }
-    ico.className = 'wpop-icon ' + d.rarity;
 
     // naam
     document.getElementById('wpopName').textContent = d.name;
