@@ -269,6 +269,157 @@
     .g-table tr:hover td { background: rgba(212,168,67,0.03); }
     .g-table td strong { color: var(--text); }
 
+    /* ── WAPEN POPUP ── */
+    .wpop-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px);
+      align-items: center; justify-content: center;
+      padding: 1rem;
+    }
+    .wpop-overlay.open { display: flex; }
+
+    .wpop {
+      background: #0f1319;
+      border: 1px solid rgba(212,168,67,0.25);
+      border-radius: 18px;
+      width: 100%; max-width: 480px;
+      max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,168,67,0.1);
+      animation: wpopIn 0.22s ease;
+    }
+    @keyframes wpopIn {
+      from { opacity:0; transform: translateY(16px) scale(0.97); }
+      to   { opacity:1; transform: translateY(0)  scale(1); }
+    }
+
+    .wpop-header {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1.2rem 1.4rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      position: relative;
+    }
+    .wpop-icon {
+      width: 52px; height: 52px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; flex-shrink: 0;
+    }
+    .wpop-icon.exotic  { background: linear-gradient(135deg,#4a3800,#7a5e00); border: 1px solid rgba(212,168,67,0.5); }
+    .wpop-icon.legendary { background: linear-gradient(135deg,#1a1a3a,#2a1a4a); border: 1px solid rgba(100,80,180,0.5); }
+
+    .wpop-title h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.15rem; font-weight: 800;
+      margin-bottom: 0.15rem;
+    }
+    .wpop-title .wpop-meta {
+      display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;
+      font-size: 0.77rem; color: var(--text2);
+    }
+    .wpop-dot { color: rgba(255,255,255,0.2); }
+    .wpop-close {
+      position: absolute; top: 1rem; right: 1rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; width: 30px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text2); font-size: 1rem;
+      transition: all 0.15s;
+    }
+    .wpop-close:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+
+    .wpop-body { padding: 1rem 1.4rem 1.4rem; }
+
+    .wpop-frame {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px; padding: 0.85rem 1rem;
+      margin-bottom: 1rem;
+    }
+    .wpop-frame-label {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--gold2);
+      margin-bottom: 0.35rem;
+    }
+    .wpop-frame p { font-size: 0.87rem; color: var(--text2); line-height: 1.55; }
+
+    .wpop-section-label {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--text2);
+      margin: 1rem 0 0.6rem; display: flex; align-items: center; gap: 0.5rem;
+    }
+    .wpop-section-label::after {
+      content: ''; flex: 1; height: 1px;
+      background: rgba(255,255,255,0.07);
+    }
+
+    .wpop-rolls { display: grid; gap: 0.75rem; }
+    .wpop-roll {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px; padding: 0.9rem 1rem;
+    }
+    .wpop-roll-head {
+      display: flex; align-items: center; gap: 0.5rem;
+      margin-bottom: 0.6rem;
+    }
+    .wpop-roll-type {
+      font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em;
+      text-transform: uppercase; padding: 0.15rem 0.5rem;
+      border-radius: 5px;
+    }
+    .roll-pve { background: rgba(76,175,130,0.15); color: #58c87a; border: 1px solid rgba(76,175,130,0.3); }
+    .roll-pvp { background: rgba(224,90,90,0.15);  color: #e05c5c; border: 1px solid rgba(224,90,90,0.3); }
+
+    .wpop-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.6rem; }
+    .wpop-col-label {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text2);
+      margin-bottom: 0.3rem;
+    }
+    .wpop-perk-item {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px; padding: 0.3rem 0.55rem;
+      font-size: 0.82rem; font-weight: 600;
+      margin-bottom: 0.3rem;
+    }
+    .wpop-mw {
+      background: rgba(212,168,67,0.1);
+      border: 1px solid rgba(212,168,67,0.25);
+      border-radius: 6px; padding: 0.35rem 0.7rem;
+      font-size: 0.8rem; color: var(--gold2);
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .wpop-tip {
+      background: rgba(79,143,255,0.06);
+      border-left: 2px solid var(--blue);
+      border-radius: 0 8px 8px 0;
+      padding: 0.6rem 0.9rem; margin-top: 0.7rem;
+      font-size: 0.82rem; color: var(--text2); line-height: 1.5;
+    }
+    .wpop-quote {
+      text-align: center; margin-top: 1rem;
+      font-style: italic; font-size: 0.82rem;
+      color: rgba(255,255,255,0.25);
+    }
+
+    /* klikbare rij in tabel */
+    .g-table tbody tr.clickable { cursor: pointer; }
+    .g-table tbody tr.clickable:hover td {
+      background: rgba(212,168,67,0.06);
+      color: var(--text);
+    }
+    .g-table tbody tr.clickable td strong {
+      color: var(--gold2);
+      text-decoration: underline dotted rgba(212,168,67,0.4);
+    }
+    .wpop-hint {
+      font-size: 0.8rem; color: var(--text2);
+      margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem;
+    }
+
     /* CTA banner (reuse existing style) */
     .gids-cta {
       background: linear-gradient(135deg, rgba(212,168,67,0.08), rgba(79,143,255,0.06));
@@ -615,10 +766,12 @@
     <section class="g-section" id="wapens">
       <div class="g-head">
         <div class="g-icon">🔫</div>
-        <h2>Beste <span>Wapens</span> 2025</h2>
+        <h2>Beste <span>Wapens</span> 2025/2026</h2>
       </div>
 
       <p style="color:var(--text2);margin-bottom:1.5rem;font-size:0.92rem;">De beste wapens per categorie voor PvE en PvP. God Rolls zijn de beste perk combinaties voor maximale effectiviteit.</p>
+
+      <p class="wpop-hint">🖱️ Klik op een wapennaam voor uitgebreide info & God Rolls</p>
 
       <div class="g-table-wrap">
         <table class="g-table">
@@ -632,70 +785,70 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
+            <tr class="clickable" onclick="openWpop('sunshot')">
               <td><strong>Sunshot ⭐</strong></td>
               <td>Exotic Hand Cannon</td>
               <td>Sunburn + Sun Explosion</td>
               <td>PvE Add Clear</td>
               <td><span class="g-tag tg" style="margin:0">S-Tier</span></td>
             </tr>
-            <tr>
+            <tr class="clickable" onclick="openWpop('outbreak')">
               <td><strong>Outbreak Perfected ⭐</strong></td>
               <td>Exotic Pulse Rifle</td>
               <td>Nanite damage stacks</td>
               <td>PvE Boss DPS</td>
               <td><span class="g-tag tg" style="margin:0">S-Tier</span></td>
             </tr>
-            <tr>
+            <tr class="clickable" onclick="openWpop('apex')">
               <td><strong>Apex Predator</strong></td>
               <td>Legendary Rocket</td>
               <td>Bait &amp; Switch + Explosive Light</td>
               <td>PvE Heavy DPS</td>
               <td><span class="g-tag tg" style="margin:0">S-Tier</span></td>
             </tr>
-            <tr>
+            <tr class="clickable" onclick="openWpop('forbearance')">
               <td><strong>Forbearance</strong></td>
               <td>Legendary GL</td>
               <td>Chain Reaction + Ambitious Assassin</td>
               <td>PvE Add Clear</td>
               <td><span class="g-tag tg" style="margin:0">S-Tier</span></td>
             </tr>
-            <tr>
+            <tr class="clickable" onclick="openWpop('igneous')">
               <td><strong>Igneous Hammer</strong></td>
               <td>Legendary Hand Cannon</td>
               <td>Incandescent + Keep Away</td>
               <td>PvP</td>
               <td><span class="g-tag tb" style="margin:0">A-Tier</span></td>
             </tr>
-            <tr>
+            <tr class="clickable" onclick="openWpop('ikelos')">
               <td><strong>IKELOS SMG</strong></td>
               <td>Legendary SMG</td>
               <td>Seraph Rounds + Voltshot</td>
               <td>PvE Add Clear</td>
               <td><span class="g-tag tb" style="margin:0">A-Tier</span></td>
             </tr>
-            <tr>
+            <tr class="clickable" onclick="openWpop('chaperone')">
               <td><strong>The Chaperone ⭐</strong></td>
               <td>Exotic Shotgun</td>
               <td>Kinetic Tremors</td>
               <td>PvP OHK</td>
               <td><span class="g-tag tb" style="margin:0">A-Tier</span></td>
             </tr>
-            <tr>
+            <tr class="clickable" onclick="openWpop('edgetransit')">
               <td><strong>Edge Transit</strong></td>
               <td>Legendary GL</td>
               <td>Bait &amp; Switch + Explosive Light</td>
               <td>PvE Heavy DPS</td>
               <td><span class="g-tag tb" style="margin:0">A-Tier</span></td>
             </tr>
-            <tr>
+            <tr class="clickable" onclick="openWpop('conditional')">
               <td><strong>Conditional Finality ⭐</strong></td>
               <td>Exotic Shotgun</td>
               <td>Split Barrel</td>
               <td>PvP / Boss</td>
               <td><span class="g-tag tgr" style="margin:0">B-Tier</span></td>
             </tr>
-            <tr>
+            <tr class="clickable" onclick="openWpop('mountaintop')">
               <td><strong>The Mountaintop</strong></td>
               <td>Legendary GL</td>
               <td>Spike Grenades + Blowout</td>
@@ -942,8 +1095,362 @@
 
   </div><!-- /gids-wrap -->
 
+  <!-- WAPEN POPUP OVERLAY -->
+  <div class="wpop-overlay" id="wpopOverlay" onclick="closeWpopOutside(event)">
+    <div class="wpop" id="wpopBox">
+      <div class="wpop-header">
+        <div class="wpop-icon" id="wpopIcon">🔫</div>
+        <div class="wpop-title">
+          <h3 id="wpopName">Wapen</h3>
+          <div class="wpop-meta" id="wpopMeta"></div>
+        </div>
+        <button class="wpop-close" onclick="closeWpop()">✕</button>
+      </div>
+      <div class="wpop-body" id="wpopBody"></div>
+    </div>
+  </div>
+
   <script src="js/auth.js"></script>
   <script src="js/main.js"></script>
-  <script>document.addEventListener("DOMContentLoaded",function(){document.documentElement.style.visibility="";});</script>
+  <script>
+  document.addEventListener("DOMContentLoaded",function(){document.documentElement.style.visibility="";});
+
+  /* ── WAPEN DATA ── */
+  const WPOP_DATA = {
+    sunshot: {
+      name: "Sunshot",
+      rarity: "exotic",
+      icon: "☀️",
+      type: "Exotic Hand Cannon",
+      element: "Solar",
+      rpm: "150 RPM",
+      ammo: "Primary Ammo",
+      source: "Exotic Engram / Xûr",
+      frame: "Aggressive Frame",
+      frameDesc: "Harder-hitting with more recoil. Sunshot fires explosive rounds that cause Solar damage on kills, leaving behind Solar flares.",
+      pve: {
+        col1: ["Sunburn", "Explosive Payload"],
+        col2: ["Sun Explosion", "Dragonfly"],
+        mw: "Range / Reload MW",
+        tip: "Sunburn exploiteert Solar explosies bij elke kill. Sunshot is ideaal voor crowd control — de explosies ketsen over naar nabijgelegen vijanden. Combineer met Solar builds voor maximale synergy."
+      },
+      pvp: {
+        col1: ["Sunburn", "Explosive Payload"],
+        col2: ["Sun Explosion", "Opening Shot"],
+        mw: "Range MW",
+        tip: "Sunshot doet iets extra schade door de explosies — goed voor 2-tap builds. Let op de recoil bij lange afstand."
+      },
+      quote: "\"De zon vergeet niemand.\""
+    },
+    outbreak: {
+      name: "Outbreak Perfected",
+      rarity: "exotic",
+      icon: "🦠",
+      type: "Exotic Pulse Rifle",
+      element: "Kinetic",
+      rpm: "450 RPM",
+      ammo: "Primary Ammo",
+      source: "Exotic Mission: Zero Hour",
+      frame: "Precision Frame",
+      frameDesc: "Recoil pattern is more predictably vertical. SIVA nanites swarm targets on rapid hits and precision kills, dealing bonus damage.",
+      pve: {
+        col1: ["Outlaw", "SIVA Offering"],
+        col2: ["Nanite Storm", "The Corruption Spreads"],
+        mw: "Reload / Stability MW",
+        tip: "Nanite stacks stapelen op de boss bij snelle precision hits. Hoe meer teamgenoten ook Outbreak gebruiken, hoe sterker de nanites worden — ideaal in raids."
+      },
+      pvp: {
+        col1: ["Outlaw", "SIVA Offering"],
+        col2: ["Nanite Storm", "Opening Shot"],
+        mw: "Range MW",
+        tip: "Outbreak is een solide PvP pulse rifle met goede range. De nanites geven een edge bij bodyshots. Niet de sterkste optie maar zeker bruikbaar."
+      },
+      quote: "\"Perfectie is besmettelijk.\""
+    },
+    apex: {
+      name: "Apex Predator",
+      rarity: "legendary",
+      icon: "🚀",
+      type: "Legendary Rocket Launcher",
+      element: "Solar",
+      rpm: "25 RPM",
+      ammo: "Heavy Ammo",
+      source: "Last Wish Raid",
+      frame: "Adaptive Frame",
+      frameDesc: "Well-rounded. Reliable and consistent. Bait & Switch activates after dealing damage with all three weapon slots.",
+      pve: {
+        col1: ["Auto-Loading Holster", "Field Prep"],
+        col2: ["Bait & Switch", "Explosive Light"],
+        mw: "Reload MW",
+        tip: "Bait & Switch geeft een 35% damage buff na het wisselen van alle 3 wapen slots. Explosive Light geeft een boost na het oprapen van Orbs of Power. Samen is dit een van de hoogste DPS rockets in het spel."
+      },
+      pvp: {
+        col1: ["Field Prep", "Impulse Amplifier"],
+        col2: ["Cluster Bomb", "Tracking Module"],
+        mw: "Velocity MW",
+        tip: "Rockets in PvP zijn situationeel — goed voor zone control en het afmaken van tegenstanders. Apex is hier geen meta keuze maar werkt in casual modes."
+      },
+      quote: "\"Aan de top van de voedselketen.\""
+    },
+    forbearance: {
+      name: "Forbearance",
+      rarity: "legendary",
+      icon: "💚",
+      type: "Legendary Grenade Launcher",
+      element: "Arc",
+      rpm: "72 RPM",
+      ammo: "Special Ammo",
+      source: "Vow of the Disciple Raid",
+      frame: "Wave Frame",
+      frameDesc: "Launches a wave projectile along the ground that Arc chains between nearby targets.",
+      pve: {
+        col1: ["Ambitious Assassin", "Overflow"],
+        col2: ["Chain Reaction", "Demolitionist"],
+        mw: "Reload MW",
+        tip: "Chain Reaction laat de golf ketsen naar alle nabijgelegen vijanden bij een kill — perfect voor add clear. Ambitious Assassin vult de magazine over de limiet. Dit is de beste add clear special weapon in het spel."
+      },
+      pvp: {
+        col1: ["Slideshot", "Surplus"],
+        col2: ["Chain Reaction", "Harmony"],
+        mw: "Handling MW",
+        tip: "Forbearance is minder sterk in PvP vanwege de vaste wave trajectory. Goed voor gebied ontkennen maar moeilijk te gebruiken in directe duels."
+      },
+      quote: "\"Geduld is een wapen.\""
+    },
+    igneous: {
+      name: "Igneous Hammer",
+      rarity: "legendary",
+      icon: "🔨",
+      type: "Legendary Hand Cannon",
+      element: "Solar",
+      rpm: "120 RPM",
+      ammo: "Primary Ammo",
+      source: "Trials of Osiris",
+      frame: "Aggressive Frame",
+      frameDesc: "Harder-hitting with more recoil. 120 RPM archetype — high damage per shot, reliable two-tap potential.",
+      pve: {
+        col1: ["Rapid Hit", "Outlaw"],
+        col2: ["Incandescent", "Firefly"],
+        mw: "Range MW",
+        tip: "Incandescent verspreidt Scorch naar nabijgelegen vijanden bij een Solar kill — geweldig voor Solar builds. Goed alternatief voor add clear als je geen Exotic hand cannon wilt gebruiken."
+      },
+      pvp: {
+        col1: ["Keep Away", "Rapid Hit"],
+        col2: ["Eye of the Storm", "Opening Shot"],
+        mw: "Range MW",
+        tip: "Keep Away geeft +Range en +Reload buiten close range. Eye of the Storm activeert bij laag HP voor betere accuracy — consistent in duels. De 120 RPM archetype is sterk in de huidige meta."
+      },
+      quote: "\"Geslagen in het vuur van de Osiris trials.\""
+    },
+    ikelos: {
+      name: "IKELOS SMG",
+      rarity: "legendary",
+      icon: "⚡",
+      type: "Legendary SMG",
+      element: "Arc",
+      rpm: "750 RPM",
+      ammo: "Special Ammo",
+      source: "Warmind Seasonal / World Loot Pool",
+      frame: "Aggressive Frame",
+      frameDesc: "High damage, high recoil. Seraph Rounds ricochet off surfaces. Voltshot reloads the magazine with Arc damage after a kill.",
+      pve: {
+        col1: ["Seraph Rounds", "Feeding Frenzy"],
+        col2: ["Voltshot", "Surrounded"],
+        mw: "Reload MW",
+        tip: "Voltshot laadt het magazijn opnieuw en geeft een Jolt status aan de volgende schoten na een kill — geweldig voor ketsbeschadiging. Seraph Rounds stuiteren af oppervlakken voor extra coverage. Top keuze voor Arc builds."
+      },
+      pvp: {
+        col1: ["Threat Detector", "Slideshot"],
+        col2: ["Voltshot", "Harmony"],
+        mw: "Stability MW",
+        tip: "IKELOS SMG is minder meta in PvP vanwege de recoil. Voltshot geeft een edge maar de range valt tegen. Gebruik in close range situaties."
+      },
+      quote: "\"IKELOS — kennis door kracht.\""
+    },
+    chaperone: {
+      name: "The Chaperone",
+      rarity: "exotic",
+      icon: "🎩",
+      type: "Exotic Kinetic Shotgun",
+      element: "Kinetic",
+      rpm: "55 RPM",
+      ammo: "Special Ammo",
+      source: "Exotic Engram / Xûr / Quest",
+      frame: "Precision Slug",
+      frameDesc: "Fires a single precise slug instead of a spread. Intrinsic: Precision kills grant a brief period of increased handling and range.",
+      pve: {
+        col1: ["Surplus", "Threat Detector"],
+        col2: ["Kinetic Tremors", "Opening Shot"],
+        mw: "Range MW",
+        tip: "Chaperone is in PvE minder sterk dan andere shotguns, maar Kinetic Tremors doet extra damage bij meerdere hits op dezelfde vijand. Bruikbaar voor Champion stun builds."
+      },
+      pvp: {
+        col1: ["Surplus", "Opening Shot"],
+        col2: ["Kinetic Tremors", "Rifled Barrel"],
+        mw: "Range MW",
+        tip: "The Chaperone heeft de langste range van alle shotguns door de slug mechanic. Een precisie-kill is een one-hit-kill op veel afstanden. Vereist goede aim maar is beloningsvol als je het onder de knie krijgt."
+      },
+      quote: "\"Ik bescherm diegenen die niet voor zichzelf kunnen spreken.\""
+    },
+    edgetransit: {
+      name: "Edge Transit",
+      rarity: "legendary",
+      icon: "🟣",
+      type: "Legendary Grenade Launcher",
+      element: "Void",
+      rpm: "120 RPM",
+      ammo: "Heavy Ammo",
+      source: "World Loot Pool / Seasonal",
+      frame: "Aggressive Frame",
+      frameDesc: "Harder hitting with increased recoil. High blast radius with solid velocity. One of the best heavy DPS options for raids.",
+      pve: {
+        col1: ["Auto-Loading Holster", "Field Prep"],
+        col2: ["Bait & Switch", "Explosive Light"],
+        mw: "Reload MW",
+        tip: "Zelfde God Roll als Apex Predator maar dan voor grenade launchers. Bait & Switch geeft 35% DPS buff. Explosive Light voor Orb synergie. Top heavy DPS keuze voor spelers zonder Apex Predator."
+      },
+      pvp: {
+        col1: ["Field Prep", "Threat Detector"],
+        col2: ["Cluster Bomb", "Spike Grenades"],
+        mw: "Velocity MW",
+        tip: "Heavy GL in PvP werkt voor zone control. Edge Transit heeft genoeg blast radius voor area denial. Niet de meest gebruikte optie maar solide in the right hands."
+      },
+      quote: "\"De weg vooruit is altijd gevaarlijk.\""
+    },
+    conditional: {
+      name: "Conditional Finality",
+      rarity: "exotic",
+      icon: "❄️",
+      type: "Exotic Kinetic Shotgun",
+      element: "Kinetic (Solar + Stasis split)",
+      rpm: "65 RPM",
+      ammo: "Special Ammo",
+      source: "Root of Nightmares Raid",
+      frame: "Aggressive Frame",
+      frameDesc: "Fires two simultaneous shots — the first pellets are Solar and ignite targets, the second pellets are Stasis and freeze targets. Unique split-element mechanic.",
+      pve: {
+        col1: ["Incandescent", "Surrounded"],
+        col2: ["Paracausal Pellets", "One-Two Finish"],
+        mw: "Range / Handling MW",
+        tip: "Conditional Finality kan tegelijk Ignite (Solar) en Freeze (Stasis) triggeren op dezelfde target — uniek in het spel. Geweldig voor het stun-locken van Champions en het activeren van meerdere elemental vermogens tegelijk."
+      },
+      pvp: {
+        col1: ["Opening Shot", "Surplus"],
+        col2: ["Paracausal Pellets", "One-Two Finish"],
+        mw: "Range MW",
+        tip: "De freeze mechanic maakt dit shotgun uitzonderlijk gevaarlijk in PvP — een niet-dodelijke hit kan de tegenstander invriezen waarna de Solar pellets afmaken. Vereist oefening maar is verwoestend als het werkt."
+      },
+      quote: "\"Twee kanten van dezelfde munt — vuur en ijs.\""
+    },
+    mountaintop: {
+      name: "The Mountaintop",
+      rarity: "legendary",
+      icon: "🏔️",
+      type: "Legendary Kinetic Grenade Launcher",
+      element: "Kinetic",
+      rpm: "72 RPM",
+      ammo: "Special Ammo",
+      source: "Crucible / World Loot Pool",
+      frame: "Aggressive Burst Frame",
+      frameDesc: "Fires grenades with a high arc for precision placement. Spike Grenades increase damage and reduces bounce. Mountaintop fires directly without bounce delay.",
+      pve: {
+        col1: ["Auto-Loading Holster", "Field Prep"],
+        col2: ["Spike Grenades", "Blowout"],
+        mw: "Velocity MW",
+        tip: "Mountaintop is in PvE een solide special DPS option voor boss damage fases. Spike Grenades zijn verplicht voor maximale schade. Minder meta dan Forbearance maar makkelijker te farmen."
+      },
+      pvp: {
+        col1: ["Slideshot", "Threat Detector"],
+        col2: ["Spike Grenades", "Blowout"],
+        mw: "Velocity MW",
+        tip: "The Mountaintop is een PvP legende — direct-fire trajectory maakt het makkelijk te richten. Spike Grenades geven één-shot-kill potential op zwakke tegenstanders. Een van de meest gevreesde special weapons in de Crucible."
+      },
+      quote: "\"Van de top zie je alles — en alles ziet jou.\""
+    }
+  };
+
+  function openWpop(id) {
+    const d = WPOP_DATA[id];
+    if (!d) return;
+
+    // icon
+    const ico = document.getElementById('wpopIcon');
+    ico.textContent = d.icon;
+    ico.className = 'wpop-icon ' + d.rarity;
+
+    // naam
+    document.getElementById('wpopName').textContent = d.name;
+
+    // meta
+    document.getElementById('wpopMeta').innerHTML =
+      `<span>${d.element}</span><span class="wpop-dot">·</span>` +
+      `<span>${d.rpm}</span><span class="wpop-dot">·</span>` +
+      `<span>${d.ammo}</span><span class="wpop-dot">·</span>` +
+      `<span style="color:var(--text2)">${d.source}</span>`;
+
+    // body
+    document.getElementById('wpopBody').innerHTML = `
+      <div class="wpop-frame">
+        <div class="wpop-frame-label">Intrinsic Frame</div>
+        <p><strong>${d.frame}</strong> — ${d.frameDesc}</p>
+      </div>
+
+      <div class="wpop-section-label">⬡ God Rolls</div>
+      <div class="wpop-rolls">
+        <div class="wpop-roll">
+          <div class="wpop-roll-head">
+            <span class="wpop-roll-type roll-pve">✔ PvE</span>
+          </div>
+          <div class="wpop-cols">
+            <div>
+              <div class="wpop-col-label">Kolom 1</div>
+              ${d.pve.col1.map(p=>`<div class="wpop-perk-item">• ${p}</div>`).join('')}
+            </div>
+            <div>
+              <div class="wpop-col-label">Kolom 2</div>
+              ${d.pve.col2.map(p=>`<div class="wpop-perk-item">• ${p}</div>`).join('')}
+            </div>
+          </div>
+          <div class="wpop-mw">★ Masterwork: ${d.pve.mw}</div>
+          <div class="wpop-tip">${d.pve.tip}</div>
+        </div>
+        <div class="wpop-roll">
+          <div class="wpop-roll-head">
+            <span class="wpop-roll-type roll-pvp">✘ PvP</span>
+          </div>
+          <div class="wpop-cols">
+            <div>
+              <div class="wpop-col-label">Kolom 1</div>
+              ${d.pvp.col1.map(p=>`<div class="wpop-perk-item">• ${p}</div>`).join('')}
+            </div>
+            <div>
+              <div class="wpop-col-label">Kolom 2</div>
+              ${d.pvp.col2.map(p=>`<div class="wpop-perk-item">• ${p}</div>`).join('')}
+            </div>
+          </div>
+          <div class="wpop-mw">★ Masterwork: ${d.pvp.mw}</div>
+          <div class="wpop-tip">${d.pvp.tip}</div>
+        </div>
+      </div>
+      <div class="wpop-quote">${d.quote}</div>
+    `;
+
+    document.getElementById('wpopOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeWpop() {
+    document.getElementById('wpopOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function closeWpopOutside(e) {
+    if (e.target === document.getElementById('wpopOverlay')) closeWpop();
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeWpop();
+  });
+  </script>
 </body>
 </html>
